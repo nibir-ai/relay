@@ -16,15 +16,24 @@ A local API tester for your backend: categorized endpoints, clear responses, qui
 In your backend's Python environment (Python 3.11+):
 
 ```sh
-python -m pip install relay-backend==0.0.2
+python -m pip install relay-backend
 ```
+
+
+A fresh installation gets the latest stable release. To update an existing installation:
+
+```sh
+python -m pip install --upgrade relay-backend
+```
+
+Restart the backend after upgrading. The browser title uses your application's name: `FastAPI(title="Ludo Portal")` becomes `Relay - Ludo Portal`. Any application's title works.
 
 ### 2. Add two lines
 
 In the file where you create `app = FastAPI()`:
 
 ```python
-from relay_agent import install_relay
+from relay_backend import install_relay
 install_relay(app)
 ```
 
@@ -43,9 +52,9 @@ Use your development setting to control installation:
 install_relay(app, enabled=settings.DEBUG)
 ```
 
-Install before wrapping FastAPI with Socket.IO. Application factories, custom OpenAPI generators, lifespan and proxy prefixes are covered in the [FastAPI integration guide](docs/FASTAPI.md). Alternatively, install the wheel attached to the [v0.0.2 release](https://github.com/nibir-ai/relay/releases/tag/v0.0.2).
+Install before wrapping FastAPI with Socket.IO. Application factories, custom OpenAPI generators, lifespan and proxy prefixes are covered in the [FastAPI integration guide](docs/FASTAPI.md). Alternatively, install the wheel attached to the [v0.0.3 release](https://github.com/nibir-ai/relay/releases/tag/v0.0.3).
 
-The distribution name is **relay-backend**. The import is **relay_agent** and the CLI is **relay**. The `relay-agent` project on PyPI is unrelated.
+The distribution name is **relay-backend**. The import is **relay_backend** and the CLI is **relay**. Existing `from relay_agent import install_relay` integrations remain compatible. The `relay-agent` project on PyPI is unrelated.
 
 </details>
 
@@ -59,7 +68,7 @@ The distribution name is **relay-backend**. The import is **relay_agent** and th
 - Per-endpoint `.relay` browser reports and structured JSON exports, plus a local report opener and Windows file association.
 - A standalone CLI for loopback OpenAPI backends.
 
-This first release is an alpha for local development. Multipart uploads, OAuth browser flows, YAML/external references, instant team synchronization and public hosting are outside its scope. A successful request does not automatically change status. Git collaboration uses normal commits, pushes and pulls.
+Relay is an alpha for local development. Multipart uploads, OAuth browser flows, YAML/external references and public hosting are outside its scope. A successful request does not automatically change status. Optional automatic team status sync uses your existing Git remote; see the [team setup guide](docs/GIT.md).
 
 Tokens and drafts stay in browser session memory. Explicit exports include request bodies, parameters and captured responses, which may contain secrets; inspect them before sharing. See the [export format and handling guide](docs/EXPORTS.md).
 
@@ -73,6 +82,19 @@ Tokens and drafts stay in browser session memory. Explicit exports include reque
 - [x] Finish illustrated setup guides, the package README and troubleshooting documentation.
 
 Release gate: fresh package installation, endpoint discovery, authentication, execution, response inspection and both export formats verified without frontend tooling. See [verification notes](docs/VERIFICATION.md). Additional frameworks, cloud collaboration and premium tools remain outside this release.
+
+## Roadmap: v0.0.3
+
+- [x] Use `pip install relay-backend` for the latest fresh installation and document upgrades.
+- [x] Make `relay_backend` the public Python import while preserving existing integrations.
+- [x] Display `Relay - <app name>` automatically from each application's OpenAPI title.
+- [ ] Verify bundled branding and asset refresh from a clean published-package installation.
+- [x] Remove unused artwork and private development metadata from public source and packages.
+- [x] Add opt-in automatic team status sync without manual Git commands or changing working files.
+- [ ] Migrate the Ludo backend to the tested published package and verify its native integration.
+- [ ] Pass package, frontend, Python, cross-environment sync and release checks before publication.
+
+Issue maintenance checks run every four hours and update this checklist when fixes are verified.
 
 ## Documentation
 

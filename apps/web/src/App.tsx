@@ -45,6 +45,7 @@ export default function App() {
   const [copied, setCopied] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const syncing = useRef(false);
+  const statusRevision = useRef(0);
   const drafts = useRef(new Map<string, PlaygroundDraft>());
   function focusToken() {
     setAuthEndpoint(null);
@@ -111,6 +112,25 @@ export default function App() {
   useEffect(() => {
     void sync();
   }, []);
+  useEffect(() => {
+    document.title = snapshot?.title?.trim() ? `Relay - ${snapshot.title.trim()}` : "Relay";
+  }, [snapshot?.title]);
+  useEffect(() => {
+    if (!health) return;
+    let active = true;
+    let pending = false;
+    const timer = setInterval(async () => {
+      if (document.visibilityState !== "visible" || syncing.current || saving || pending) return;
+      pending = true;
+      const revision = statusRevision.current;
+      try {
+        const next = await api.workspace();
+        if (active && !syncing.current && revision === statusRevision.current) setWorkspace(next);
+      } catch { /* Sync exposes persistent storage failures without interrupting request testing. */ }
+      finally { pending = false; }
+    }, 5000);
+    return () => { active = false; clearInterval(timer); };
+  }, [health?.csrf_token, saving]);
   const syncRef = useRef(sync);
   syncRef.current = sync;
   useEffect(() => {
@@ -137,6 +157,7 @@ export default function App() {
   }, []);
   async function update(endpoint: Endpoint, progress: Progress) {
     if (!health || saving) return;
+    statusRevision.current++;
     setSaving(true);
     setError("");
     try {
@@ -155,6 +176,7 @@ export default function App() {
           : "Could not save status. Try again.",
       );
     } finally {
+      statusRevision.current++;
       setSaving(false);
     }
   }
@@ -245,7 +267,7 @@ export default function App() {
                 checked={autoSync}
                 onChange={(e) => setAutoSync(e.target.checked)}
               />
-              Auto sync
+              Auto refresh
             </label>
             <span className="last-sync">
               {syncedAt
@@ -310,9 +332,11 @@ export default function App() {
               {health?.version ?? "Unavailable"} · 20s timeout · 1 MiB request
               limit
             </dd>
+            <dt>Team status</dt>
+            <dd>{workspace.status_sync?.enabled ? workspace.status_sync.error ?? workspace.status_sync.state : "Local / Git file sharing"}</dd>
           </dl>
           <p>Connect a different backend from the command line:</p>
-          <pre>python -m relay_agent --target http://127.0.0.1:9000</pre>
+          <pre>python -m relay_backend --target http://127.0.0.1:9000</pre>
         </details>
       </main>
       {authOpen && <AuthPanel

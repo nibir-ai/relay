@@ -1,8 +1,34 @@
-# Git workflow
+# Team statuses and Git attribution
 
-## Share endpoint status
+## Automatic sharing
 
-With a detected Git repository, Relay writes workflow metadata to `.relay/status.json`. Commit/push normally; teammates pull and Sync locally. Relay never commits, pushes or pulls for you.
+Each teammate enables sync in the existing FastAPI backend:
+
+```python
+from relay_backend import install_relay
+install_relay(app, sync_status=True)
+```
+
+Run from the backend repository, or pass `project=Path(...)`. Relay uses its existing `origin` remote and the normal Git credentials already configured on that machine. Teammates need read and write access to that remote and Git available on PATH. No Relay account or hosted service is required.
+
+Change the status beside any endpoint. Relay records your Git name, then exchanges metadata in the background every ten seconds. Other running backends receive it automatically; visible Relay tabs refresh every five seconds. Allow roughly fifteen seconds with a healthy connection. This is periodic synchronization, not instant messaging. The connection details show sync state and failures.
+
+Relay creates a dedicated `relay-status` branch containing only `status.json`. It never checks out that branch, stages your files, commits application code, merges code or forces a push. Requests, response bodies, credentials and notes are not sent to this branch. Add `.relay/status.json` to your backend's `.gitignore` when using automatic mode; also ignore `.relay/status.lock` and `.relay/status-*.tmp`.
+
+Each endpoint's most recent timestamp wins; equal timestamps use a stable tie-break. Keep machine clocks synchronized. Updates to different endpoints are preserved. Rejected concurrent pushes fetch, merge and retry. Network or permission failures retain your local changes and retry in the background. Fix Git remote access on the machine when the connection details report an error. Invalid remote metadata is reported and never overwritten.
+
+Configure your identity in the backend repository:
+
+```sh
+git config user.name "Your Name"
+git config user.email "you@example.com"
+```
+
+Git-configured names are attribution, not authenticated identity. Everyone with write access to the status branch can change that metadata. Missing identity blocks shared status writes; API testing remains available.
+
+## Manual Git sharing
+
+Automatic sharing is opt-in. With the default `install_relay(app)`, Relay writes `.relay/status.json` locally and makes no network Git operations. To share manually, track that file, commit and push it; teammates pull it. Running tabs refresh the resulting metadata.
 
 ```sh
 git add .relay/status.json
@@ -10,36 +36,25 @@ git commit -m "Update API statuses"
 git push
 ```
 
-Updater identity comes from local Git configuration. It is attribution, not verified identity or a security boundary. The shared file contains status/attribution, not raw traffic or tokens. SQLite holds local workspace/status history; explicitly downloaded exports are separate files.
+Choose one workflow for the team. In manual mode, do not ignore `.relay/status.json`; ignore the temporary lock files only. SQLite stores local workspace history. Downloaded exports are separate files.
 
-Configure your identity in the backend repository before changing a shared status:
-
-```sh
-git config user.name "Your Name"
-git config user.email "you@example.com"
-```
-
-Missing identity blocks shared status writes with a clear message; API testing remains available.
+## Status meanings
 
 | Status | Meaning |
 |---|---|
 | Done | Initial default, or a manually recorded team decision. |
 | In progress | Work underway. |
-| Needs fixing | Known follow-up or detected contract change. |
+| Needs fixing | Known follow-up or a detected contract change. |
 | Not started | Work not begun. |
 
-Statuses are manual. Execute never marks Done. New APIs default Done; manual choices persist. Contract changes can flag previously Done work for review.
+Execute never changes status. New APIs default to Done; manual choices persist. Contract changes can flag previously Done work for review. Shared rows include a contract fingerprint so obsolete decisions are not applied silently to changed APIs.
 
 ## Handler authors
 
-Native FastAPI maps handlers to source/Git. Expanded details show Introduced by, Last committed change by and file/line. The path tooltip exposes the inferred creator. Status updated by is distinct.
+Native FastAPI maps handlers to source and Git. Expanded details show Introduced by, Last committed change by and file/line. The path tooltip exposes the inferred creator. Status updated by is distinct.
 
-Introduction is inferred from oldest available definition-line history and last editor from committed handler history. Shallow/squashed repositories, reused handlers, wrappers and moved registrations can limit accuracy. This is not verified ownership or a guaranteed history of the original route registration.
+Introduction is inferred from the oldest available definition-line history and the last editor from committed handler history. Shallow or squashed repositories, reused handlers, wrappers and moved registrations can limit accuracy. Local or uncommitted changes are labeled. Unavailable attribution does not block testing. Standalone OpenAPI mode cannot infer Python source authors from a remote schema.
 
-Local/uncommitted changes are labeled. Unavailable Git/source attribution does not block testing. Standalone OpenAPI mode cannot infer Python source authors from a remote schema.
+## Local metadata conflicts
 
-## Selection and conflicts
-
-Detection searches upward from process cwd. Pass `project=Path(...)` if needed. Git reads are cached; shared writes are atomic and locked. Malformed/conflicted metadata is reported rather than overwritten. Resolve merge markers normally, then Sync.
-
-Track `.relay/status.json`; ignore `.relay/status.lock` and `.relay/status-*.tmp`. Do not ignore the entire directory if sharing statuses.
+Git detection searches upward from process cwd. Local writes are atomic and locked. Malformed or conflicted `.relay/status.json` is reported instead of overwritten. Resolve merge markers before retrying. Only status synchronization uses the separate remote branch; your application branch and working files remain under your normal workflow.

@@ -7,7 +7,7 @@ apps/web/dist/
 .env
 *.log
 *.tsbuildinfo
-apps/agent/relay_agent/static/
+apps/agent/relay_backend/static/
 dist/
 apps/agent/build/
 .relay/status.lock

@@ -1,14 +1,14 @@
 # Releasing Relay
 
-v0.0.2 was published on 9 October 2026 on [PyPI](https://pypi.org/project/relay-backend/0.0.2/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.2). The publishing workflow succeeded, and a fresh public-index installation passed the consumer smoke check. See [the changelog](../CHANGELOG.md) for release contents.
+The current candidate is v0.0.3. Versions 0.0.1 and 0.0.2 are already published using the configured Trusted Publisher. Follow every gate below before publishing the candidate. See [the changelog](../CHANGELOG.md) for release contents.
 
-Initial Apache-2.0 alpha distribution: `relay-backend`, import `relay_agent`. Includes native/bundled FastAPI testing, auth, statuses/Git attribution, response inspection, themes/branding, exports and local CLI. Node is for maintainers only. Multipart, OAuth browser flows, realtime sync, public hosting, YAML/external refs and macOS/Linux desktop associations remain out of scope.
+Apache-2.0 distribution: `relay-backend`, import `relay_backend`, with legacy root-import compatibility. Includes native FastAPI testing, auth, statuses, optional automatic Git status sync, source attribution, response inspection, themes, branding, exports and local CLI. Node is for maintainers only. Multipart, OAuth browser flows, public hosting, YAML/external refs and macOS/Linux desktop associations remain out of scope.
 
 ## Artifacts and checks
 
-Build `dist/relay_backend-0.0.2-py3-none-any.whl` and `dist/relay_backend-0.0.2.tar.gz` using [contributor commands](CONTRIBUTING.md). Verify UI/Python tests, wheel assets/execution, clean customer installation and twine metadata validation. The clean-install gate copies the runnable example into a fresh environment outside the checkout and exercises authenticated handlers, query arrays, nested/optional bodies, validation and empty responses.
+Build `dist/relay_backend-0.0.3-py3-none-any.whl` and `dist/relay_backend-0.0.3.tar.gz` using [contributor commands](CONTRIBUTING.md). Verify UI/Python tests, wheel assets/execution, clean customer installation and twine metadata validation. The clean-install gate copies the runnable example into a fresh environment outside the checkout and exercises authenticated handlers, query arrays, nested/optional bodies, validation and empty responses.
 
-CI covers Python 3.11/3.12/3.13; inspect actual results before declaring these combinations validated. The release workflow reruns checks before its isolated upload job. It is triggered by publishing the GitHub release/tag `v0.0.2`.
+CI covers Python 3.11/3.12/3.13; inspect actual results before declaring these combinations validated. The release workflow reruns checks before its isolated upload job. It is triggered by publishing the GitHub release/tag `v0.0.3`.
 
 ## Trusted Publisher
 
@@ -41,7 +41,7 @@ A pending publisher creates the project on first successful upload; it does not 
 1. Review the release diff and artifact checks.
 2. Confirm the existing Trusted Publisher still matches the workflow and repository.
 3. Commit/push release source; build outputs stay ignored because CI rebuilds them.
-4. Publish GitHub release `v0.0.2` with CHANGELOG.md notes.
+4. Publish GitHub release `v0.0.3` with CHANGELOG.md notes.
 5. Confirm workflow success and the actual PyPI project/version.
 6. Run `python scripts/verify_clean_install.py --public-index` to verify the actual published version in a fresh environment; only then record publication success.
 

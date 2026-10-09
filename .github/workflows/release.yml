@@ -1,4 +1,4 @@
-name: Publish v0.0.2
+name: Publish v0.0.3
 on:
   release:
     types: [published]
@@ -6,7 +6,7 @@ permissions:
   contents: read
 jobs:
   build:
-    if: github.event.release.tag_name == 'v0.0.2'
+    if: github.event.release.tag_name == 'v0.0.3'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,11 +26,11 @@ jobs:
       - run: python -m pytest apps/agent/tests -q
       - run: python scripts/verify_package.py
       - run: python scripts/verify_clean_install.py
-      - run: python -m twine check dist/relay_backend-0.0.2*
+      - run: python -m twine check dist/relay_backend-0.0.3*
       - uses: actions/upload-artifact@v4
         with:
           name: python-distributions
-          path: dist/relay_backend-0.0.2*
+          path: dist/relay_backend-0.0.3*
   publish:
     needs: build
     runs-on: ubuntu-latest

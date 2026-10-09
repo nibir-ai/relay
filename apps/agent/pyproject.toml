@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "relay-backend"
-version = "0.0.2"
+version = "0.0.3"
 description = "A local API testing interface with native FastAPI integration, endpoint status tracking, and Git attribution."
 readme = "README.md"
 license = "Apache-2.0"
@@ -33,13 +33,13 @@ Changelog = "https://github.com/nibir-ai/relay/blob/main/CHANGELOG.md"
 test = ["pytest>=8,<10", "python-socketio>=5.12,<6"]
 
 [project.scripts]
-relay = "relay_agent.cli:main"
+relay = "relay_backend.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["relay_agent*"]
+include = ["relay_backend*", "relay_agent"]
 
 [tool.setuptools.package-data]
-relay_agent = ["static/*", "static/assets/*", "static/brand/*"]
+relay_backend = ["static/*", "static/assets/*", "static/brand/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

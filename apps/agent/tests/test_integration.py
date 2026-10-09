@@ -10,8 +10,8 @@ from typing import Annotated
 from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.testclient import TestClient
 
-from relay_agent import install_relay
-from relay_agent.security import MAX_REQUEST, MAX_RESPONSE
+from relay_backend import install_relay
+from relay_backend.security import MAX_REQUEST, MAX_RESPONSE
 
 ORIGIN = "http://localhost:9321"
 
@@ -70,6 +70,15 @@ def test_disabled_integration_leaves_application_untouched():
     assert not hasattr(app.state, "relay")
     with TestClient(app) as client:
         assert client.get("/relay").status_code == 404
+
+
+def test_app_name_is_escaped_in_browser_title_and_legacy_import_still_works(tmp_path):
+    from relay_agent import install_relay as legacy_install
+    assert legacy_install is install_relay
+    with TestClient(host(tmp_path, title="Ludo <Portal>"), base_url=ORIGIN, client=("127.0.0.1", 4321)) as client:
+        page = client.get("/relay/")
+        assert "<title>Relay - Ludo &lt;Portal&gt;</title>" in page.text
+        assert "relay-mark.svg?v=0.0.3" in page.text
 
 
 def test_socketio_wrapper_forwards_relay_and_host_lifespan(tmp_path):

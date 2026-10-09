@@ -7,13 +7,22 @@
 Install in your backend's Python environment:
 
 ```sh
-python -m pip install relay-backend==0.0.2
+python -m pip install relay-backend
 ```
+
+
+A fresh installation gets the latest stable release. To update an existing installation:
+
+```sh
+python -m pip install --upgrade relay-backend
+```
+
+Restart the backend after upgrading. The browser title uses your application's name: `FastAPI(title="Ludo Portal")` becomes `Relay - Ludo Portal`. Any application's title works.
 
 In the file where your existing FastAPI instance is created:
 
 ```python
-from relay_agent import install_relay
+from relay_backend import install_relay
 install_relay(app)
 ```
 
@@ -28,7 +37,7 @@ The wheel includes UI, fonts and branding. No Node, source clone, CDN, frontend 
 ```python
 # main.py
 from fastapi import FastAPI
-from relay_agent import install_relay
+from relay_backend import install_relay
 
 app = FastAPI(title="Example")
 
@@ -65,7 +74,7 @@ def create_app():
     return app
 ```
 
-Mount once per app instance. Duplicate mounting and an existing `/relay` namespace produce explicit errors. `/relay` is fixed in v0.0.2. Routes can be included before or after mounting, before startup.
+Mount once per app instance. Duplicate mounting and an existing `/relay` namespace produce explicit errors. `/relay` is fixed in v0.0.3. Routes can be included before or after mounting, before startup.
 
 ## Socket.IO and wrappers
 
@@ -83,6 +92,7 @@ Install on FastAPI before wrapping it; the outer ASGI wrapper is not a FastAPI i
 | Option | Default | Purpose |
 |---|---|---|
 | `enabled` | `True` | Your development flag. |
+| `sync_status` | `False` | Automatically exchange statuses through the existing Git remote; see [team setup](GIT.md). |
 | `project` | Git repository detected upward from process cwd | Shared statuses and source attribution; pass `pathlib.Path`. |
 | `data_dir` | `~/.relay` | Per-project/app local workspace storage. |
 | `db_path` | Derived workspace SQLite path | Explicit path or `":memory:"` for tests. |
@@ -103,10 +113,10 @@ The parent lifespan starts first and stops last. Relay's resources run inside it
 
 ## Install from a release file
 
-Download the wheel from the [v0.0.2 release](https://github.com/nibir-ai/relay/releases/tag/v0.0.2), then install it with the same consumer integration:
+Download the wheel from the [v0.0.3 release](https://github.com/nibir-ai/relay/releases/tag/v0.0.3), then install it with the same consumer integration:
 
 ```sh
-python -m pip install /path/to/relay_backend-0.0.2-py3-none-any.whl
+python -m pip install /path/to/relay_backend-0.0.3-py3-none-any.whl
 ```
 
 `relay-agent` on PyPI is an unrelated project; the distribution to use is `relay-backend`.

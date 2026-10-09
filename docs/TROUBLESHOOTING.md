@@ -18,11 +18,11 @@ Package installation alone does not mount routes. Confirm `install_relay(app)` r
 
 ## Wrong install/environment
 
-Install `relay-backend`, import `relay_agent`; PyPI's `relay-agent` is unrelated. Use the backend's Python environment:
+Install `relay-backend`, import `relay_backend`; PyPI's `relay-agent` is unrelated. Use the backend's Python environment:
 
 ```sh
 python -m pip show relay-backend
-python -c "import relay_agent; print(relay_agent.__file__)"
+python -c "import relay_backend; print(relay_backend.__file__)"
 ```
 
 Before publication, install the release-candidate wheel. Consumers should not need Node or a checkout.

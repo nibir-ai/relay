@@ -1,2 +1,2 @@
 include README.md LICENSE THIRD_PARTY_NOTICES.md
-recursive-include relay_agent/static *
+recursive-include relay_backend/static *

@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi import Depends
-from relay_agent import install_relay
+from relay_backend import install_relay
 
 app = FastAPI(title="Relay Demo API", version="0.1.0", description="A safe local fixture for your first Relay request.")
 install_relay(app)

@@ -40,7 +40,7 @@ When a response is truncated, Copy and Export contain only the retained preview.
 
 ## Sync and progress
 
-Sync reloads schema; Auto sync checks every ten seconds. Invalid imports preserve the previous successful contract. FastAPI's schema cache still applies. Done is the default manual status; execution never changes it. A contract change can flag a previously Done API as Needs fixing.
+Sync reloads schema; Auto refresh checks the schema every ten seconds. Team statuses refresh independently when automatic Git sync is enabled. Invalid imports preserve the previous successful contract. FastAPI's schema cache still applies. Done is the default manual status; execution never changes it. A contract change can flag a previously Done API as Needs fixing.
 
 ## Execution boundaries
 

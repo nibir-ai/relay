@@ -4,8 +4,8 @@ import json
 from fastapi import APIRouter, FastAPI
 from fastapi.testclient import TestClient
 
-from relay_agent import install_relay
-from relay_agent.git_source import GitSource
+from relay_backend import install_relay
+from relay_backend.git_source import GitSource
 from test_git_status import git, repository
 
 CODE = '''from fastapi import FastAPI

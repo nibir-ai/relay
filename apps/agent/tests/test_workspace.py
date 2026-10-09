@@ -5,10 +5,10 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from relay_agent.app import create_app
-from relay_agent.integration import install_relay
-from relay_agent.openapi import normalize
-from relay_agent.workspace import Workspace
+from relay_backend.app import create_app
+from relay_backend.integration import install_relay
+from relay_backend.openapi import normalize
+from relay_backend.workspace import Workspace
 
 ORIGIN = "http://127.0.0.1:4477"
 SPEC = {"openapi":"3.1.0","info":{"title":"Test","version":"1"},"paths":{"/test":{"get":{"responses":{"200":{"description":"OK"}}}}}}

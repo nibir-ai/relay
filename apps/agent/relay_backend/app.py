@@ -38,7 +38,7 @@ class EndpointUpdate(BaseModel):
     note: str | None = Field(default=None, max_length=4000)
 
 
-def create_app(settings: Settings | None = None, transport=None, static_dir: Path | None = None, db_path: str | Path = ":memory:", project: Path | None = None, native_host: FastAPI | None = None):
+def create_app(settings: Settings | None = None, transport=None, static_dir: Path | None = None, db_path: str | Path = ":memory:", project: Path | None = None, native_host: FastAPI | None = None, sync_status: bool = False):
     settings = settings or Settings()
     token = secrets.token_urlsafe(32)
 
@@ -49,11 +49,19 @@ def create_app(settings: Settings | None = None, transport=None, static_dir: Pat
         app.state.git_source = GitSource(workspace.shared.root if workspace.shared else None)
         app.state.snapshot = None
         app.state.raw_spec = None
+        status_sync = None
+        if sync_status and workspace.shared:
+            from .status_sync import StatusSync
+            status_sync = StatusSync(workspace.shared)
+            status_sync.start()
+        app.state.status_sync = status_sync
         try:
             async with httpx.AsyncClient(timeout=20, follow_redirects=False, trust_env=False, transport=transport) as client:
                 app.state.client = client
                 yield
         finally:
+            if status_sync:
+                await asyncio.to_thread(status_sync.close)
             workspace.close()
 
     app = FastAPI(title="Relay Local Companion", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
@@ -102,7 +110,7 @@ def create_app(settings: Settings | None = None, transport=None, static_dir: Pat
 
     @app.get("/__relay/health")
     def health(request: Request):
-        return {"status": "ok", "mode": "local", "version": "0.0.2", "csrf_token": token,
+        return {"status": "ok", "mode": "local", "version": "0.0.3", "csrf_token": token,
                 "base_url": target_base(request), "spec_url": target_base(request) + (native_host.openapi_url or "") if native_host else settings.target(settings.spec_path)}
 
     @app.post("/__relay/sources/inspect")
@@ -130,12 +138,15 @@ def create_app(settings: Settings | None = None, transport=None, static_dir: Pat
 
     @app.get("/__relay/workspace")
     def read_workspace():
-        return app.state.workspace.read()
+        value = app.state.workspace.read()
+        worker = app.state.status_sync
+        value["status_sync"] = worker.info() if worker else {"enabled": False, "state": "local", "error": "No Git repository detected." if sync_status else None}
+        return value
 
     @app.post("/__relay/endpoints/update")
     def update_endpoint(payload: EndpointUpdate):
         app.state.workspace.update(payload.endpoint_id, payload.fingerprint, payload.progress, payload.note)
-        return app.state.workspace.read()
+        return read_workspace()
 
     @app.get("/__relay/sources/current")
     def current():
@@ -204,6 +215,10 @@ def create_app(settings: Settings | None = None, transport=None, static_dir: Pat
         def relay_ui(request: Request):
             base = request.scope.get("root_path", "") if native_host else request.scope.get("root_path", "") + "/relay"
             html = (static_dir / "index.html").read_text(encoding="utf-8")
+            if native_host:
+                html = html.replace("<title>Relay</title>", f"<title>Relay - {escape(native_host.title)}</title>")
+            # Version every non-hashed favicon URL so upgrades refresh it on every device.
+            html = html.replace("relay-mark.svg?v=2", "relay-mark.svg?v=0.0.3")
             html = html.replace("<head>", f'<head><base href="{escape(base + "/", quote=True)}">', 1)
             return HTMLResponse(html)
         if not native_host:

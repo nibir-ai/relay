@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from relay_agent.files import REPORT_MARKER, open_report, prepare_report
+from relay_backend.files import REPORT_MARKER, open_report, prepare_report
 
 
 def test_prepare_report_preserves_contents_and_handles_spaces(tmp_path):
@@ -26,11 +26,11 @@ def test_rejects_unsupported_files(tmp_path, name, contents):
 
 def test_open_uses_file_uri_and_reports_browser_failure(tmp_path, monkeypatch):
     path = tmp_path / "safe report.html"
-    monkeypatch.setattr("relay_agent.files.prepare_report", lambda _: path)
+    monkeypatch.setattr("relay_backend.files.prepare_report", lambda _: path)
     opened = []
-    monkeypatch.setattr("relay_agent.files.webbrowser.open", lambda uri: opened.append(uri) or True)
+    monkeypatch.setattr("relay_backend.files.webbrowser.open", lambda uri: opened.append(uri) or True)
     assert open_report(Path("example.relay")) == path
     assert opened == [path.as_uri()]
-    monkeypatch.setattr("relay_agent.files.webbrowser.open", lambda _: False)
+    monkeypatch.setattr("relay_backend.files.webbrowser.open", lambda _: False)
     with pytest.raises(RuntimeError):
         open_report(Path("example.relay"))

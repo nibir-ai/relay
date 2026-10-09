@@ -9,13 +9,22 @@ An offline API testing interface for your FastAPI application. Install one Pytho
 1. Install in your backend's Python environment:
 
 ```sh
-python -m pip install relay-backend==0.0.2
+python -m pip install relay-backend
 ```
+
+
+A fresh installation gets the latest stable release. To update an existing installation:
+
+```sh
+python -m pip install --upgrade relay-backend
+```
+
+Restart the backend after upgrading. The browser title uses your application's name: `FastAPI(title="Ludo Portal")` becomes `Relay - Ludo Portal`. Any application's title works.
 
 2. Add these lines where your FastAPI `app` is created:
 
 ```python
-from relay_agent import install_relay
+from relay_backend import install_relay
 install_relay(app)
 ```
 
@@ -26,7 +35,7 @@ install_relay(app)
 
 ```python
 from fastapi import FastAPI
-from relay_agent import install_relay
+from relay_backend import install_relay
 
 app = FastAPI()
 install_relay(app)
@@ -50,9 +59,9 @@ No repository clone, Node installation, frontend build, CDN, separate Relay proc
 - Manual endpoint status, defaulting to Done, with optional Git-shared status and inferred source attribution.
 - A bundled standalone CLI for local OpenAPI backends and portable `.relay` reports.
 
-Python 3.11+ is required. This is a local development tool: only loopback hosts/clients are accepted. Request execution invokes your real application middleware, dependencies and handlers. Tests can change your development data. Multipart upload, OAuth browser flows, remote/shared deployment and realtime team sync are outside v0.0.2.
+Python 3.11+ is required. This is a local development tool: only loopback hosts/clients are accepted. Request execution invokes your real application middleware, dependencies and handlers. Tests can change your development data. Multipart upload, OAuth browser flows, remote/shared deployment are outside v0.0.3. Opt into automatic team statuses with `install_relay(app, sync_status=True)` using the backend repository's existing Git remote. [Team setup](https://github.com/nibir-ai/relay/blob/main/docs/GIT.md) explains access and conflict handling.
 
-The PyPI distribution is **relay-backend**; the Python import remains **relay_agent**. `relay-agent` on PyPI is an unrelated package.
+The PyPI distribution is **relay-backend**; the Python import is **relay_backend**. The former `relay_agent` root import remains compatible. `relay-agent` on PyPI is an unrelated package.
 
 [Documentation](https://github.com/nibir-ai/relay/blob/main/docs/README.md) · [Source](https://github.com/nibir-ai/relay) · [Issues](https://github.com/nibir-ai/relay/issues)
 

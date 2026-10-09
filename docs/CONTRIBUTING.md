@@ -17,7 +17,7 @@ python -m pytest apps/agent/tests -q
 python scripts/package.py
 python scripts/verify_package.py
 python scripts/verify_clean_install.py
-python -m twine check dist/relay_backend-0.0.2*
+python -m twine check dist/relay_backend-0.0.3*
 ```
 
 Packaging builds Vite, copies the compiled assets into Python, and produces sdist plus wheel. The wheel is built from sdist, checking source-distribution asset inclusion. Wheel verification runs outside the editable checkout; customer verification creates a new venv and installs dependencies without Node or a checkout.

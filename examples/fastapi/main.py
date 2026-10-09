@@ -9,7 +9,7 @@ from typing import Annotated
 from fastapi import APIRouter, Body, Depends, FastAPI, HTTPException, Query, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
-from relay_agent import install_relay
+from relay_backend import install_relay
 
 bearer = HTTPBearer(auto_error=False)
 router = APIRouter(prefix="/api")

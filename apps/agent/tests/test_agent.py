@@ -6,9 +6,9 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from relay_agent.app import create_app
-from relay_agent.openapi import SpecError, normalize
-from relay_agent.security import MAX_REQUEST, MAX_RESPONSE, Settings
+from relay_backend.app import create_app
+from relay_backend.openapi import SpecError, normalize
+from relay_backend.security import MAX_REQUEST, MAX_RESPONSE, Settings
 
 ROOT = Path(__file__).resolve().parents[3]
 module = importlib.util.spec_from_file_location("demo", ROOT / "fixtures/fastapi-demo/main.py")

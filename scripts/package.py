@@ -9,9 +9,9 @@ node = shutil.which("node")
 npm_cli = Path(node).parent / "node_modules/npm/bin/npm-cli.js" if node else Path("")
 command = [node, str(npm_cli)] if npm_cli.is_file() else [shutil.which("npm.cmd") or shutil.which("npm") or "npm"]
 subprocess.run([*command, "--prefix", str(ROOT / "apps/web"), "run", "build"], check=True, cwd=ROOT)
-destination = ROOT / "apps/agent/relay_agent/static"
+destination = ROOT / "apps/agent/relay_backend/static"
 if destination.exists():
-    if destination.resolve() != (ROOT / "apps/agent/relay_agent/static").absolute() or not destination.resolve().is_relative_to(ROOT):
+    if destination.resolve() != (ROOT / "apps/agent/relay_backend/static").absolute() or not destination.resolve().is_relative_to(ROOT):
         raise RuntimeError("Refusing to replace an unexpected static directory")
     shutil.rmtree(destination)
 shutil.copytree(ROOT / "apps/web/dist", destination, dirs_exist_ok=True)

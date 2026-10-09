@@ -8,16 +8,16 @@ from urllib.parse import urljoin
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from main import app
-from relay_agent import __version__, install_relay
-import relay_agent
+from relay_backend import __version__, install_relay
+import relay_backend
 
 assert __version__ == sys.argv[1]
-assert "site-packages" in str(Path(relay_agent.__file__))
+assert "site-packages" in str(Path(relay_backend.__file__))
 
 
 async def verify(client):
     page = await client.get("/relay/")
-    assert page.status_code == 200 and "<title>Relay</title>" in page.text
+    assert page.status_code == 200 and "<title>Relay - Relay example</title>" in page.text
     for asset in re.findall(r'(?:src|href)="([^"]+)"', page.text):
         assert (await client.get(urljoin("/relay/", asset))).status_code == 200, asset
     health = (await client.get("/relay/__relay/health")).json()

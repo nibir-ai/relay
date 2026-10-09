@@ -4,8 +4,8 @@ import subprocess
 import pytest
 from fastapi import HTTPException
 
-from relay_agent.openapi import normalize
-from relay_agent.workspace import Workspace
+from relay_backend.openapi import normalize
+from relay_backend.workspace import Workspace
 
 SPEC = {"openapi": "3.1.0", "info": {"title": "Demo", "version": "1"}, "paths": {"/items": {"get": {"responses": {"200": {"description": "OK"}}}}}}
 
