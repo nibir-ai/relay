@@ -1,6 +1,8 @@
 # Changelog
 
-## Node 0.0.3 (unpublished)
+## Node 0.0.3 - 9 October 2026
+
+Published on [npm](https://www.npmjs.com/package/relay-backend/v/0.0.3). Fresh `npm install relay-backend` installation, bundled assets, API execution and TypeScript consumers passed registry verification.
 
 - Native `relay-backend` npm distribution with bundled UI, CommonJS/ESM exports and TypeScript declarations.
 - Express middleware, Fastify plugin and Node HTTP adapter use generated OpenAPI on the backend's existing `/relay` route.

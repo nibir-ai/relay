@@ -1,11 +1,25 @@
-# Relay
-
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="apps/web/public/brand/relay-logo.svg" />
-  <img src="apps/web/public/brand/relay-logo-light.svg" width="196" height="48" alt="Relay" />
+  <img src="apps/web/public/brand/relay-logo-light.svg" width="240" height="59" alt="Relay" />
 </picture>
 
-A local API tester for your backend: categorized endpoints, clear responses, quick authentication and one status control beside each API.
+Test your API where it runs. Relay adds a testing workspace at **`/relay`** on your backend: generated endpoints, explicit authorization, readable responses and one status control beside each API.
+
+[![npm](https://img.shields.io/npm/v/relay-backend?label=npm&color=67b0e8)](https://www.npmjs.com/package/relay-backend)
+[![PyPI](https://img.shields.io/pypi/v/relay-backend?label=PyPI&color=8ccf7e)](https://pypi.org/project/relay-backend/)
+[![Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-e5c76b)](LICENSE)
+
+[Documentation](docs/README.md) · [FastAPI](#add-relay-to-fastapi) · [Node](#add-relay-to-node) · [Roadmap](#next-release)
+
+## Choose your backend
+
+| Backend | Install | Native integration |
+| --- | --- | --- |
+| FastAPI / Python 3.11+ | `pip install relay-backend` | `install_relay(app)` |
+| Express / JavaScript or TypeScript | `npm install relay-backend` | `app.use(relay())` with existing OpenAPI |
+| Fastify / JavaScript or TypeScript | `npm install relay-backend` | `app.register(relayFastify)` with a schema generator |
+
+Both distributions include the UI, fonts and branding. **No repository clone, frontend build or CDN.** Node 22.13+ is required.
 
 ## Add Relay to FastAPI
 
@@ -18,7 +32,6 @@ In your backend's Python environment (Python 3.11+):
 ```sh
 python -m pip install relay-backend
 ```
-
 
 A fresh installation gets the latest stable release. To update an existing installation:
 
@@ -58,6 +71,32 @@ The distribution name is **relay-backend**. The import is **relay_backend** and 
 
 </details>
 
+## Add Relay to Node
+
+![Relay for Node: install relay-backend, connect Express or Fastify to /relay, then execute an API and inspect its response.](docs/assets/node-quickstart.png)
+
+```sh
+npm install relay-backend
+```
+
+For **Express** with an existing `/openapi.json` route, add before your body parsers:
+
+```js
+import { relay } from 'relay-backend';
+app.use(relay());
+```
+
+For **Fastify** with `@fastify/swagger` registered:
+
+```js
+import { relayFastify } from 'relay-backend';
+await app.register(relayFastify);
+```
+
+Restart the backend and open `/relay` on its existing port. CommonJS, ES modules and TypeScript work with the same package. If your schema generator exposes a document instead of `/openapi.json`, pass it as `openapi`. Relay reads generated OpenAPI; it cannot infer undocumented request types.
+
+[Full Node setup](docs/NODE.md) covers schema generators, development flags, lifecycle and Node HTTP. For a separate tester, use `npx relay-backend --target http://127.0.0.1:3000`.
+
 ## What Relay includes
 
 - Inline APIs grouped by OpenAPI tags, method colors, search and editable request inputs. Endpoint definitions remain code-generated.
@@ -71,6 +110,19 @@ The distribution name is **relay-backend**. The import is **relay_backend** and 
 Relay is an alpha for local development. Multipart uploads, OAuth browser flows, YAML/external references and public hosting are outside its scope. A successful request does not automatically change status. Optional automatic team status sync uses your existing Git remote; see the [team setup guide](docs/GIT.md).
 
 Tokens and drafts stay in browser session memory. Explicit exports include request bodies, parameters and captured responses, which may contain secrets; inspect them before sharing. See the [export format and handling guide](docs/EXPORTS.md).
+
+## Next release
+
+- [ ] Add optional realtime team statuses through a shared backend, without creating a Git status branch.
+- [ ] Authenticate developers and check contributor/team permissions for shared statuses.
+- [ ] Persist status updates, handle concurrent edits and restore missed updates after reconnecting.
+- [ ] Keep API testing local and provide minimal shared-service configuration.
+- [ ] Ship the Windows report-association compatibility fix in a new Python patch release.
+
+The realtime design is planned, not included in 0.0.3. Socket.IO is the proposed transport; see the [team sync proposal](docs/REALTIME.md). Git sync remains opt-in in the current release.
+
+<details>
+<summary>Completed release milestones</summary>
 
 ## Roadmap: v0.0.2
 
@@ -94,11 +146,7 @@ Release gate: fresh package installation, endpoint discovery, authentication, ex
 - [x] Migrate the Ludo backend to the tested published package and verify its native integration.
 - [x] Pass package, frontend, Python, cross-environment sync and release checks before publication.
 
-Issue maintenance checks run every four hours and update this checklist when fixes are verified.
-
-## Node package: v0.0.3
-
-The npm package provides the bundled tester for JavaScript and TypeScript backends. See [Node integration](docs/NODE.md) for minimal Express and Fastify setup. Publication is pending registry authentication; use the npm install command after the package is published.
+### Node package: v0.0.3
 
 - [x] Native Express middleware, Fastify plugin and Node HTTP integration.
 - [x] Bundle the UI without Python, a consumer build or a repository clone.
@@ -106,7 +154,9 @@ The npm package provides the bundled tester for JavaScript and TypeScript backen
 - [x] Verify API execution, authentication, response limits and status persistence.
 - [x] Verify automatic status sharing between independent Git peers.
 - [x] Verify the tarball in clean consumer installations and CI on supported Node versions.
-- [ ] Publish the verified npm package and check a fresh registry installation.
+- [x] Publish the verified npm package and check a fresh registry installation.
+
+</details>
 
 ## Documentation
 
@@ -119,7 +169,7 @@ Start with the [documentation index](docs/README.md).
 - [Exports and opening `.relay` files](docs/EXPORTS.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Contributing and verification](docs/CONTRIBUTING.md)
-- [Release and PyPI publishing](docs/RELEASING.md)
+- [Release and registry publishing](docs/RELEASING.md)
 - [Brand identity](docs/BRAND.md)
 
 ## License

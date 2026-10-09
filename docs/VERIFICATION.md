@@ -25,16 +25,16 @@ Local validation passed: 89 Python tests, 42 frontend tests, the strict build, i
 The first release passed local tests, clean package installation and public Linux CI on Python 3.11/3.12/3.13. Trusted Publishing succeeded and the actual PyPI package was verified outside the development checkout.
 
 
-## Node npm candidate 0.0.3
+## Published Node npm 0.0.3
 
-The npm package is built and verified; registry publication remains pending maintainer login. The existing Python 0.0.3 release remains published unchanged.
+The npm package is published at [relay-backend 0.0.3](https://www.npmjs.com/package/relay-backend/v/0.0.3). An unpinned fresh `npm install relay-backend` resolved 0.0.3 and passed the clean-consumer checks. The existing Python 0.0.3 release remains published unchanged.
 
 - Nine native Node tests passed against real Express/Fastify/Node HTTP servers and independent Git peers.
 - CommonJS and ESM TypeScript consumers passed strict checks, including a clean Express installation without Fastify installed.
 - Clean tarball installation with lifecycle scripts disabled passed UI asset loading, schema discovery, request execution and CLI checks. No Python or frontend build ran in the consumer directory.
 - Browser verification on a native Node backend passed endpoint discovery, per-endpoint bearer authorization, real response inspection and both JSON/Relay exports.
 - The existing 42 frontend tests passed.
-- [Node CI](https://github.com/nibir-ai/relay/actions/runs/37918786516) passed on Node 22.13, 24 and 26. [Python CI](https://github.com/nibir-ai/relay/actions/runs/37918786475) passed on Python 3.11, 3.12 and 3.13 for the same implementation commit.
+- [Node CI](https://github.com/nibir-ai/relay/actions/runs/37919315565) passed on Node 22.13, 24 and 26. [Python CI](https://github.com/nibir-ai/relay/actions/runs/37919315577) passed on Python 3.11, 3.12 and 3.13 for the same implementation commit.
 - Missing-package startup guidance was tested in isolated Python without site packages; transitive dependency errors remain visible.
 
 Supported native Node adapters are Express, Fastify and Node HTTP at the application root. Other frameworks/runtimes and Node handler source-author inference are not verified support. Generated OpenAPI remains required.

@@ -15,3 +15,12 @@ Native FastAPI mounts the compiled React UI, assets, and internal `/__relay` API
 Browser execution payloads supply relative paths only. Exact Host/Origin/Fetch Metadata/CSRF checks protect the runner; limits bound requests, responses, and execution time. This boundary blocks unrelated browser origins, not malicious local processes. Responses render as text. There is no cloud executor or public production integration.
 
 Contract snapshots are ephemeral. Automatic status synchronization polls the Git remote every ten seconds; visible browser tabs refresh workspace metadata every five seconds. It commits a status-only tree and never checks out a branch, stages files, merges code or forces a push. Concurrent pushes retry after merging the latest endpoint edits. No hosted collaboration service is required. The UI stays focused on testing plus an endpoint status selector.
+
+
+## Native Node adapters
+
+`packages/node/lib/index.cjs` provides Express/Node HTTP middleware and a Fastify plugin; `index.mjs` exposes the same implementation to ESM. The package includes TypeScript declarations without a required Fastify dependency. Native HTTP requests loop back through the real backend handlers and middleware on its existing port. `openapi.cjs` normalizes generated schemas; `runner.cjs` enforces bounded requests and responses. No Python subprocess is involved.
+
+`workspace.cjs` stores local status metadata in JSON. `git.cjs` handles optional status-file persistence and automatic Git exchange. The frontend, exports and themes are shared with Python. `scripts/package_node.cjs` bundles assets into the npm tarball; `scripts/verify_node_package.cjs` tests a clean packed or registry installation.
+
+A shared Socket.IO status service is a [next-release proposal](REALTIME.md). It does not replace Git sync in the published 0.0.3 package.

@@ -58,3 +58,7 @@ Introduction is inferred from the oldest available definition-line history and t
 ## Local metadata conflicts
 
 Git detection searches upward from process cwd. Local writes are atomic and locked. Malformed or conflicted `.relay/status.json` is reported instead of overwritten. Resolve merge markers before retrying. Only status synchronization uses the separate remote branch; your application branch and working files remain under your normal workflow.
+
+## Planned alternative
+
+The next-release proposal is an authenticated shared status service with realtime updates, without a Git status branch. See the [team sync design](REALTIME.md). It is not part of 0.0.3; Git synchronization in this release remains opt-in.

@@ -23,7 +23,7 @@ Restart your backend normally. Open `/relay` on its existing port. That is all t
 
 ## Node backends
 
-A bundled npm distribution is being prepared for Express, Fastify and Node HTTP. See [Node integration](NODE.md) for JavaScript and TypeScript setup and publication status in the main README.
+The [relay-backend npm package](https://www.npmjs.com/package/relay-backend) is published for Express, Fastify and Node HTTP. The UI is bundled; Python is not needed. See [Node integration](NODE.md) for JavaScript and TypeScript setup.
 
 ## Guides
 

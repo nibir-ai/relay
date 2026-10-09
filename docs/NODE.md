@@ -1,6 +1,6 @@
 # Node integration
 
-The npm distribution is `relay-backend`, version 0.0.3. It contains the compiled Relay UI and native Node implementation. Python is not needed. Node 22.13+ is required.
+The [published npm distribution](https://www.npmjs.com/package/relay-backend) is `relay-backend`, version 0.0.3. It contains the compiled Relay UI and native Node implementation. Python is not needed. Node 22.13+ is required.
 
 ```sh
 npm install relay-backend
@@ -9,6 +9,8 @@ npm install relay-backend
 For an existing installation, `npm install relay-backend@latest` upgrades the package. npm resolves the latest release when installing a new dependency; an existing lockfile preserves the version it records.
 
 See the [package quick start](../packages/node/README.md) for Express and Fastify. Both CommonJS `require('relay-backend')` and ESM `import` work, including TypeScript declarations.
+
+![Install the npm package, connect your framework to /relay, then test an endpoint.](assets/node-quickstart.png)
 
 ## Where the schema comes from
 

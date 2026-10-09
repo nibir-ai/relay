@@ -2,7 +2,7 @@
 
 v0.0.3 is published on [PyPI](https://pypi.org/project/relay-backend/0.0.3/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.3). Trusted Publishing succeeded and a fresh unpinned PyPI installation passed the consumer checks. Follow every gate below for subsequent releases. See [the changelog](../CHANGELOG.md) for release contents.
 
-Apache-2.0 distribution: `relay-backend`, import `relay_backend`, with legacy root-import compatibility. Includes native FastAPI testing, auth, statuses, optional automatic Git status sync, source attribution, response inspection, themes, branding, exports and local CLI. Node is for maintainers only. Multipart, OAuth browser flows, public hosting, YAML/external refs and macOS/Linux desktop associations remain out of scope.
+Apache-2.0 distribution: `relay-backend`, import `relay_backend`, with legacy root-import compatibility. Includes native FastAPI testing, auth, statuses, optional automatic Git status sync, source attribution, response inspection, themes, branding, exports and local CLI. The Python package needs no Node runtime; a separate native npm package supports Node backends. Multipart, OAuth browser flows, public hosting, YAML/external refs and macOS/Linux desktop associations remain out of scope.
 
 ## Artifacts and checks
 
@@ -49,7 +49,9 @@ Published artifact versions are immutable. Inspect actual files before retrying 
 
 ## npm releases
 
-The Node package has its own registry and tag: `npm-v0.0.3`. Do not reuse the published Python `v0.0.3` tag or replace its artifacts.
+Published: [relay-backend 0.0.3 on npm](https://www.npmjs.com/package/relay-backend/v/0.0.3). A fresh unpinned registry installation passed the consumer checks.
+
+The npm 0.0.3 package was bootstrapped with a verified local upload and browser 2FA approval. Future automated Node releases use `npm-v<version>` tags. Do not reuse the published Python `v0.0.3` tag or replace its artifacts.
 
 Build and verify before publishing:
 

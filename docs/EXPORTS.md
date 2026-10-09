@@ -12,13 +12,15 @@ Session credentials are omitted; recognizable authorization/cookie/token/secret/
 
 ## Open offline
 
+Python users use the `relay` command; Node users can run `npx relay-backend open "/path/to/api.relay"`. Both open the same portable report format.
+
 ```sh
 relay open "/path/to/api.relay"
 ```
 
 The opener validates UTF-8 HTML/report marker, caps files at 32 MiB, copies to `~/.relay/reports/<hash>.html`, then opens your default browser. Original reports remain intact; cached copies persist until removed. No backend/server is needed.
 
-Windows double-click registration:
+Windows double-click registration with the Python package:
 
 ```powershell
 relay associate

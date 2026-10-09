@@ -1,5 +1,7 @@
 # Testing APIs
 
+![A visual guide to authorizing one endpoint, executing its request, and inspecting the response.](assets/request-response-guide.png)
+
 ## Find and execute
 
 Endpoints are read-only definitions from OpenAPI, grouped by their first tag. Search matches method/path/summary/category; method and status filters narrow results. Open all/Close all controls visible categories, and APIs expand inline.

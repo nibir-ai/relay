@@ -12,7 +12,11 @@ install_relay(app)
 
 Start the backend normally and visit `/relay` on its existing port. Development gating is explicit: `install_relay(app, enabled=settings.DEBUG)`. Framework templates can include this dependency and call for an experience that is already available in a newly created project.
 
-An npm/npx package may follow for Node integrations. This FastAPI release uses the backend's Python environment, so no Node runner or companion process is required.
+## Node distribution
+
+`npm install relay-backend` installs the published 0.0.3 Node package with bundled assets and TypeScript declarations. Native Express, Fastify and Node HTTP adapters mount `/relay` on your backend. No Python or consumer build is needed. See [Node setup](NODE.md).
+
+`npx relay-backend --target http://127.0.0.1:3000` provides a separate local tester for existing OpenAPI backends. Python and npm distributions share the Relay UI and package name, but install into their respective backend environments.
 
 ## Guides
 
