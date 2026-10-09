@@ -113,6 +113,7 @@ Tokens and drafts stay in browser session memory. Explicit exports include reque
 
 ## Next release
 
+- [ ] Add `relay init` for backend detection and guided automatic integration setup.
 - [ ] Add optional realtime team statuses through a shared backend, without creating a Git status branch.
 - [ ] Authenticate developers and check contributor/team permissions for shared statuses.
 - [ ] Persist status updates, handle concurrent edits and restore missed updates after reconnecting.
