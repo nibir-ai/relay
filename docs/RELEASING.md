@@ -1,6 +1,6 @@
 # Releasing Relay
 
-v0.0.1 was published on 9 October 2026. v0.0.2 is being verified before publication. See [the changelog](../CHANGELOG.md) for release contents.
+v0.0.2 was published on 9 October 2026 on [PyPI](https://pypi.org/project/relay-backend/0.0.2/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.2). The publishing workflow succeeded, and a fresh public-index installation passed the consumer smoke check. See [the changelog](../CHANGELOG.md) for release contents.
 
 Initial Apache-2.0 alpha distribution: `relay-backend`, import `relay_agent`. Includes native/bundled FastAPI testing, auth, statuses/Git attribution, response inspection, themes/branding, exports and local CLI. Node is for maintainers only. Multipart, OAuth browser flows, realtime sync, public hosting, YAML/external refs and macOS/Linux desktop associations remain out of scope.
 

@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.0.2 â€” release candidate
+## 0.0.2 — 9 October 2026
+
+Published on [PyPI](https://pypi.org/project/relay-backend/0.0.2/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.2).
 
 - Refined terminal mark, plain Relay browser title and consistent report branding.
 - Array query serialization, blank optional-body support and consistent header validation.
@@ -11,7 +13,7 @@
 - Custom visual guides and simpler installation documentation.
 - Clean-install verification exercises actual handlers and authentication outside the checkout; Socket.IO integration coverage added.
 
-## 0.0.1 â€” 9 October 2026
+## 0.0.1 — 9 October 2026
 
 Published on [PyPI](https://pypi.org/project/relay-backend/0.0.1/) as `relay-backend`, import `relay_agent`, under Apache-2.0.
 

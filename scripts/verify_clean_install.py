@@ -18,7 +18,7 @@ with tempfile.TemporaryDirectory(prefix="relay-customer-") as directory:
     venv.EnvBuilder(with_pip=True).create(root / "env")
     python = root / "env" / ("Scripts/python.exe" if __import__('os').name == 'nt' else "bin/python")
     dependencies = ["fastapi==0.115.0", "uvicorn==0.30.0", "httpx==0.28.0"] if args.minimum_dependencies else []
-    install = [f"{project['name']}=={project['version']}", "--index-url", "https://pypi.org/simple"] if args.public_index else [str(wheel)]
+    install = [f"{project['name']}=={project['version']}", "--index-url", "https://pypi.org/simple", "--no-cache-dir"] if args.public_index else [str(wheel)]
     subprocess.run([str(python), "-m", "pip", "install", *install, *dependencies], cwd=root, check=True)
     import shutil
     shutil.copyfile(ROOT / "examples/fastapi/main.py", root / "main.py")
