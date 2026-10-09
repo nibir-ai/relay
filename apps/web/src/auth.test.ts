@@ -1,8 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { authHeaders, normalizeToken, responseToken } from "./auth";
+import { authHeaders, authSummary, normalizeToken, responseToken } from "./auth";
 import { snippets } from "./request";
 
 describe("local session auth", () => {
+  it("reports missing endpoint credentials instead of claiming they are applied", () => {
+    expect(authSummary({}, "Bearer token", "", "", { enabled: true, token: "shared" })).toBe("Endpoint bearer needs credentials");
+    expect(authSummary({ authorization: "Basic abc" }, "Workspace bearer", "", "", { enabled: true, token: "shared" })).toBe("Custom Authorization header");
+    expect(() => authHeaders({}, "Basic", "", "", { enabled: false, token: "" })).toThrow("username:password");
+    expect(() => authHeaders({}, "Bearer token", "a b", "", { enabled: false, token: "" })).toThrow("valid bearer");
+  });
+  it("replaces API-key headers case-insensitively and preserves explicit independent authorization", () => {
+    expect(authHeaders({ "x-api-key": "old", Authorization: "Bearer custom" }, "API key", "new", "X-API-Key", { enabled: true, token: "shared" })).toEqual({ Authorization: "Bearer custom", "X-API-Key": "new" });
+  });
   it("accepts tokens with or without the Bearer prefix", () => {
     expect(normalizeToken(" Bearer abc ")).toBe("abc");
     expect(normalizeToken("abc")).toBe("abc");

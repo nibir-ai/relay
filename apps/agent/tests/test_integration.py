@@ -4,7 +4,9 @@ from contextlib import asynccontextmanager
 from urllib.parse import urljoin
 
 import pytest
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import APIRouter, Body, Depends, FastAPI, HTTPException, Query, Request, Response
+from pydantic import BaseModel
+from typing import Annotated
 from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.testclient import TestClient
 
@@ -12,6 +14,50 @@ from relay_agent import install_relay
 from relay_agent.security import MAX_REQUEST, MAX_RESPONSE
 
 ORIGIN = "http://localhost:9321"
+
+
+def test_factory_router_complex_bodies_query_arrays_and_empty_responses(tmp_path):
+    class Details(BaseModel):
+        name: str
+        tags: list[str]
+    class Item(BaseModel):
+        details: Details
+        note: str | None = None
+    router = APIRouter(prefix="/api")
+    @router.post("/items", tags=["Items"])
+    def item(body: Item):
+        return body.model_dump()
+    @router.post("/optional")
+    def optional(body: Annotated[Item | None, Body()] = None):
+        return body.model_dump() if body else None
+    @router.get("/items/{item_id}")
+    def search(item_id: int, tag: Annotated[list[str] | None, Query()] = None):
+        return {"id": item_id, "tags": tag}
+    @router.delete("/items", status_code=204)
+    def delete():
+        return Response(status_code=204)
+    def factory():
+        app = FastAPI()
+        app.include_router(router)
+        install_relay(app, db_path=tmp_path / "complex.sqlite3")
+        return app
+    with TestClient(factory(), base_url=ORIGIN, client=("127.0.0.1", 4321)) as client:
+        h = headers(client)
+        snapshot = client.post("/relay/__relay/sources/inspect", headers=h).json()
+        assert {e["id"] for e in snapshot["endpoints"]} == {"POST /api/items", "POST /api/optional", "GET /api/items/{item_id}", "DELETE /api/items"}
+        def execute(method, path, **kwargs):
+            result = client.post("/relay/__relay/execute", headers=h, json={"method": method, "path": path, **kwargs})
+            assert result.status_code == 200, result.text
+            return result.json()
+        body = {"details": {"name": "nested", "tags": ["a", "b"]}, "note": None}
+        assert json.loads(execute("POST", "/api/items", body_mode="json", body=json.dumps(body))["body"]) == body
+        invalid = execute("POST", "/api/items", body_mode="json", body='{"details":{"tags":[]}}')
+        assert invalid["status"] == 422 and json.loads(invalid["body"])["detail"][0]["loc"][-1] == "name"
+        assert json.loads(execute("POST", "/api/optional")["body"]) is None
+        result = execute("GET", "/api/items/3", query={"tag": ["a b", "c&d"]})
+        assert json.loads(result["body"]) == {"id": 3, "tags": ["a b", "c&d"]}
+        empty = execute("DELETE", "/api/items")
+        assert empty["status"] == 204 and empty["body"] == "" and empty["bytes"] == 0
 
 
 def test_disabled_integration_leaves_application_untouched():
@@ -24,6 +70,24 @@ def test_disabled_integration_leaves_application_untouched():
     assert not hasattr(app.state, "relay")
     with TestClient(app) as client:
         assert client.get("/relay").status_code == 404
+
+
+def test_socketio_wrapper_forwards_relay_and_host_lifespan(tmp_path):
+    import socketio
+    events = []
+    @asynccontextmanager
+    async def lifespan(app):
+        events.append("start")
+        yield
+        events.append("stop")
+    app = host(tmp_path, lifespan=lifespan)
+    wrapped = socketio.ASGIApp(socketio.AsyncServer(async_mode="asgi"), other_asgi_app=app)
+    with TestClient(wrapped, base_url=ORIGIN, client=("127.0.0.1", 4321)) as client:
+        assert events == ["start"]
+        assert client.get("/relay/").status_code == 200
+        result = client.post("/relay/__relay/execute", headers=headers(client), json={"method": "GET", "path": "/items/4"}).json()
+        assert result["status"] == 200 and json.loads(result["body"])["id"] == 4
+    assert events == ["start", "stop"]
 
 
 def headers(client, prefix=""):

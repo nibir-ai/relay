@@ -30,4 +30,4 @@ jobs:
       - run: python scripts/verify_clean_install.py
       - run: python scripts/verify_clean_install.py --minimum-dependencies
         if: matrix.python == '3.11'
-      - run: python -m twine check dist/relay_backend-0.0.1*
+      - run: python -m twine check dist/relay_backend-0.0.2*

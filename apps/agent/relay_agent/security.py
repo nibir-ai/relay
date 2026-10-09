@@ -51,7 +51,11 @@ def validate_path(path: str):
 def safe_headers(headers: dict[str, str]):
     forbidden = {"host", "connection", "content-length", "transfer-encoding", "upgrade",
                  "proxy-authorization", "proxy-connection", "accept-encoding", "te", "trailer"}
+    names = set()
     for name, value in headers.items():
+        if name.lower() in names:
+            raise HTTPException(400, f"Duplicate header: {name}")
+        names.add(name.lower())
         if name.lower() in forbidden or name.lower().startswith("sec-"):
             raise HTTPException(400, f"The runner manages the {name} header.")
         if (not re.fullmatch(r"[!#$%&'*+.^_`|~0-9A-Za-z-]+", name)

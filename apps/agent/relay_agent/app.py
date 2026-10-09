@@ -26,7 +26,7 @@ class ExecuteRequest(BaseModel):
     method: Literal["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
     path: str = Field(max_length=8192)
     headers: dict[str, str] = Field(default_factory=dict)
-    query: dict[str, str] = Field(default_factory=dict)
+    query: dict[str, str | list[str]] = Field(default_factory=dict)
     body_mode: Literal["none", "json", "text", "form"] = "none"
     body: str = ""
 
@@ -102,7 +102,7 @@ def create_app(settings: Settings | None = None, transport=None, static_dir: Pat
 
     @app.get("/__relay/health")
     def health(request: Request):
-        return {"status": "ok", "mode": "local", "version": "0.0.1", "csrf_token": token,
+        return {"status": "ok", "mode": "local", "version": "0.0.2", "csrf_token": token,
                 "base_url": target_base(request), "spec_url": target_base(request) + (native_host.openapi_url or "") if native_host else settings.target(settings.spec_path)}
 
     @app.post("/__relay/sources/inspect")

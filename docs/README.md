@@ -1,6 +1,6 @@
 # Relay documentation
 
-Relay v0.0.1 ships as **relay-backend**, importing **relay_agent**. Its complete UI is bundled in the Python distribution; consumers do not clone or build this repository.
+Relay v0.0.2 ships as **relay-backend**, importing **relay_agent**. Its complete UI is bundled in the Python distribution; consumers do not clone or build this repository.
 
 ![Three steps: install the package, add the import and mount call, then open /relay on your backend.](assets/fastapi-quickstart.png)
 
@@ -9,7 +9,7 @@ Relay v0.0.1 ships as **relay-backend**, importing **relay_agent**. Its complete
 Install in your backend's Python environment:
 
 ```sh
-python -m pip install relay-backend==0.0.1
+python -m pip install relay-backend==0.0.2
 ```
 
 In the file where `app = FastAPI()` is created:

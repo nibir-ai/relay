@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "relay-backend"
-version = "0.0.1"
+version = "0.0.2"
 description = "A local API testing interface with native FastAPI integration, endpoint status tracking, and Git attribution."
 readme = "README.md"
 license = "Apache-2.0"
@@ -30,7 +30,7 @@ Issues = "https://github.com/nibir-ai/relay/issues"
 Changelog = "https://github.com/nibir-ai/relay/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
-test = ["pytest>=8,<10"]
+test = ["pytest>=8,<10", "python-socketio>=5.12,<6"]
 
 [project.scripts]
 relay = "relay_agent.cli:main"

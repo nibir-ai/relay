@@ -24,6 +24,6 @@ Windows double-click registration:
 relay associate
 ```
 
-Registration is per-user and references the current Python environment; keep Relay installed there. Another application's association is not overwritten. Windows UserChoice is not bypassed; choose Relay explicitly in Open with if needed. macOS/Linux use `relay open`; automatic desktop association is outside v0.0.1.
+Registration is per-user and references the current Python environment; keep Relay installed there. Another application's association is not overwritten. Windows UserChoice is not bypassed; choose Relay explicitly in Open with if needed. macOS/Linux use `relay open`; automatic desktop association is outside v0.0.2.
 
 Reports embed font/brand assets, contain no scripts, and prohibit external resources through CSP. Recipients without Relay can copy the HTML-based report to a `.html` filename and open that copy. A custom extension cannot itself install an OS association.

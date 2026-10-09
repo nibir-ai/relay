@@ -90,6 +90,18 @@ it("does not call execution for invalid JSON", async () => {
   expect(await screen.findByRole("alert")).toHaveTextContent("Invalid JSON");
   expect(api.execute).not.toHaveBeenCalled();
 });
+it("keeps the last captured response when the next request has invalid inputs", async () => {
+  vi.mocked(api.execute).mockResolvedValue({ status: 204, reason: "No Content", body: "", headers: {}, duration_ms: 1, bytes: 0, truncated: false, content_type: "", url: health.base_url + "/login", method: "POST" });
+  render(<Playground endpoint={endpoint} health={health} snapshot={snapshot} />);
+  fireEvent.click(screen.getByRole("button", { name: /Execute request/ }));
+  await screen.findByText("204 No Content");
+  expect(screen.getByText("Empty response body")).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText("Request body"), { target: { value: "{" } });
+  fireEvent.click(screen.getByRole("button", { name: /Execute request/ }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Invalid JSON");
+  expect(screen.getByText("204 No Content")).toBeInTheDocument();
+  expect(api.execute).toHaveBeenCalledTimes(1);
+});
 it("isolates endpoint credentials from shared auth and restores them after switching endpoints", async () => {
   const shared = { token: "user-token", enabled: true };
   const cache = new Map<string, PlaygroundDraft>();

@@ -11,6 +11,8 @@ export type Schema = {
   items?: Schema;
   anyOf?: Schema[];
   allOf?: Schema[];
+  oneOf?: Schema[];
+  readOnly?: boolean;
   $ref?: string;
   "x-relay-warning"?: string;
 };
@@ -21,6 +23,8 @@ export type Parameter = {
   description?: string;
   schema?: Schema;
   example?: unknown;
+  style?: string;
+  explode?: boolean;
 };
 export type Media = {
   schema?: Schema;
@@ -83,7 +87,7 @@ export type RequestPayload = {
   method: string;
   path: string;
   headers: Record<string, string>;
-  query: Record<string, string>;
+  query: Record<string, string | string[]>;
   body_mode: "none" | "json" | "text" | "form";
   body: string;
 };

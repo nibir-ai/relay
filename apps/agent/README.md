@@ -9,7 +9,7 @@ An offline API testing interface for your FastAPI application. Install one Pytho
 1. Install in your backend's Python environment:
 
 ```sh
-python -m pip install relay-backend==0.0.1
+python -m pip install relay-backend==0.0.2
 ```
 
 2. Add these lines where your FastAPI `app` is created:
@@ -50,7 +50,7 @@ No repository clone, Node installation, frontend build, CDN, separate Relay proc
 - Manual endpoint status, defaulting to Done, with optional Git-shared status and inferred source attribution.
 - A bundled standalone CLI for local OpenAPI backends and portable `.relay` reports.
 
-Python 3.11+ is required. This is a local development tool: only loopback hosts/clients are accepted. Request execution invokes your real application middleware, dependencies and handlers. Tests can change your development data. Multipart upload, OAuth browser flows, remote/shared deployment and realtime team sync are outside v0.0.1.
+Python 3.11+ is required. This is a local development tool: only loopback hosts/clients are accepted. Request execution invokes your real application middleware, dependencies and handlers. Tests can change your development data. Multipart upload, OAuth browser flows, remote/shared deployment and realtime team sync are outside v0.0.2.
 
 The PyPI distribution is **relay-backend**; the Python import remains **relay_agent**. `relay-agent` on PyPI is an unrelated package.
 

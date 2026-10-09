@@ -7,7 +7,7 @@
 Install in your backend's Python environment:
 
 ```sh
-python -m pip install relay-backend==0.0.1
+python -m pip install relay-backend==0.0.2
 ```
 
 In the file where your existing FastAPI instance is created:
@@ -45,6 +45,8 @@ python -m uvicorn main:app --reload
 
 Open `http://localhost:8000/relay/`, expand System → GET `/health`, then Execute request. Expect HTTP 200 and `{"status":"ok"}`.
 
+A larger [runnable example](../examples/fastapi/main.py) covers routers, an application factory, nested/optional bodies, query arrays, empty responses and separate `user-token` / `admin-token` demo credentials. Save that single file as `main.py` beside your installed package and run the same Uvicorn command. It does not require cloning Relay or building the UI. Its routes only echo example data; the tokens illustrate authentication and are not a production security implementation.
+
 ## Development flag
 
 ```python
@@ -63,7 +65,7 @@ def create_app():
     return app
 ```
 
-Mount once per app instance. Duplicate mounting and an existing `/relay` namespace produce explicit errors. `/relay` is fixed in v0.0.1. Routes can be included before or after mounting, before startup.
+Mount once per app instance. Duplicate mounting and an existing `/relay` namespace produce explicit errors. `/relay` is fixed in v0.0.2. Routes can be included before or after mounting, before startup.
 
 ## Socket.IO and wrappers
 
@@ -101,10 +103,10 @@ The parent lifespan starts first and stops last. Relay's resources run inside it
 
 ## Install from a release file
 
-Download the wheel from the [v0.0.1 release](https://github.com/nibir-ai/relay/releases/tag/v0.0.1), then install it with the same consumer integration:
+Download the wheel from the [v0.0.2 release](https://github.com/nibir-ai/relay/releases/tag/v0.0.2), then install it with the same consumer integration:
 
 ```sh
-python -m pip install /path/to/relay_backend-0.0.1-py3-none-any.whl
+python -m pip install /path/to/relay_backend-0.0.2-py3-none-any.whl
 ```
 
 `relay-agent` on PyPI is an unrelated project; the distribution to use is `relay-backend`.

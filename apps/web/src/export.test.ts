@@ -36,3 +36,10 @@ it("creates an offline Relay report and escapes API data instead of executing ma
   expect(html).not.toContain('<img src=x');
   expect(html).toContain("No request has been executed.");
 });
+it("preserves large numeric response values in JSON data and the browser report", () => {
+  const body = '{"id":9007199254740993}';
+  const value = endpointExport({ ...input, response: { status: 200, reason: "OK", body, headers: {}, duration_ms: 1, bytes: body.length, truncated: false, content_type: "application/json", url: input.baseUrl, method: "POST" } });
+  expect(value.latest_response?.body).toBe(body);
+  expect(relayReport(value)).toContain("9007199254740993");
+  expect(relayReport(value)).not.toContain("9007199254740992");
+});

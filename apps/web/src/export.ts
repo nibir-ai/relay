@@ -1,4 +1,4 @@
-import { parseHeaders, requestUrl } from "./request";
+import { formatted, parseHeaders, requestUrl } from "./request";
 import type { Endpoint, LiveResponse, Progress, Snapshot } from "./types";
 import reportFont from "@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?inline";
 import reportLogo from "../public/brand/relay-logo.svg?raw";
@@ -51,7 +51,7 @@ function escaped(value: unknown) {
 }
 function pretty(value: unknown) {
   if (typeof value !== "string") return JSON.stringify(value, null, 2);
-  try { return JSON.stringify(JSON.parse(value), null, 2); } catch { return value; }
+  return formatted(value);
 }
 
 export function relayReport(value: ReturnType<typeof endpointExport>) {

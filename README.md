@@ -16,7 +16,7 @@ A local API tester for your backend: categorized endpoints, clear responses, qui
 In your backend's Python environment (Python 3.11+):
 
 ```sh
-python -m pip install relay-backend==0.0.1
+python -m pip install relay-backend==0.0.2
 ```
 
 ### 2. Add two lines
@@ -43,13 +43,13 @@ Use your development setting to control installation:
 install_relay(app, enabled=settings.DEBUG)
 ```
 
-Install before wrapping FastAPI with Socket.IO. Application factories, custom OpenAPI generators, lifespan and proxy prefixes are covered in the [FastAPI integration guide](docs/FASTAPI.md). Alternatively, install the wheel attached to the [v0.0.1 release](https://github.com/nibir-ai/relay/releases/tag/v0.0.1).
+Install before wrapping FastAPI with Socket.IO. Application factories, custom OpenAPI generators, lifespan and proxy prefixes are covered in the [FastAPI integration guide](docs/FASTAPI.md). Alternatively, install the wheel attached to the [v0.0.2 release](https://github.com/nibir-ai/relay/releases/tag/v0.0.2).
 
 The distribution name is **relay-backend**. The import is **relay_agent** and the CLI is **relay**. The `relay-agent` project on PyPI is unrelated.
 
 </details>
 
-## What ships in v0.0.1
+## What Relay includes
 
 - Inline APIs grouped by OpenAPI tags, method colors, search and editable request inputs. Endpoint definitions remain code-generated.
 - Shared or per-endpoint authorization with explicit Authorize actions; advanced bearer, Basic and header API key settings.
@@ -62,6 +62,17 @@ The distribution name is **relay-backend**. The import is **relay_agent** and th
 This first release is an alpha for local development. Multipart uploads, OAuth browser flows, YAML/external references, instant team synchronization and public hosting are outside its scope. A successful request does not automatically change status. Git collaboration uses normal commits, pushes and pulls.
 
 Tokens and drafts stay in browser session memory. Explicit exports include request bodies, parameters and captured responses, which may contain secrets; inspect them before sharing. See the [export format and handling guide](docs/EXPORTS.md).
+
+## Roadmap: v0.0.2
+
+- [ ] Ship the refined Relay branding consistently across the tester, reports and documentation.
+- [ ] Harden request testing for nested bodies, optional fields, arrays, path/query parameters, validation errors and empty responses.
+- [ ] Clarify effective authentication and keep shared and endpoint credentials independent, with quick switching.
+- [ ] Improve large-response inspection, truncation feedback and accurate copying and exports.
+- [ ] Verify seamless FastAPI integration with routers, application factories and Socket.IO; provide a small runnable example.
+- [ ] Finish illustrated setup guides, the package README and troubleshooting documentation.
+
+Release gate: install the published package in a separate backend, discover endpoints, authenticate, execute requests, inspect responses and export results without frontend tooling. Publish v0.0.2 after these checks pass. Additional frameworks, cloud collaboration and premium tools remain outside this release.
 
 ## Documentation
 

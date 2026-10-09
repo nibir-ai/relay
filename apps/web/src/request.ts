@@ -1,4 +1,42 @@
-import type { Endpoint, Media, RequestPayload, Schema } from "./types";
+import type { Endpoint, Media, Parameter, RequestPayload, Schema } from "./types";
+
+export function validateHeaders(headers: Record<string, string>) {
+  const names = new Set<string>();
+  for (const [name, value] of Object.entries(headers)) {
+    if (!/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/.test(name) || /[\r\n\0]/.test(value))
+      throw new Error("Headers need valid names and single-line values.");
+    if (names.has(name.toLowerCase())) throw new Error(`Duplicate header: ${name}`);
+    names.add(name.toLowerCase());
+  }
+  return headers;
+}
+
+export function parameterInput(value: unknown): string {
+  return Array.isArray(value) || (value !== null && typeof value === "object")
+    ? JSON.stringify(value) : String(value ?? "");
+}
+
+function queryValue(parameter: Parameter, value: string): string | string[] {
+  const schema = parameter.schema?.anyOf?.find((s) => s.type !== "null") ?? parameter.schema;
+  if (schema?.type !== "array") return value;
+  let items: unknown;
+  try { items = JSON.parse(value); } catch { throw new Error(`Enter ${parameter.name} as a JSON array, for example ["one", "two"].`); }
+  if (!Array.isArray(items) || items.some((item) => item === null || typeof item === "object"))
+    throw new Error(`${parameter.name} needs an array of strings, numbers or booleans.`);
+  const values = items.map(String);
+  const style = parameter.style ?? "form";
+  if (style === "form") return parameter.explode === false ? values.join(",") : values;
+  if (style === "spaceDelimited") return values.join(" ");
+  if (style === "pipeDelimited") return values.join("|");
+  throw new Error(`Unsupported query array style: ${style}.`);
+}
+
+export function queryParams(values: RequestPayload["query"]) {
+  const query = new URLSearchParams();
+  for (const [name, value] of Object.entries(values))
+    for (const item of Array.isArray(value) ? value : [value]) query.append(name, item);
+  return query;
+}
 
 export function parseHeaders(text: string): Record<string, string> {
   if (!text.trim()) return {};
@@ -11,7 +49,7 @@ export function parseHeaders(text: string): Record<string, string> {
       Object.values(value).some((v) => typeof v !== "string")
     )
       throw new Error("Headers must have string values.");
-    return value;
+    return validateHeaders(value);
   }
   const headers: Record<string, string> = {};
   const names = new Set<string>();
@@ -25,7 +63,7 @@ export function parseHeaders(text: string): Record<string, string> {
     names.add(name.toLowerCase());
     headers[name] = line.slice(colon + 1).trim();
   }
-  return headers;
+  return validateHeaders(headers);
 }
 
 export function requestUrl(
@@ -39,8 +77,11 @@ export function requestUrl(
     const value = values[`${parameter.in}:${parameter.name}`];
     if (value === undefined || value === "") continue;
     if (parameter.in === "path")
-      path = path.replace(`{${parameter.name}}`, encodeURIComponent(value));
-    if (parameter.in === "query") query.set(parameter.name, value);
+      path = path.replaceAll(`{${parameter.name}}`, encodeURIComponent(value));
+    if (parameter.in === "query") {
+      const encoded = queryValue(parameter, value);
+      for (const item of Array.isArray(encoded) ? encoded : [encoded]) query.append(parameter.name, item);
+    }
   }
   return `${base}${path}${query.size ? `?${query}` : ""}`;
 }
@@ -51,14 +92,14 @@ export function example(schema: Schema | undefined, depth = 0): unknown {
   if (schema.examples?.length) return schema.examples[0];
   if (schema.default !== undefined) return schema.default;
   if (schema.enum?.length) return schema.enum[0];
-  if (schema.anyOf)
+  if (schema.anyOf || schema.oneOf)
     return example(
-      schema.anyOf.find((s) => s.type !== "null"),
+      (schema.anyOf ?? schema.oneOf)!.find((s) => s.type !== "null"),
       depth + 1,
     );
   if (schema.type === "object" || schema.properties)
     return Object.fromEntries(
-      Object.entries(schema.properties ?? {}).map(([k, v]) => [
+      Object.entries(schema.properties ?? {}).filter(([, v]) => !v.readOnly).map(([k, v]) => [
         k,
         example(v, depth + 1),
       ]),
@@ -96,7 +137,7 @@ export function makeRequest(
   headers: Record<string, string>,
 ): RequestPayload {
   let path = endpoint.path;
-  const query: Record<string, string> = {};
+  const query: RequestPayload["query"] = {};
   const cookies: string[] = [];
   const requestHeaders = { ...headers };
   for (const param of endpoint.parameters) {
@@ -106,7 +147,7 @@ export function makeRequest(
     if (!value) continue;
     if (param.in === "path")
       path = path.replaceAll(`{${param.name}}`, encodeURIComponent(value));
-    if (param.in === "query") query[param.name] = value;
+    if (param.in === "query") query[param.name] = queryValue(param, value);
     if (param.in === "header") requestHeaders[param.name] = value;
     if (param.in === "cookie")
       cookies.push(
@@ -116,7 +157,9 @@ export function makeRequest(
   if (/\{[^}]+\}/.test(path))
     throw new Error("Fill in all path parameters before executing.");
   if (cookies.length) requestHeaders.Cookie = cookies.join("; ");
-  const mode = !endpoint.requestBody
+  if (endpoint.requestBody?.required && !body.trim())
+    throw new Error("Enter the required request body before executing.");
+  const mode = !endpoint.requestBody || (!endpoint.requestBody.required && !body.trim())
     ? "none"
     : mediaType.includes("json")
       ? "json"
@@ -124,7 +167,7 @@ export function makeRequest(
         ? "form"
         : "text";
   if (mediaType.includes("multipart"))
-    throw new Error("Multipart upload is not supported in this milestone.");
+    throw new Error("Multipart upload is not supported yet.");
   if (mode === "json") {
     try {
       JSON.parse(body);
@@ -132,7 +175,12 @@ export function makeRequest(
       throw new Error("Invalid JSON. Fix the request body before executing.");
     }
   }
-  if (mode !== "none") requestHeaders["Content-Type"] = mediaType;
+  if (mode !== "none") {
+    for (const key of Object.keys(requestHeaders))
+      if (key.toLowerCase() === "content-type") delete requestHeaders[key];
+    requestHeaders["Content-Type"] = mediaType;
+  }
+  validateHeaders(requestHeaders);
   return {
     method: endpoint.method,
     path,
@@ -143,8 +191,29 @@ export function makeRequest(
   };
 }
 export function formatted(body: string) {
+  if (body.length > 200_000) return body;
   try {
-    return JSON.stringify(JSON.parse(body), null, 2);
+    JSON.parse(body);
+    // Format the original tokens so large integers and duplicate keys stay intact.
+    const tokens = body.match(/"(?:\\.|[^"\\])*"|[^\s]/g) ?? [];
+    let depth = 0;
+    let output = "";
+    const indent = () => "  ".repeat(Math.min(depth, 40));
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
+      if (token === "{" || token === "[") {
+        output += token;
+        depth++;
+        if (tokens[i + 1] !== "}" && tokens[i + 1] !== "]") output += "\n" + indent();
+      } else if (token === "}" || token === "]") {
+        depth--;
+        if (tokens[i - 1] !== "{" && tokens[i - 1] !== "[") output += "\n" + indent();
+        output += token;
+      } else if (token === ",") output += ",\n" + indent();
+      else if (token === ":") output += ": ";
+      else output += token;
+    }
+    return output;
   } catch {
     return body;
   }
@@ -164,7 +233,7 @@ function redact(value: unknown): unknown {
   return value;
 }
 export function snippets(payload: RequestPayload, baseUrl: string) {
-  const query = new URLSearchParams(
+  const query = queryParams(
     Object.fromEntries(
       Object.entries(payload.query).map(([key, value]) => [
         key,
@@ -207,7 +276,7 @@ export function snippets(payload: RequestPayload, baseUrl: string) {
   };
   const quote = (value: string) => `'${value.replaceAll("'", "'\"'\"'")}'`;
   return {
-    fetch: `const response = await fetch(${JSON.stringify(url)}, ${JSON.stringify(options, null, 2)});\nconst data = await response.json();`,
+    fetch: `const response = await fetch(${JSON.stringify(url)}, ${JSON.stringify(options, null, 2)});\nconst body = await response.text();\nconst data = body && response.headers.get("content-type")?.includes("json") ? JSON.parse(body) : body;`,
     curl: [
       `curl -X ${payload.method} ${quote(url)}`,
       ...Object.entries(headers).map(

@@ -1,5 +1,17 @@
 # Troubleshooting
 
+## Array query parameters or optional bodies fail
+
+Array query inputs use JSON notation: `["one", "two"]`, not `one,two`. Clear an optional request body to omit it. For a required body, use the JSON editor to supply the schema's required fields. Backend HTTP 422 details identify the field that failed validation.
+
+## Response still shows the previous run
+
+Relay preserves the last captured response while you edit and when a new request fails before returning a response. Check the last-run timestamp and the request error. Execute successfully to replace it. An HTTP 401/403/422 is a captured backend response and does replace it.
+
+## Large response is unformatted or incomplete
+
+Bodies over 200,000 characters are displayed without formatting or syntax highlighting. Responses above the 2 MiB retention limit have a visible truncation notice; Copy and exports include the retained preview only. Use your backend's own logs or another streaming client when the full payload exceeds this limit.
+
 ## `/relay` is 404
 
 Package installation alone does not mount routes. Confirm `install_relay(app)` runs on the served FastAPI instance, `enabled` is true, and the backend was restarted. Use its existing port. `/` may remain 404. In factories mount on the returned instance; for Socket.IO mount before wrapping.

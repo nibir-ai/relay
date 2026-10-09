@@ -8,6 +8,8 @@ Enter path/query/header/cookie values and a request body. Execute request is abo
 
 Generated fields cover straightforward JSON objects; the JSON editor handles more complex schemas. JSON, text and URL-encoded form bodies are supported. Missing required inputs and invalid JSON are checked before execution. Multipart upload is not supported.
 
+For array query parameters, enter a JSON array such as `["active", "pending"]`. FastAPI's default sends repeated keys (`?tag=active&tag=pending`); explicitly declared comma, space and pipe styles are also supported. Nested objects and body arrays use the JSON editor. Remove an optional property there to omit it, or enter `null` where the schema permits it. Read-only properties are excluded from generated request examples. Clear an optional body completely to send no body; a required body cannot be blank.
+
 Native execution invokes real handlers, middleware, dependencies, validation and startup state. It can change development data. HTTP 401/404/422 responses are inspectable backend responses, not necessarily Relay transport errors.
 
 ## Auth
@@ -22,13 +24,19 @@ Credentials and request drafts remain in session memory across endpoint switches
 
 Headers accept JSON string values or `Name: value` lines. Duplicate names/invalid input are rejected. The runner manages Host and transport headers.
 
+The auth line shows the credentials that will be used, including a custom Authorization header. Endpoint overrides do not mutate the shared token. API key auth can accompany an explicitly entered Authorization header. Basic credentials use `username:password`; empty or malformed credentials are rejected before sending.
+
 ## Response inspection
 
 The desktop response pane is wider. Focus response makes it full width; Back to request preserves inputs. Narrow screens stack panes. Body formats JSON where possible; Raw keeps captured text. Headers and Request expose metadata. Wrap lines is optional; default unwrapped lines preserve JSON structure.
 
+JSON formatting preserves original numeric values, including integers beyond JavaScript's safe range. Payloads over 200,000 characters stay unformatted to keep inspection responsive. Empty bodies are labeled explicitly; Copy still copies the actual empty body. A failed request or invalid edit preserves the last captured response and its timestamp until a new response arrives.
+
 Copy acts on the selected view. Copy request URL includes entered path/query values. Generated code snippets redact recognizable secrets. Export offers a browser report or structured JSON without executing a request.
 
 Metadata shows status, duration and retained bytes. Requests cap at 1 MiB, response/spec retention at 2 MiB and execution at 20 seconds. Truncation is labeled and carried into exports. Redirects are shown without following; response cookies never become implicit auth on future runs.
+
+When a response is truncated, Copy and Export contain only the retained preview. Relay does not silently fetch or claim to preserve the full body.
 
 ## Sync and progress
 

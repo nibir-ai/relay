@@ -27,8 +27,9 @@ import {
   snippets,
   parseHeaders,
   requestUrl,
+  parameterInput,
 } from "./request";
-import { authHeaders, responseToken } from "./auth";
+import { authHeaders, authSummary, responseToken } from "./auth";
 import { progressLabels, progressValues } from "./progress";
 import type {
   Endpoint,
@@ -93,7 +94,7 @@ export default function Playground({
       Object.fromEntries(
         endpoint.parameters.map((p) => [
           `${p.in}:${p.name}`,
-          String(
+          parameterInput(
             p.example ?? p.schema?.default ?? p.schema?.examples?.[0] ?? "",
           ),
         ]),
@@ -211,12 +212,12 @@ export default function Playground({
       !!schema["x-relay-warning"] ||
       !!schema.anyOf ||
       !!schema.allOf ||
+      !!schema.oneOf ||
       Object.values(schema.properties ?? {}).some(schemaUnsupported) ||
       schemaUnsupported(schema.items));
   async function execute() {
     if (executing.current) return;
     setError("");
-    setResponse(null);
     try {
       const parsed = parseHeaders(headerText);
       const headers = authHeaders(
@@ -288,7 +289,9 @@ export default function Playground({
   } catch {
     /* validation occurs before execution */
   }
-  const fields = Object.entries(schema?.properties ?? {});
+  const fields = Object.entries(schema?.properties ?? {}).filter(([, field]) => !field.readOnly);
+  let authentication = "Check request headers";
+  try { authentication = authSummary(parseHeaders(headerText), authType, secret, keyName, auth); } catch { /* execution explains invalid headers */ }
   const headersCount = (() => {
     try { return Object.keys(parseHeaders(headerText)).length; } catch { return 0; }
   })();
@@ -378,9 +381,10 @@ export default function Playground({
         <button
           className="icon-button"
           aria-label="Copy request URL"
-          onClick={() =>
-            void copy(requestUrl(endpoint, values, health.base_url), "url")
-          }
+          onClick={() => {
+            try { void copy(requestUrl(endpoint, values, health.base_url), "url"); }
+            catch (err) { setError(err instanceof Error ? err.message : "Check request parameters."); }
+          }}
         >
           {copied === "url" ? <Check size={15} /> : <Copy size={15} />}
         </button>
@@ -391,7 +395,7 @@ export default function Playground({
           <div className="export-options">
             {(["relay", "json"] as const).map((format) => <button key={format} onClick={() => {
               try { downloadExport(exportFilename(endpoint, format), endpointExport({ endpoint, snapshot, baseUrl: health.base_url, values, body, mediaType, headerText, progress, response, responseAt }), format); }
-              catch { setError("Export failed. Please try again."); }
+              catch (err) { setError(err instanceof Error ? err.message : "Export failed. Please try again."); }
               if (exportMenu.current) exportMenu.current.open = false;
               exportMenu.current?.querySelector("summary")?.focus();
             }}><strong>{format === "relay" ? "Relay (.relay)" : "JSON (.json)"}</strong><span>{format === "relay" ? "Offline browser report" : "Structured export data"}</span></button>)}
@@ -415,7 +419,7 @@ export default function Playground({
             <div className="request-content">
               <section className="request-auth">
                 <div className="request-auth-state">
-                  <span><LockKeyhole size={14} /> {authType === "Workspace bearer" ? auth.enabled && auth.token ? "Shared bearer applied" : "No shared token" : authType === "Bearer token" ? "Endpoint bearer applied" : authType === "None" ? "No auth" : authType}</span>
+                  <span><LockKeyhole size={14} /> {authentication}</span>
                   <button className="text-button" onClick={quickAuthorize ?? authorize}>Auth</button>
                 </div>
                 <details ref={authDetails} className="advanced-auth">
@@ -491,7 +495,7 @@ export default function Playground({
                         <div>
                           <code>{param.name}</code>
                           {param.required && <span className="required">required</span>}
-                          <small>{param.in} · {param.schema?.type ?? "string"}{param.description ? ` · ${param.description}` : ""}</small>
+                          <small>{param.in} · {param.schema?.type ?? param.schema?.anyOf?.find((s) => s.type !== "null")?.type ?? "string"}{param.description ? ` · ${param.description}` : ""}</small>
                         </div>
                         {param.schema?.type === "boolean" ? (
                           <select
@@ -518,7 +522,7 @@ export default function Playground({
                                 : "text"
                             }
                             placeholder={
-                              param.required ? "Enter a value" : "Optional"
+                              (param.schema?.type === "array" || param.schema?.anyOf?.some((s) => s.type === "array")) ? '["one", "two"]' : param.required ? "Enter a value" : "Optional"
                             }
                             value={values[`${param.in}:${param.name}`] ?? ""}
                             onChange={(e) =>
@@ -599,7 +603,7 @@ export default function Playground({
                                   field.type ?? "",
                                 ) ||
                                 field.$ref ||
-                                field.anyOf ? (
+                                field.anyOf || field.oneOf || field.allOf ? (
                                 <small className="muted">
                                   Edit in JSON below
                                 </small>
@@ -747,7 +751,7 @@ export default function Playground({
               Response
             </span>
             <span>
-              {responseAt
+              {running ? "Executing…" : responseAt
                 ? `Last run ${new Date(responseAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`
                 : "Waiting for a request"}
             </span>
@@ -814,10 +818,11 @@ export default function Playground({
                 {response.truncated && (
                   <p className="schema-warning">
                     Response preview truncated at 2 MiB. This is not the
-                    complete body.
+                    complete body. Copy and export include only this preview.
                   </p>
                 )}
                 <pre className={`response-body${wrapResponse ? " wrap-lines" : ""}`} role="tabpanel" tabIndex={0} aria-label={`${responseTab} response`}>
+                  {!responseText && <span className="muted">Empty response body</span>}
                   <ResponseText text={responseText} />
                 </pre>
 

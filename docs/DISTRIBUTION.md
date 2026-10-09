@@ -1,8 +1,8 @@
 # Distribution
 
-Relay v0.0.1 ships as the Python distribution **relay-backend**, with import **relay_agent** and console command **relay**. Native FastAPI integration is the primary consumer path. The wheel and source archive include the compiled UI, fonts and brand assets; consumers need Python 3.11+ and their existing backend, with no frontend tooling.
+Relay v0.0.2 ships as the Python distribution **relay-backend**, with import **relay_agent** and console command **relay**. Native FastAPI integration is the primary consumer path. The wheel and source archive include the compiled UI, fonts and brand assets; consumers need Python 3.11+ and their existing backend, with no frontend tooling.
 
-Install from [PyPI](https://pypi.org/project/relay-backend/0.0.1/) with `python -m pip install relay-backend==0.0.1`. The wheel is also attached to the [GitHub release](https://github.com/nibir-ai/relay/releases/tag/v0.0.1).
+Install from [PyPI](https://pypi.org/project/relay-backend/0.0.2/) with `python -m pip install relay-backend==0.0.2`. The wheel is also attached to the [GitHub release](https://github.com/nibir-ai/relay/releases/tag/v0.0.2).
 
 ```python
 from relay_agent import install_relay

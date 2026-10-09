@@ -67,6 +67,11 @@ def test_missing_origin_and_token(client):
     assert client.post("/__relay/execute", json={"method":"GET","path":"/api/health"}).status_code == 403
 
 
+def test_runner_rejects_case_insensitive_duplicate_headers(client):
+    result = client.post("/__relay/execute", headers=headers(client), json={"method": "GET", "path": "/api/health", "headers": {"Authorization": "Bearer one", "authorization": "Bearer two"}})
+    assert result.status_code == 400 and "Duplicate header" in result.json()["detail"]
+
+
 @pytest.mark.parametrize("path", ["http://evil.example", "//evil.example", "/\\evil.example", "/api/health?x=1", "/api/health#fragment"])
 def test_destination_escape(client, path):
     assert client.post("/__relay/execute", headers=headers(client), json={"method":"GET", "path":path}).status_code == 400

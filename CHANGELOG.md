@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.0.2 — release candidate
+
+- Refined terminal mark, plain Relay browser title and consistent report branding.
+- Array query serialization, blank optional-body support and consistent header validation.
+- More accurate effective-auth feedback, validated endpoint credentials and independent explicit Authorization/API-key headers.
+- Previous responses preserved after failed requests; empty bodies and truncated-copy/export boundaries made explicit.
+- JSON formatting and reports preserve large integers and duplicate keys; large bodies avoid costly formatting.
+- Runnable FastAPI factory/router example with user/admin auth, nested bodies and validation cases.
+- Custom visual guides and simpler installation documentation.
+- Clean-install verification exercises actual handlers and authentication outside the checkout; Socket.IO integration coverage added.
+
 ## 0.0.1 — 9 October 2026
 
 Published on [PyPI](https://pypi.org/project/relay-backend/0.0.1/) as `relay-backend`, import `relay_agent`, under Apache-2.0.
