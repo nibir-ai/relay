@@ -2,7 +2,7 @@
 
 ## Install and mount
 
-After v0.0.1 is published:
+Install in your backend's Python environment:
 
 ```sh
 python -m pip install relay-backend==0.0.1
@@ -95,12 +95,12 @@ Custom/disabled public OpenAPI URLs and custom `app.openapi()` generators work. 
 
 The parent lifespan starts first and stops last. Relay's resources run inside it and preserve yielded host state. Keep existing startup/shutdown logic. Local mounted `root_path` prefixes are supported; loopback checks still apply.
 
-## Before publication
+## Install from a release file
 
-Install the prepared release wheel with the same consumer integration:
+Download the wheel from the [v0.0.1 release](https://github.com/nibir-ai/relay/releases/tag/v0.0.1), then install it with the same consumer integration:
 
 ```sh
 python -m pip install /path/to/relay_backend-0.0.1-py3-none-any.whl
 ```
 
-The PyPI install command cannot work until publication succeeds. `relay-agent` on PyPI is an unrelated project; the distribution to use is `relay-backend`.
+`relay-agent` on PyPI is an unrelated project; the distribution to use is `relay-backend`.

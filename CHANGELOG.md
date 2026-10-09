@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.0.1 — release candidate
+## 0.0.1 — 9 October 2026
 
-Apache-2.0 release prepared as `relay-backend`, import `relay_agent`. Publication pending PyPI authorization.
+Published on [PyPI](https://pypi.org/project/relay-backend/0.0.1/) as `relay-backend`, import `relay_agent`, under Apache-2.0.
 
 - Bundled offline UI mounted at `/relay/`; `install_relay(app)` and optional `enabled=` development flag.
 - Native schema discovery and execution through FastAPI middleware/dependencies/startup state.

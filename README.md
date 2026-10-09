@@ -9,7 +9,7 @@ A local API tester for your backend: categorized endpoints, clear responses, qui
 
 ## Add Relay to FastAPI
 
-Requires Python 3.11+. The v0.0.1 artifacts are prepared; **PyPI publication is pending**. After publication, install in your backend's Python environment:
+Requires Python 3.11+. Install in your backend's Python environment:
 
 ```sh
 python -m pip install relay-backend==0.0.1
@@ -31,7 +31,7 @@ Use your development setting to control installation:
 install_relay(app, enabled=settings.DEBUG)
 ```
 
-Install before wrapping FastAPI with Socket.IO. Application factories, custom OpenAPI generators, lifespan and proxy prefixes are covered in the [FastAPI integration guide](docs/FASTAPI.md). Until publication, install the built wheel from `dist/relay_backend-0.0.1-py3-none-any.whl`.
+Install before wrapping FastAPI with Socket.IO. Application factories, custom OpenAPI generators, lifespan and proxy prefixes are covered in the [FastAPI integration guide](docs/FASTAPI.md). Alternatively, install the wheel attached to the [v0.0.1 release](https://github.com/nibir-ai/relay/releases/tag/v0.0.1).
 
 The distribution name is **relay-backend**. The import is **relay_agent** and the CLI is **relay**. The `relay-agent` project on PyPI is unrelated.
 
