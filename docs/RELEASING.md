@@ -1,6 +1,6 @@
 # Releasing Relay
 
-The current candidate is v0.0.3. Versions 0.0.1 and 0.0.2 are already published using the configured Trusted Publisher. Follow every gate below before publishing the candidate. See [the changelog](../CHANGELOG.md) for release contents.
+v0.0.3 is published on [PyPI](https://pypi.org/project/relay-backend/0.0.3/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.3). Trusted Publishing succeeded and a fresh unpinned PyPI installation passed the consumer checks. Follow every gate below for subsequent releases. See [the changelog](../CHANGELOG.md) for release contents.
 
 Apache-2.0 distribution: `relay-backend`, import `relay_backend`, with legacy root-import compatibility. Includes native FastAPI testing, auth, statuses, optional automatic Git status sync, source attribution, response inspection, themes, branding, exports and local CLI. Node is for maintainers only. Multipart, OAuth browser flows, public hosting, YAML/external refs and macOS/Linux desktop associations remain out of scope.
 

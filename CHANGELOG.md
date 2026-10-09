@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.0.3 (in preparation)
+## 0.0.3 — 9 October 2026
+
+Published on [PyPI](https://pypi.org/project/relay-backend/0.0.3/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.3).
 
 - Canonical `relay_backend` import with compatibility for existing root `relay_agent` imports.
 - Application-specific `Relay - <name>` browser titles and versioned bundled favicon refresh.

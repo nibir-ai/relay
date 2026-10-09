@@ -88,10 +88,10 @@ Release gate: fresh package installation, endpoint discovery, authentication, ex
 - [x] Use `pip install relay-backend` for the latest fresh installation and document upgrades.
 - [x] Make `relay_backend` the public Python import while preserving existing integrations.
 - [x] Display `Relay - <app name>` automatically from each application's OpenAPI title.
-- [ ] Verify bundled branding and asset refresh from a clean published-package installation.
+- [x] Verify bundled branding and asset refresh from a clean published-package installation.
 - [x] Remove unused artwork and private development metadata from public source and packages.
 - [x] Add opt-in automatic team status sync without manual Git commands or changing working files.
-- [ ] Migrate the Ludo backend to the tested published package and verify its native integration.
+- [x] Migrate the Ludo backend to the tested published package and verify its native integration.
 - [x] Pass package, frontend, Python, cross-environment sync and release checks before publication.
 
 Issue maintenance checks run every four hours and update this checklist when fixes are verified.
