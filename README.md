@@ -105,7 +105,7 @@ The npm package provides the bundled tester for JavaScript and TypeScript backen
 - [x] Support CommonJS, ES modules and TypeScript declarations.
 - [x] Verify API execution, authentication, response limits and status persistence.
 - [x] Verify automatic status sharing between independent Git peers.
-- [ ] Verify the tarball in clean consumer installations and CI on supported Node versions.
+- [x] Verify the tarball in clean consumer installations and CI on supported Node versions.
 - [ ] Publish the verified npm package and check a fresh registry installation.
 
 ## Documentation
