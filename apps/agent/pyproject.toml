@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "relay-backend"
+version = "0.0.1"
+description = "A local API testing interface with native FastAPI integration, endpoint status tracking, and Git attribution."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+authors = [{name = "Relay contributors"}]
+keywords = ["fastapi", "openapi", "api-testing", "swagger", "developer-tools"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Framework :: FastAPI",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Operating System :: OS Independent",
+  "Topic :: Software Development :: Testing",
+]
+requires-python = ">=3.11"
+dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1", "httpx>=0.28,<0.29"]
+
+[project.urls]
+Repository = "https://github.com/nibir-ai/relay"
+Documentation = "https://github.com/nibir-ai/relay/blob/main/docs/README.md"
+Issues = "https://github.com/nibir-ai/relay/issues"
+Changelog = "https://github.com/nibir-ai/relay/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+test = ["pytest>=8,<10"]
+
+[project.scripts]
+relay = "relay_agent.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["relay_agent*"]
+
+[tool.setuptools.package-data]
+relay_agent = ["static/*", "static/assets/*", "static/brand/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

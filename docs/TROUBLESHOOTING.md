@@ -1,0 +1,48 @@
+# Troubleshooting
+
+## `/relay` is 404
+
+Package installation alone does not mount routes. Confirm `install_relay(app)` runs on the served FastAPI instance, `enabled` is true, and the backend was restarted. Use its existing port. `/` may remain 404. In factories mount on the returned instance; for Socket.IO mount before wrapping.
+
+## Wrong install/environment
+
+Install `relay-backend`, import `relay_agent`; PyPI's `relay-agent` is unrelated. Use the backend's Python environment:
+
+```sh
+python -m pip show relay-backend
+python -c "import relay_agent; print(relay_agent.__file__)"
+```
+
+Before publication, install the release-candidate wheel. Consumers should not need Node or a checkout.
+
+## Missing assets
+
+Use the bundled official wheel. Editable contributor checkouts need `python scripts/package.py`; custom `static_dir` is a contributor override. The canonical `/relay/` and emitted base URL keep assets under the mount.
+
+## Relay returns 403
+
+Use localhost/127.0.0.1 and a loopback client. Public/LAN hostnames and tunnels are out of scope. Refresh after restart for the current CSRF token. Do not disable Host/Origin/Fetch Metadata/CSRF checks to host this development tool publicly.
+
+## Backend 401/403/422
+
+These can be genuine responses. Submit the correct shared/endpoint auth explicitly; endpoint None suppresses shared tokens. Fill required inputs and inspect body/headers. Relay does not bypass backend validation/permissions.
+
+## Missing new routes
+
+Restart/reload, then Sync. Dynamic FastAPI route changes may need `app.openapi_schema = None`; Relay cannot bypass the host's schema cache.
+
+## Git status or author unavailable
+
+Run from the Git project or pass `project=Path(...)`. Commit source before expecting committed attribution. Expand for author details; they are absent from collapsed rows by design. Configure Git identity, pull shared status metadata, resolve conflicts and Sync. Shallow/squashed/untracked/wrapped source can limit attribution.
+
+## Report does not double-click
+
+Try `relay open "file.relay"`. On Windows run `relay associate` from the installed environment and inspect Open with defaults if needed. macOS/Linux desktop registration is not included. JSON renamed `.relay` is not a valid report.
+
+## Compact UI seems unchanged
+
+Live UI applies 90% scale. Reset browser zoom to 100% and refresh; browser zoom compounds it. Export reports use their own reading layout.
+
+## Unsupported/incomplete data
+
+Multipart, OAuth browser flows, external refs and YAML are unsupported. Complex schemas may need manual JSON. Requests are capped at 1 MiB, response/spec retention at 2 MiB, execution at 20 seconds. Truncation is explicit and preserved in exports.

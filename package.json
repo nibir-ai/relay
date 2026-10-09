@@ -1,0 +1,11 @@
+{
+  "name": "relay",
+  "private": true,
+  "version": "0.0.1",
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "build": "npm --prefix apps/web run build",
+    "test:web": "npm --prefix apps/web test",
+    "demo": "python scripts/dev.py"
+  }
+}
