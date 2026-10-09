@@ -1,6 +1,6 @@
 # Verification
 
-## v0.0.2 release candidate: 9 October 2026
+## v0.0.2: 9 October 2026
 
 - Windows/Python 3.12: 82 Python tests and 40 frontend tests pass; strict TypeScript/Vite production build succeeds.
 - Clean wheel installs outside the checkout pass with current and minimum runtime dependencies: bundled assets, factory/router discovery, user/admin authentication, nested and optional bodies, repeated query arrays, 422 validation details, empty 204 responses, default Done status and disabled mode.
@@ -9,7 +9,7 @@
 - Browser verification returned real 200 responses for a repeated query array and an admin endpoint authorized through the quick dialog. Copied URL preserved repeated keys. Downloaded JSON and Relay reports retained the tested response.
 - Desktop and 390px mobile inspection has no page overflow. Formatting preserves large integer tokens and duplicate JSON keys, avoids formatting large bodies and caps indentation for deeply nested content.
 - Design detection found the existing report's `RelayMono` alias missing from design metadata; this alias embeds the same JetBrains Mono font already used by the product. No report typography or palette was changed for this release.
-- Public Python 3.11/3.12/3.13 CI and PyPI publication are pending; local validation alone does not establish publication.
+- Public Linux CI passed on Python 3.11/3.12/3.13, including clean-install checks and minimum runtime verification. [CI run](https://github.com/nibir-ai/relay/actions/runs/37895317862). PyPI publication is pending the release workflow.
 
 ## Earlier verification: 8 October 2026
 
@@ -36,7 +36,7 @@ Native FastAPI integration: install_relay(app) mounts the tester, internal API, 
 
 Default Done/source attribution extension: new discovery and untouched legacy defaults become Done; tests preserve manual Not started choices across migration and sync. Git history tests distinguish Alice introducing a handler from Bob editing it and Alex changing status, label local/untracked changes, and cover nested included-router prefixes with hidden routes excluded. Source metadata remains ephemeral and separate from OpenAPI fingerprints and Git status files. Live Ludo backend at localhost:8081 reports 65/65 Done and 65 inferred Git creators. Cached Sync measured 62ms after a cold history read around7.4seconds. Browser GET /health returned actual200 with source attribution visible; no status mutation from testing. Desktop and390/320 viewports checked with no horizontal overflow. Current evidence: relay-git-authors-desktop.jpg, relay-git-authors-mobile.jpg, relay-git-authors-small-mobile.jpg. 73 backend tests, 26 UI tests, strict build, and independently installed wheel verification pass.
 
-## v0.0.1 release candidate — 9 October 2026
+## v0.0.1 release candidate â€” 9 October 2026
 
 - Windows/Python 3.12: 79 Python tests and 30 UI tests pass; strict TypeScript/Vite build succeeds.
 - `relay-backend` wheel and source archive build with bundled UI, fonts, Apache-2.0 license and third-party notices. Wheel is built from source archive.

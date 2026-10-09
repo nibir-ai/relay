@@ -65,14 +65,14 @@ Tokens and drafts stay in browser session memory. Explicit exports include reque
 
 ## Roadmap: v0.0.2
 
-- [ ] Ship the refined Relay branding consistently across the tester, reports and documentation.
-- [ ] Harden request testing for nested bodies, optional fields, arrays, path/query parameters, validation errors and empty responses.
-- [ ] Clarify effective authentication and keep shared and endpoint credentials independent, with quick switching.
-- [ ] Improve large-response inspection, truncation feedback and accurate copying and exports.
-- [ ] Verify seamless FastAPI integration with routers, application factories and Socket.IO; provide a small runnable example.
-- [ ] Finish illustrated setup guides, the package README and troubleshooting documentation.
+- [x] Ship the refined Relay branding consistently across the tester, reports and documentation.
+- [x] Harden request testing for nested bodies, optional fields, arrays, path/query parameters, validation errors and empty responses.
+- [x] Clarify effective authentication and keep shared and endpoint credentials independent, with quick switching.
+- [x] Improve large-response inspection, truncation feedback and accurate copying and exports.
+- [x] Verify seamless FastAPI integration with routers, application factories and Socket.IO; provide a small runnable example.
+- [x] Finish illustrated setup guides, the package README and troubleshooting documentation.
 
-Release gate: install the published package in a separate backend, discover endpoints, authenticate, execute requests, inspect responses and export results without frontend tooling. Publish v0.0.2 after these checks pass. Additional frameworks, cloud collaboration and premium tools remain outside this release.
+Release gate: fresh package installation, endpoint discovery, authentication, execution, response inspection and both export formats verified without frontend tooling. See [verification notes](docs/VERIFICATION.md). Additional frameworks, cloud collaboration and premium tools remain outside this release.
 
 ## Documentation
 
