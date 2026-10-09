@@ -8,6 +8,8 @@ const version=JSON.parse(fs.readFileSync(path.join(root,'packages/node/package.j
 const archive=path.join(root,'dist',`relay-backend-${version}.tgz`);
 const directory=fs.mkdtempSync(path.join(os.tmpdir(),'relay-consumer-'));
 const npm=path.join(path.dirname(process.execPath),'node_modules/npm/bin/npm-cli.js');
+const npmBinary=fs.existsSync(npm)?process.execPath:'npm';
+const npmPrefix=fs.existsSync(npm)?[npm]:[];
 function run(binary,args) {
   const result=spawnSync(binary,args,{cwd:directory,encoding:'utf8',timeout:180000,windowsHide:true});
   if(result.status!==0) throw new Error((result.stdout||'')+(result.stderr||'')+String(result.error||''));
@@ -16,7 +18,7 @@ function run(binary,args) {
 async function main() {
   assert.ok(fs.existsSync(archive),'Build the npm tarball first.');
   fs.writeFileSync(path.join(directory,'package.json'),JSON.stringify({name:'relay-clean-consumer',private:true}));
-  run(process.execPath,[npm,'install','--ignore-scripts','--no-audit','--no-fund',archive,'express@5','typescript@5','@types/node@22','@types/express@5']);
+  run(npmBinary,[...npmPrefix,'install','--ignore-scripts','--no-audit','--no-fund',archive,'express@5','typescript@5','@types/node@22','@types/express@5']);
   assert.ok(!fs.existsSync(path.join(directory,'node_modules/fastify')),'Express consumer must not require Fastify.');
   const installed=JSON.parse(fs.readFileSync(path.join(directory,'node_modules/relay-backend/package.json'),'utf8'));
   assert.equal(installed.version,version); assert.equal(Object.keys(installed.dependencies||{}).length,0);
