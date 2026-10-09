@@ -10,7 +10,11 @@ CI covers Python 3.11/3.12/3.13; inspect actual results before declaring these c
 
 ## PyPI setup: account owner required
 
-The unrelated `relay-agent` distribution is not ours. Publish `relay-backend` only. Create a pending PyPI Trusted Publisher:
+The unrelated `relay-agent` distribution is not ours. Publish `relay-backend` only. The public launch source is `nibir-ai/relay`; private development history is kept separately.
+
+1. Sign in to your account on PyPI.org, then open account settings → Publishing. Use real PyPI, not TestPyPI.
+2. Under pending publishers, choose the GitHub form. This is an account-level form because the project does not exist yet.
+3. Enter these exact values, then click Add and confirm that the pending publisher is listed:
 
 | Field | Value |
 |---|---|
@@ -20,9 +24,13 @@ The unrelated `relay-agent` distribution is not ours. Publish `relay-backend` on
 | Workflow | `release.yml` |
 | Environment | `pypi` |
 
-Create the matching GitHub `pypi` environment and choose the desired release approval policy. The workflow uses OIDC with `pypa/gh-action-pypi-publish`, not a stored PyPI token. Workflow files alone do not establish PyPI trust or publish a distribution.
+The filename is `release.yml`, not the workflow's display name or its full `.github/workflows/` path. If you previously entered the private development repository, replace that pending publisher with these public-repository values.
 
-[Official pending-publisher setup](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/) · [Official publishing guide](https://docs.pypi.org/trusted-publishers/using-a-publisher/)
+The workflow references the GitHub `pypi` environment. GitHub creates it when the job runs if it does not exist; repository admins can configure its approval rules beforehand in Settings → Environments. The workflow uses OIDC with `pypa/gh-action-pypi-publish`, not a stored PyPI token. Workflow files alone do not establish PyPI trust or publish a distribution.
+
+A pending publisher creates the project on first successful upload; it does not reserve the project name. No manual first upload is needed.
+
+[Official pending-publisher setup](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/) · [Official publishing guide](https://docs.pypi.org/trusted-publishers/using-a-publisher/) · [GitHub environment behavior](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments)
 
 ## Publish and confirm
 
