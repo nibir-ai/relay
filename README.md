@@ -9,21 +9,33 @@ A local API tester for your backend: categorized endpoints, clear responses, qui
 
 ## Add Relay to FastAPI
 
-Requires Python 3.11+. Install in your backend's Python environment:
+![Install Relay, mount it on your FastAPI app, and open /relay on the existing backend port.](docs/assets/fastapi-quickstart.png)
+
+### 1. Install
+
+In your backend's Python environment (Python 3.11+):
 
 ```sh
 python -m pip install relay-backend==0.0.1
 ```
 
-Add these two lines after creating your FastAPI application:
+### 2. Add two lines
+
+In the file where you create `app = FastAPI()`:
 
 ```python
 from relay_agent import install_relay
-
 install_relay(app)
 ```
 
-Start your backend normally and open `/relay` on its existing port. Relay includes the UI, fonts and assets. You need no repository clone, Node installation, frontend build, target URL or second server. It reads your app's OpenAPI and executes requests through its middleware and dependencies.
+### 3. Open `/relay`
+
+Restart your backend with its usual command. Open `/relay` on that backend's port. For example, a backend at `http://localhost:8000` gets Relay at `http://localhost:8000/relay`.
+
+That's the setup. Relay includes the UI, fonts and assets, discovers your APIs from OpenAPI, and executes through your app's middleware and dependencies.
+
+<details>
+<summary>Optional settings and integration details</summary>
 
 Use your development setting to control installation:
 
@@ -34,6 +46,8 @@ install_relay(app, enabled=settings.DEBUG)
 Install before wrapping FastAPI with Socket.IO. Application factories, custom OpenAPI generators, lifespan and proxy prefixes are covered in the [FastAPI integration guide](docs/FASTAPI.md). Alternatively, install the wheel attached to the [v0.0.1 release](https://github.com/nibir-ai/relay/releases/tag/v0.0.1).
 
 The distribution name is **relay-backend**. The import is **relay_agent** and the CLI is **relay**. The `relay-agent` project on PyPI is unrelated.
+
+</details>
 
 ## What ships in v0.0.1
 

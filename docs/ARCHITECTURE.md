@@ -1,5 +1,7 @@
 # Relay architecture
 
+![Relay mounts inside the existing FastAPI application, sharing its port and executing through its middleware, dependencies and handlers.](assets/fastapi-native.png)
+
 Native FastAPI mounts the compiled React UI, assets, and internal `/__relay` API under `/relay`. The standalone CLI serves the same namespaced UI and retains its legacy root `/__relay` API. `security.py` checks origins, paths, and headers; `openapi.py` normalizes code-generated contracts; `executor.py` runs bounded HTTPX requests without redirects or ambient proxies.
 
 `Operations.tsx` categorizes endpoints by OpenAPI tags. `Playground.tsx` builds editable request inputs and displays real response text. Imported methods, paths, schemas, and categories are never edited in Relay. Changed fingerprints reset obsolete drafts; unchanged syncs preserve session inputs/results. Failed imports preserve the previous in-memory snapshot.

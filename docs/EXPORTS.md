@@ -1,5 +1,7 @@
 # Exports
 
+![Execute a request, inspect its response, then export a Relay browser report or structured JSON.](assets/response-export.png)
+
 Export beside Execute offers Relay (`.relay`) or JSON (`.json`); it never sends a request. Both include endpoint details/contract/progress, current inputs/body and latest captured response. Current inputs are separate because they may have changed since execution. No result means `latest_response: null`.
 
 Structured data uses `relay.endpoint`, version 1. Report marker is `relay.endpoint.report.v1`. These are Relay formats, not Postman collections; import-as-executable-collection is not included.

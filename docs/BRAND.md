@@ -1,6 +1,6 @@
 # Relay identity
 
-Relay is a local API tester. The identity expresses the request and its return, with a separated R and custom lowercase lettering. It belongs beside the work: compact in the header, recognizable in a browser tab, and legible in one color.
+Relay is a local API tester. Its mark combines a lowercase r with a baseline cursor, using the same squared lettering as the wordmark. It belongs beside the work: compact in the header, recognizable in a browser tab, and legible in one color. The browser title is simply Relay.
 
 ## Master assets
 
@@ -10,7 +10,7 @@ Original geometry lives in [brand_assets.py](../scripts/brand_assets.py). Run `p
 - [Light logo](../apps/web/public/brand/relay-logo-light.svg): darker blue mark and charcoal lettering.
 - [Black](../apps/web/public/brand/relay-logo-black.svg) and [white](../apps/web/public/brand/relay-logo-white.svg): monochrome applications.
 - [Symbol](../apps/web/public/brand/relay-symbol.svg) and [wordmark](../apps/web/public/brand/relay-wordmark.svg): independent white alpha masters for theme-aware application.
-- [Icon](../apps/web/public/brand/relay-icon.svg): a 48-unit tile used as the favicon.
+- [Icon](../apps/web/public/brand/relay-icon.svg): a transparent favicon with foreground/cursor colors that adapt to the browser's light or dark scheme.
 - [Identity sheet](../apps/web/public/brand/identity.html): preview and SVG downloads, served at `/brand/identity.html`.
 
 ## Use

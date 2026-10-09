@@ -12,6 +12,8 @@ Native execution invokes real handlers, middleware, dependencies, validation and
 
 ## Auth
 
+![Use header Authorize for a shared token, or an endpoint's Auth button to paste a separate token and explicitly authorize it.](assets/endpoint-auth.png)
+
 Header Authorize sets shared bearer auth. Paste with or without `Bearer`, then explicitly submit Authorize. Cancel/Escape discards unsubmitted edits.
 
 Endpoint Auth beside status supports distinct admin/user credentials without expanding the API. Use shared auth resets the override. Advanced settings offers Shared bearer, Endpoint bearer, Basic, header API key and None. None suppresses shared auth. Backend permissions remain authoritative; Relay does not grant roles.

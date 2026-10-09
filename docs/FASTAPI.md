@@ -2,6 +2,8 @@
 
 ## Install and mount
 
+![Install relay-backend, add two lines to your FastAPI entry point, and open /relay.](assets/fastapi-quickstart.png)
+
 Install in your backend's Python environment:
 
 ```sh
@@ -18,6 +20,8 @@ install_relay(app)
 Start your backend normally. If its port is 8081, open `http://localhost:8081/relay/`. `/relay` redirects to the trailing-slash URL. Swagger `/docs` remains available.
 
 The wheel includes UI, fonts and branding. No Node, source clone, CDN, frontend build, target URL or separate Relay process is required. Native integration reads `app.openapi()` directly and runs tests inside your host application.
+
+![Relay's UI and request runner live inside your FastAPI application alongside its API routes. They use the same backend port.](assets/fastapi-native.png)
 
 ## Complete example
 

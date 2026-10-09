@@ -4,9 +4,25 @@ An offline API testing interface for your FastAPI application. Install one Pytho
 
 ## Install
 
+![Install Relay, mount it on FastAPI, then open /relay on the backend's existing port.](https://raw.githubusercontent.com/nibir-ai/relay/main/docs/assets/fastapi-quickstart.png)
+
+1. Install in your backend's Python environment:
+
 ```sh
 python -m pip install relay-backend==0.0.1
 ```
+
+2. Add these lines where your FastAPI `app` is created:
+
+```python
+from relay_agent import install_relay
+install_relay(app)
+```
+
+3. Restart the backend with its usual command and open `/relay` on its existing port.
+
+<details>
+<summary>Complete example for a new app</summary>
 
 ```python
 from fastapi import FastAPI
@@ -21,6 +37,8 @@ def health():
 ```
 
 Run your backend normally, for example `uvicorn main:app --reload`, then visit `http://localhost:8000/relay/`.
+
+</details>
 
 No repository clone, Node installation, frontend build, CDN, separate Relay process, or target URL is required. Existing applications only need the import and `install_relay(app)` call. Use `install_relay(app, enabled=settings.DEBUG)` to keep Relay under your application's development flag. Install it on the FastAPI object before wrapping that object in Socket.IO or another ASGI wrapper.
 

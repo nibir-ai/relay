@@ -5,8 +5,10 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "apps/web/public/brand"
 OUT.mkdir(parents=True, exist_ok=True)
 
-# The separated stem, return path and outgoing leg form one open R.
-MARK = "M4 4H12V36H4Z M16 4H28L36 12V16L28 24H16V16H24L28 12H16Z M18 28H28L36 36H26Z"
+# A lowercase r and baseline cursor belong to the same squared lettering.
+LETTER = "M5 8H11V12L15 8H29V14H18L11 21V34H5Z"
+CURSOR = "M22 28H36V34H22Z"
+MARK = f"{LETTER} {CURSOR}"
 # Original squared lowercase lettering, with a descending y.
 WORD = (
     "M2 10H8V14L12 10H21V16H14L8 22V34H2Z "
@@ -40,7 +42,7 @@ assets = {
     "relay-logo-light.svg": svg("0 0 196 48", lockup("#245f9a", "#232c38"), "Relay"),
     "relay-logo-black.svg": svg("0 0 196 48", lockup("#10191d", "#10191d"), "Relay"),
     "relay-logo-white.svg": svg("0 0 196 48", lockup("#fff", "#fff"), "Relay"),
-    "relay-icon.svg": svg("0 0 48 48", '<rect width="48" height="48" rx="4" fill="#10191d"/>' + f'<g transform="translate(4 4)">{mark("#67b0e8")}</g>', "Relay"),
+    "relay-icon.svg": svg("1 4 38 34", '<style>.letter{fill:#232c38}.cursor{fill:#245f9a}@media(prefers-color-scheme:dark){.letter{fill:#e4e7e9}.cursor{fill:#67b0e8}}</style>' + f'<path class="letter" d="{LETTER}"/><path class="cursor" d="{CURSOR}"/>', "Relay"),
 }
 for name, content in assets.items():
     (OUT / name).write_text(content, encoding="utf-8")
