@@ -1,0 +1,1 @@
+{"compilerOptions":{"strict":true,"module":"NodeNext","moduleResolution":"NodeNext","target":"ES2022","esModuleInterop":true,"skipLibCheck":false},"include":["types.cts","types.mts"]}

@@ -55,7 +55,7 @@ def associate_windows() -> str:
     python = Path(sys.executable)
     pythonw = python.with_name("pythonw.exe")
     executable = pythonw if pythonw.is_file() else python
-    command = subprocess.list2cmdline([str(executable), "-m", "relay_agent.files"]) + ' "%1"'
+    command = subprocess.list2cmdline([str(executable), "-m", "relay_backend.files"]) + ' "%1"'
     values = {
         extension: PROG_ID,
         rf"Software\Classes\{PROG_ID}": "Relay endpoint report",

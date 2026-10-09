@@ -5,6 +5,16 @@ import pytest
 from relay_backend.files import REPORT_MARKER, open_report, prepare_report
 
 
+def test_legacy_report_association_entry_point():
+    import subprocess
+    import sys
+    from relay_agent.files import prepare_report as legacy_prepare
+    assert legacy_prepare is prepare_report
+    result = subprocess.run([sys.executable, "-m", "relay_agent.files", "--help"], capture_output=True, text=True)
+    assert result.returncode == 0
+    assert "Open a Relay endpoint report" in result.stdout
+
+
 def test_prepare_report_preserves_contents_and_handles_spaces(tmp_path):
     path = tmp_path / "api report.relay"
     content = '<!doctype html><html><head>' + REPORT_MARKER + '</head><body>Response &amp; request</body></html>'

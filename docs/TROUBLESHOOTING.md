@@ -18,6 +18,19 @@ Package installation alone does not mount routes. Confirm `install_relay(app)` r
 
 ## Wrong install/environment
 
+If your backend cannot import Relay, run **`pip install relay-backend`** in that backend's environment. The absent package cannot customize Python's import error itself. To show a helpful startup message, guard the import in your server:
+
+```python
+try:
+    from relay_backend import install_relay
+except ModuleNotFoundError as error:
+    if error.name != "relay_backend":
+        raise
+    raise SystemExit("Relay is not installed. Run: pip install relay-backend") from None
+```
+
+This preserves errors from missing dependencies inside Relay instead of misreporting them. The [runnable FastAPI example](../examples/fastapi/main.py) includes this guard. For Node backends, install the npm package with `npm install relay-backend`; see [Node setup](NODE.md).
+
 Install `relay-backend`, import `relay_backend`; PyPI's `relay-agent` is unrelated. Use the backend's Python environment:
 
 ```sh

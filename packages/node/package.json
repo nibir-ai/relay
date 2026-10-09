@@ -1,0 +1,52 @@
+{
+  "name": "relay-backend",
+  "version": "0.0.3",
+  "description": "Bundled API testing UI for Node backends with endpoint statuses and Git collaboration.",
+  "license": "Apache-2.0",
+  "main": "./lib/index.cjs",
+  "module": "./lib/index.mjs",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.cjs"
+    }
+  },
+  "bin": {
+    "relay-backend": "./lib/cli.cjs"
+  },
+  "files": [
+    "lib/",
+    "static/",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
+    "README.md",
+    "scripts/check-assets.cjs"
+  ],
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nibir-ai/relay.git",
+    "directory": "packages/node"
+  },
+  "homepage": "https://github.com/nibir-ai/relay/blob/main/docs/NODE.md",
+  "bugs": {
+    "url": "https://github.com/nibir-ai/relay/issues"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "check:types": "tsc -p tests/tsconfig.json --noEmit",
+    "prepack": "node scripts/check-assets.cjs"
+  },
+  "devDependencies": {
+    "express": "^5.1.0",
+    "fastify": "^5.6.0",
+    "@fastify/swagger": "^9.5.0",
+    "@types/express": "^5.0.3",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.3"
+  }
+}

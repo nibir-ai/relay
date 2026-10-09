@@ -1,5 +1,18 @@
 # Changelog
 
+## Node 0.0.3 (unpublished)
+
+- Native `relay-backend` npm distribution with bundled UI, CommonJS/ESM exports and TypeScript declarations.
+- Express middleware, Fastify plugin and Node HTTP adapter use generated OpenAPI on the backend's existing `/relay` route.
+- Real request execution with existing backend auth, bounded responses, manual statuses and optional automatic Git status sharing.
+- Standalone `npx relay-backend` tester and portable `.relay` report opener without Python.
+- Clean npm consumer checks and supported-Node CI release gates.
+- Helpful `pip install relay-backend` startup guidance in the FastAPI example and Ludo consumer when the package is absent.
+
+## Unreleased Python fixes
+
+- Restore the legacy report module entry point for existing Windows `.relay` associations and use the canonical module for new associations.
+
 ## 0.0.3 — 9 October 2026
 
 Published on [PyPI](https://pypi.org/project/relay-backend/0.0.3/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.3).

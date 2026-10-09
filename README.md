@@ -96,11 +96,24 @@ Release gate: fresh package installation, endpoint discovery, authentication, ex
 
 Issue maintenance checks run every four hours and update this checklist when fixes are verified.
 
+## Node package: v0.0.3
+
+The npm package provides the bundled tester for JavaScript and TypeScript backends. See [Node integration](docs/NODE.md) for minimal Express and Fastify setup. Publication is pending registry authentication; use the npm install command after the package is published.
+
+- [x] Native Express middleware, Fastify plugin and Node HTTP integration.
+- [x] Bundle the UI without Python, a consumer build or a repository clone.
+- [x] Support CommonJS, ES modules and TypeScript declarations.
+- [x] Verify API execution, authentication, response limits and status persistence.
+- [x] Verify automatic status sharing between independent Git peers.
+- [ ] Verify the tarball in clean consumer installations and CI on supported Node versions.
+- [ ] Publish the verified npm package and check a fresh registry installation.
+
 ## Documentation
 
 Start with the [documentation index](docs/README.md).
 
 - [FastAPI setup and configuration](docs/FASTAPI.md)
+- [JavaScript and TypeScript backends](docs/NODE.md)
 - [Testing requests, authentication and responses](docs/TESTING.md)
 - [Git status and source attribution](docs/GIT.md)
 - [Exports and opening `.relay` files](docs/EXPORTS.md)

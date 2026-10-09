@@ -21,6 +21,10 @@ install_relay(app)
 
 Restart your backend normally. Open `/relay` on its existing port. That is all the required configuration.
 
+## Node backends
+
+A bundled npm distribution is being prepared for Express, Fastify and Node HTTP. See [Node integration](NODE.md) for JavaScript and TypeScript setup and publication status in the main README.
+
 ## Guides
 
 1. [FastAPI integration](FASTAPI.md): installation, existing apps, factories, development flags, Socket.IO and optional settings.
@@ -31,4 +35,4 @@ Restart your backend normally. Open `/relay` on its existing port. That is all t
 
 For maintainers: [contributor setup](CONTRIBUTING.md), [release process](RELEASING.md), [architecture](ARCHITECTURE.md), [distribution](DISTRIBUTION.md) and [changelog](../CHANGELOG.md).
 
-Python 3.11+ is required. This is a local development tool: loopback clients/hosts only. Native execution runs real backend handlers and can modify development data. There is no Relay cloud, automatic Git commit/push, realtime collaboration, or editable endpoint definition. Done is a manual team status, not test/security approval.
+Python 3.11+ is required. This is a local development tool: loopback clients/hosts only. Native execution runs real backend handlers and can modify development data. There is no Relay cloud or editable endpoint definition. Optional automatic team status sync exchanges status metadata on a separate Git branch. Done is a manual team status, not test/security approval.

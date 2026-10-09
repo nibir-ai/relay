@@ -9,7 +9,12 @@ from typing import Annotated
 from fastapi import APIRouter, Body, Depends, FastAPI, HTTPException, Query, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
-from relay_backend import install_relay
+try:
+    from relay_backend import install_relay
+except ModuleNotFoundError as error:
+    if error.name != "relay_backend":
+        raise
+    raise SystemExit("Relay is not installed. Run: pip install relay-backend") from None
 
 bearer = HTTPBearer(auto_error=False)
 router = APIRouter(prefix="/api")

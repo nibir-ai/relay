@@ -46,3 +46,28 @@ A pending publisher creates the project on first successful upload; it does not 
 6. Run `python scripts/verify_clean_install.py --public-index` to verify the actual published version in a fresh environment; only then record publication success.
 
 Published artifact versions are immutable. Inspect actual files before retrying a partial upload. A pushed tag or successful build alone does not mean publication succeeded.
+
+## npm releases
+
+The Node package has its own registry and tag: `npm-v0.0.3`. Do not reuse the published Python `v0.0.3` tag or replace its artifacts.
+
+Build and verify before publishing:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm --dir apps/web test
+node scripts/package_node.cjs
+pnpm --dir packages/node test
+pnpm --dir packages/node check:types
+node scripts/verify_node_package.cjs
+```
+
+`node.yml` runs these checks on Node 22.13, 24 and 26. The tarball includes only the native implementation, type declarations, built UI, package README and licenses. Consumers never build it.
+
+The initial npm publication requires an authenticated maintainer account. Run `npm login` yourself, then publish the verified `dist/relay-backend-0.0.3.tgz` using `npm publish dist/relay-backend-0.0.3.tgz --access public`. Complete account verification/2FA in your own terminal or browser; never share tokens in issues or chat. First confirm all public CI checks pass. Check the registry version and install it in a fresh consumer directory after upload.
+
+After the package exists, configure its npm Trusted Publisher using owner `nibir-ai`, repository `relay`, workflow `publish-node.yml` and environment `npm`, allowing direct publishing. Future `npm-v*` tags run the verification job before OIDC publication. The GitHub-hosted publishing job uses npm 11 and Node 24. See [npm's trusted publishing guide](https://docs.npmjs.com/trusted-publishers/).
+
+## Pending Python compatibility fix
+
+The source restores `python -m relay_agent.files` for Windows associations registered before the import rename and updates new associations to `relay_backend.files`. This fix needs a new Python patch release; the already published PyPI 0.0.3 artifacts remain unchanged.

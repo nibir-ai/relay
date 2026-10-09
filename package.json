@@ -6,6 +6,9 @@
   "scripts": {
     "build": "npm --prefix apps/web run build",
     "test:web": "npm --prefix apps/web test",
-    "demo": "python scripts/dev.py"
+    "demo": "python scripts/dev.py",
+    "package:node": "node scripts/package_node.cjs",
+    "test:node": "pnpm --dir packages/node test",
+    "verify:node": "node scripts/verify_node_package.cjs"
   }
 }
