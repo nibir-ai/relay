@@ -43,4 +43,4 @@ jobs:
         with:
           name: node-distribution
           path: dist
-      - run: npm publish dist/relay-backend-*.tgz --access public --provenance
+      - run: npm publish ./dist/relay-backend-*.tgz --access public --provenance

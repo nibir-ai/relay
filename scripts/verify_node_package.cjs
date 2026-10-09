@@ -6,6 +6,8 @@ const {spawnSync}=require('node:child_process');
 const root=path.resolve(__dirname,'..');
 const version=JSON.parse(fs.readFileSync(path.join(root,'packages/node/package.json'),'utf8')).version;
 const archive=path.join(root,'dist',`relay-backend-${version}.tgz`);
+const publicIndex=process.argv.includes('--public-index');
+if(process.argv.slice(2).some(arg=>arg!=='--public-index')) throw new Error('Usage: node scripts/verify_node_package.cjs [--public-index]');
 const directory=fs.mkdtempSync(path.join(os.tmpdir(),'relay-consumer-'));
 const npm=path.join(path.dirname(process.execPath),'node_modules/npm/bin/npm-cli.js');
 const npmBinary=fs.existsSync(npm)?process.execPath:'npm';
@@ -16,12 +18,18 @@ function run(binary,args) {
   return result.stdout;
 }
 async function main() {
-  assert.ok(fs.existsSync(archive),'Build the npm tarball first.');
+  if(!publicIndex) assert.ok(fs.existsSync(archive),'Build the npm tarball first.');
   fs.writeFileSync(path.join(directory,'package.json'),JSON.stringify({name:'relay-clean-consumer',private:true}));
-  run(npmBinary,[...npmPrefix,'install','--ignore-scripts','--no-audit','--no-fund',archive,'express@5','typescript@5','@types/node@22','@types/express@5']);
+  run(npmBinary,[...npmPrefix,'install','--ignore-scripts','--no-audit','--no-fund','--registry=https://registry.npmjs.org',publicIndex?'relay-backend':archive,'express@5','typescript@5','@types/node@22','@types/express@5']);
   assert.ok(!fs.existsSync(path.join(directory,'node_modules/fastify')),'Express consumer must not require Fastify.');
   const installed=JSON.parse(fs.readFileSync(path.join(directory,'node_modules/relay-backend/package.json'),'utf8'));
   assert.equal(installed.version,version); assert.equal(Object.keys(installed.dependencies||{}).length,0);
+  const packageDirectory=path.join(directory,'node_modules/relay-backend');
+  for(const asset of ['relay-mark.svg','brand/relay-symbol.svg','brand/relay-wordmark.svg']) {
+    assert.equal(fs.readFileSync(path.join(packageDirectory,'static',asset),'utf8').replaceAll('\r\n','\n'),fs.readFileSync(path.join(root,'apps/web/public',asset),'utf8').replaceAll('\r\n','\n'));
+  }
+  assert.ok(fs.existsSync(path.join(packageDirectory,'README.md')));
+  console.log(publicIndex?'Unpinned npm registry installation resolved the expected release.':'Packed distribution installed successfully.');
   fs.writeFileSync(path.join(directory,'consumer.cjs'),`
 const assert=require('node:assert/strict');
 const express=require('express');
