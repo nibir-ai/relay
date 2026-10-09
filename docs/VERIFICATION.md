@@ -8,7 +8,7 @@ The current candidate adds the canonical import, application-specific titles and
 
 Package verification compares every bundled brand SVG and favicon with its source master. Consumer verification runs outside the checkout without Node or an editable install, exercising actual native handlers, separate user/admin authentication, routers, application factories, nested and optional bodies, query arrays, validation errors, empty responses, UI assets and disabled integration.
 
-Local validation passed: 89 Python tests, 42 frontend tests, the strict build, independent wheel verification, Twine checks and clean consumer installs with current and minimum supported dependencies. The candidate is not published until public CI also passes. Cross-machine synchronization requires the existing Git remote's read/write credentials; tests use local independent repositories and do not claim verification of every credential provider.
+Local validation passed: 89 Python tests, 42 frontend tests, the strict build, independent wheel verification, Twine checks and clean consumer installs with current and minimum supported dependencies. [Public CI](https://github.com/nibir-ai/relay/actions/runs/37915243315) passed on Python 3.11, 3.12 and 3.13. An independent environment also received existing statuses and updater identities through a real GitHub remote. Publication remains pending. Cross-machine synchronization requires the existing Git remote's read/write credentials; tests use local independent repositories and do not claim verification of every credential provider.
 
 ## Published 0.0.2
 

@@ -92,7 +92,7 @@ Release gate: fresh package installation, endpoint discovery, authentication, ex
 - [x] Remove unused artwork and private development metadata from public source and packages.
 - [x] Add opt-in automatic team status sync without manual Git commands or changing working files.
 - [ ] Migrate the Ludo backend to the tested published package and verify its native integration.
-- [ ] Pass package, frontend, Python, cross-environment sync and release checks before publication.
+- [x] Pass package, frontend, Python, cross-environment sync and release checks before publication.
 
 Issue maintenance checks run every four hours and update this checklist when fixes are verified.
 
