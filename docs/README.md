@@ -1,6 +1,6 @@
 # Relay documentation
 
-Relay ships as **relay-backend**, importing **relay_backend**. This source prepares v0.0.4; the latest published distributions remain 0.0.3 until publication. The complete UI is bundled; consumers do not clone or build this repository.
+Relay ships as **relay-backend**, importing **relay_backend**. Python v0.0.4 is published on PyPI and its distributions are attached to the GitHub release. The Node v0.0.4 tarball is attached there too; npm remains at 0.0.3 while account authentication for the upload is pending. The complete UI is bundled; consumers do not clone or build this repository.
 
 ![Three steps: install the package, add the import and mount call, then open /relay on your backend.](assets/fastapi-quickstart.png)
 

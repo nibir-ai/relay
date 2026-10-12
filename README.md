@@ -67,7 +67,7 @@ Use your development setting to control installation:
 install_relay(app, enabled=settings.DEBUG)
 ```
 
-Install before wrapping FastAPI with Socket.IO. Application factories, custom OpenAPI generators, lifespan and proxy prefixes are covered in the [FastAPI integration guide](docs/FASTAPI.md). Alternatively, install the wheel attached to the [v0.0.3 release](https://github.com/nibir-ai/relay/releases/tag/v0.0.3).
+Install before wrapping FastAPI with Socket.IO. Application factories, custom OpenAPI generators, lifespan and proxy prefixes are covered in the [FastAPI integration guide](docs/FASTAPI.md). Alternatively, install the wheel attached to the [v0.0.4 release](https://github.com/nibir-ai/relay/releases/tag/v0.0.4).
 
 The distribution name is **relay-backend**. The import is **relay_backend** and the CLI is **relay**. Existing `from relay_agent import install_relay` integrations remain compatible. The `relay-agent` project on PyPI is unrelated.
 
@@ -118,7 +118,7 @@ Tokens and drafts stay in browser session memory. Explicit exports include reque
 | Version | Status / target | Focus |
 | --- | --- | --- |
 | **0.0.3** | Published on PyPI and npm | Native backend testing, auth, reports and opt-in Git status sharing. |
-| **0.0.4** | Current release preparation · October 2026 | Guided setup, diagnostics, local handoff notes, contract-change explanations and reliable refresh. |
+| **0.0.4** | Published on PyPI and GitHub · 12 October 2026; npm pending | Guided setup, diagnostics, local handoff notes, contract-change explanations and reliable refresh. |
 | **0.0.5** | Planned launch · **November 2026** | Authenticated realtime team statuses through an optional shared service. |
 
 ### 0.0.4 — easier setup and clearer handoffs
@@ -130,13 +130,13 @@ Tokens and drafts stay in browser session memory. Explicit exports include reque
 - [x] Refine request examples and accessible validation feedback.
 - [x] Pass clean Python and Node package consumer checks, including current and minimum Python dependencies.
 - [x] Pass the public Python 3.11–3.13 and Node 22.13/24/26 compatibility matrices.
-- [ ] Complete browser interaction, theme and mobile-width verification before publication.
+- [ ] Complete the manual browser sweep across themes and mobile widths as a follow-up.
 
-The source is preparing 0.0.4; the latest published distributions are still 0.0.3. See [guided setup and diagnostics](docs/SETUP.md), the [v0.0.4 plan](docs/RELEASE-0.0.4.md) and [verification notes](docs/VERIFICATION.md).
+Python 0.0.4 is published on PyPI, with wheel, source and Node 0.0.4 tarball assets on [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.4). The latest npm distribution is 0.0.3 while the 0.0.4 upload awaits account authentication. See [guided setup and diagnostics](docs/SETUP.md), the [v0.0.4 plan](docs/RELEASE-0.0.4.md) and [verification notes](docs/VERIFICATION.md).
 
 ### 0.0.5 — realtime team statuses
 
-Target: launch in **November 2026**, after 0.0.4 is verified and released. Two developers using separate local backends should see each other's manual endpoint statuses and verified updater identity without a Git status branch.
+Target: launch in **November 2026**, following the 0.0.4 release. Two developers using separate local backends should see each other's manual endpoint statuses and verified updater identity without a Git status branch.
 
 - [ ] Provide an optional shared status service with a documented self-hosted setup.
 - [ ] Authenticate developers and enforce project membership/read-write permissions.

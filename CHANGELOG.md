@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.0.4 - Unreleased
+## 0.0.4 — 12 October 2026
 
 - Guided `init` commands for Python and Node: bounded framework detection, preview-first FastAPI/Express integration edits and manual guidance for ambiguous layouts.
 - `doctor` commands with local runtime/package, OpenAPI, mount and Git configuration checks; sanitized JSON output.
@@ -12,7 +12,7 @@
 - Bounded local activity history, additive workspace migration and protection against Node status-save/schema-refresh races.
 - Windows report compatibility: restore the legacy module entry point and use the canonical module for new associations.
 
-Realtime collaboration, multipart uploads and optional request history/assertion/export-review features remain deferred. This version has not been published to npm or PyPI.
+Realtime collaboration, multipart uploads and optional request history/assertion/export-review features remain deferred. Published on [PyPI](https://pypi.org/project/relay-backend/0.0.4/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.4). The verified Node 0.0.4 tarball is attached to the GitHub release; npm publication is awaiting account authentication.
 
 ## Node 0.0.3 - 9 October 2026
 

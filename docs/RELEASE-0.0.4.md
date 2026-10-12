@@ -1,6 +1,6 @@
 # Relay v0.0.4 release plan
 
-Status: implementation and release verification in progress, 12 October 2026. Source package versions are 0.0.4; registry releases remain 0.0.3 until publication. See [verification notes](VERIFICATION.md) for actual results.
+Status: Python 0.0.4 published on PyPI and GitHub, 12 October 2026. The verified Node 0.0.4 tarball is attached to GitHub; npm publication is awaiting account authentication. See [verification notes](VERIFICATION.md) for actual results.
 
 Implemented scope follows the required features below. Automatic init edits support simple FastAPI/JavaScript Express entries; Fastify, TypeScript and ambiguous layouts receive manual instructions. Contract comparisons retain bounded section digests and show changed sections, rather than duplicate full contracts. Optional additions remain deferred.
 

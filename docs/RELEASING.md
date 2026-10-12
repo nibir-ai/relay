@@ -1,6 +1,6 @@
 # Releasing Relay
 
-The current source prepares **0.0.4**. It is not published yet; the latest published Python and Node distributions remain 0.0.3. Use the artifact commands below for 0.0.4 and record actual checks in [VERIFICATION.md](VERIFICATION.md) before publication.
+**0.0.4** is published on [PyPI](https://pypi.org/project/relay-backend/0.0.4/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.4). Trusted Python publication and a fresh unpinned public installation passed. The verified Node 0.0.4 tarball is attached to GitHub; its npm upload is awaiting account authentication after the publishing job returned `ENEEDAUTH`. See [VERIFICATION.md](VERIFICATION.md) for actual results.
 
 v0.0.3 is published on [PyPI](https://pypi.org/project/relay-backend/0.0.3/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.3). Trusted Publishing succeeded and a fresh unpinned PyPI installation passed the consumer checks. Follow every gate below for subsequent releases. See [the changelog](../CHANGELOG.md) for release contents.
 
