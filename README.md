@@ -129,7 +129,8 @@ Tokens and drafts stay in browser session memory. Explicit exports include reque
 - [x] Explain contract changes and improve schema/Git sync feedback and recovery.
 - [x] Refine request examples and accessible validation feedback.
 - [x] Pass clean Python and Node package consumer checks, including current and minimum Python dependencies.
-- [ ] Complete browser and public compatibility-matrix verification before publication.
+- [x] Pass the public Python 3.11–3.13 and Node 22.13/24/26 compatibility matrices.
+- [ ] Complete browser interaction, theme and mobile-width verification before publication.
 
 The source is preparing 0.0.4; the latest published distributions are still 0.0.3. See [guided setup and diagnostics](docs/SETUP.md), the [v0.0.4 plan](docs/RELEASE-0.0.4.md) and [verification notes](docs/VERIFICATION.md).
 
