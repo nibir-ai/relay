@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   ArrowUpRight,
   Check,
@@ -28,6 +28,7 @@ import {
   parseHeaders,
   requestUrl,
   parameterInput,
+  InputError,
 } from "./request";
 import { authHeaders, authSummary, responseToken } from "./auth";
 import { progressLabels, progressValues } from "./progress";
@@ -139,6 +140,10 @@ export default function Playground({
   }
   const [headerText, setHeaderText] = useState(draft?.headerText ?? "{}");
   const [error, setError] = useState("");
+  const [invalidField, setInvalidField] = useState("");
+  const errorId = useId();
+  const [selectedExample, setSelectedExample] = useState("");
+  const [bodyMessage, setBodyMessage] = useState("");
   const [running, setRunning] = useState(false);
   const [response, setResponse] = useState<LiveResponse | null>(
     draft?.response ?? null,
@@ -194,7 +199,7 @@ export default function Playground({
     function keyboard(event: KeyboardEvent) {
       if (
         keyboardRef.current &&
-        !(event.target instanceof Element && event.target.closest('dialog')) &&
+        !(event.target instanceof Element && event.target.closest('dialog, .handoff')) &&
         (event.ctrlKey || event.metaKey) &&
         event.key === "Enter"
       ) {
@@ -218,6 +223,7 @@ export default function Playground({
   async function execute() {
     if (executing.current) return;
     setError("");
+    setInvalidField("");
     try {
       const parsed = parseHeaders(headerText);
       const headers = authHeaders(
@@ -243,6 +249,7 @@ export default function Playground({
       });
       setResponseTab("Body");
     } catch (err) {
+      if (err instanceof InputError) setInvalidField(err.field);
       if (executing.current)
         onRun?.({
           endpoint_id: endpoint.id,
@@ -500,6 +507,8 @@ export default function Playground({
                         {param.schema?.type === "boolean" ? (
                           <select
                             aria-label={param.name}
+                            aria-invalid={invalidField === `${param.in}:${param.name}`}
+                            aria-describedby={invalidField === `${param.in}:${param.name}` ? errorId : undefined}
                             value={values[`${param.in}:${param.name}`] ?? ""}
                             onChange={(e) =>
                               setValues({
@@ -515,6 +524,8 @@ export default function Playground({
                         ) : (
                           <input
                             aria-label={param.name}
+                            aria-invalid={invalidField === `${param.in}:${param.name}`}
+                            aria-describedby={invalidField === `${param.in}:${param.name}` ? errorId : undefined}
                             type={
                               param.schema?.type === "integer" ||
                               param.schema?.type === "number"
@@ -560,11 +571,8 @@ export default function Playground({
                           value={mediaType}
                           onChange={(e) => {
                             setMediaType(e.target.value);
-                            setBody(
-                              bodyExample(
-                                endpoint.requestBody?.content[e.target.value],
-                              ),
-                            );
+                            setSelectedExample("");
+                            setBodyMessage("Content type changed. Your body is retained; use a spec example to replace it.");
                           }}
                         >
                           {mediaTypes.map((type) => (
@@ -572,6 +580,17 @@ export default function Playground({
                           ))}
                         </select>
                       </div>
+                      {Object.entries(media?.examples ?? {}).some(([, item]) => Object.hasOwn(item, "value")) && <div className="example-controls">
+                        <label>Spec request example
+                          <select aria-label="Spec request example" value={selectedExample} onChange={event => setSelectedExample(event.target.value)}>
+                            <option value="">Default example</option>
+                            {Object.entries(media?.examples ?? {}).filter(([, item]) => Object.hasOwn(item, "value")).map(([name]) => <option key={name} value={name}>{name}</option>)}
+                          </select>
+                        </label>
+                        <button className="text-button" onClick={() => { setBody(bodyExample(media, mediaType, selectedExample)); setError(""); setInvalidField(""); setBodyMessage("Spec example loaded. It has not been executed."); }}>Use selected example</button>
+                      </div>}
+                      {bodyMessage && <p className="muted" role="status">{bodyMessage}</p>}
+                      {mediaType.includes("multipart") && <p className="schema-warning">Multipart uploads are not supported. Inspect the contract or test this endpoint with another client.</p>}
                       {mediaType.includes("json") && fields.length > 0 && (
                         <div className="schema-fields">
                           {fields.map(([name, field]) => (
@@ -663,6 +682,8 @@ export default function Playground({
                       <textarea
                         className="body-editor"
                         aria-label="Request body"
+                        aria-invalid={invalidField === "body"}
+                        aria-describedby={invalidField === "body" ? errorId : undefined}
                         spellCheck={false}
                         value={body}
                         onChange={(e) => setBody(e.target.value)}
@@ -732,7 +753,7 @@ export default function Playground({
 
           </section>
           {error && (
-            <div className="error" role="alert">
+            <div className="error" role="alert" id={errorId}>
               {error}
             </div>
           )}

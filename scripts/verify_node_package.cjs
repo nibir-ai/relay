@@ -46,6 +46,9 @@ const {relay,version}=require('relay-backend');
  const health=await (await fetch(origin+'/relay/__relay/health')).json();
  const post=async(route,body={})=>fetch(origin+'/relay/__relay/'+route,{method:'POST',headers:{Origin:origin,'X-Relay-CSRF':health.csrf_token,'Content-Type':'application/json'},body:JSON.stringify(body)});
  assert.equal((await (await post('sources/inspect')).json()).title,'Clean Consumer');
+ const workspace=await (await post('endpoints/update',{endpoint_id:'GET /health',fingerprint:(await (await post('sources/inspect')).json()).endpoints[0].fingerprint,note:'Clean consumer note'})).json();
+ assert.equal(workspace.endpoints['GET /health'].note,'Clean consumer note'); assert.equal(workspace.activity[0].kind,'note_updated');
+ assert.equal((await post('statuses/retry')).status,200);
  const result=await (await post('execute',{method:'GET',path:'/health'})).json();assert.equal(result.status,200);assert.deepEqual(JSON.parse(result.body),{ok:true});
  } finally { server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await tester.close(); }
  console.log('Clean installed CJS/ESM consumer, bundled assets and request execution passed.');
@@ -58,6 +61,16 @@ const {relay,version}=require('relay-backend');
   run(process.execPath,['node_modules/typescript/bin/tsc','--noEmit','--strict','--module','NodeNext','--target','ES2022','--esModuleInterop','consumer.cts','consumer.mts']);
   assert.match(run(process.execPath,['node_modules/relay-backend/lib/cli.cjs','--version']),new RegExp(version.replaceAll('.','\\.')));
   assert.match(run(process.execPath,['node_modules/relay-backend/lib/cli.cjs','--help']),/npx relay-backend/);
+  const setupDirectory=path.join(directory,'setup'); fs.mkdirSync(setupDirectory);
+  const entry=path.join(setupDirectory,'main.cjs'),source="const express = require('express');\nconst app = express();\nmodule.exports = app;\n";
+  fs.writeFileSync(entry,source);
+  const init=['node_modules/relay-backend/lib/cli.cjs','init','--project',setupDirectory];
+  assert.match(run(process.execPath,init),/Preview only/); assert.equal(fs.readFileSync(entry,'utf8'),source);
+  run(process.execPath,[...init,'--apply']); assert.match(fs.readFileSync(entry,'utf8'),/app.use\(relay\(\)\)/);
+  assert.match(run(process.execPath,[...init,'--apply']),/already present/);
+  run(process.execPath,['-e',"const app=require('./setup/main.cjs'); if(typeof app!=='function') process.exit(1);"]);
+  const diagnostics=JSON.parse(run(process.execPath,['node_modules/relay-backend/lib/cli.cjs','doctor','--project',setupDirectory,'--json']));
+  assert.ok(diagnostics.checks.some(check=>check.name==='runtime'));
   console.log('Clean installed TypeScript consumers and CLI passed; no Python or build scripts ran.');
 }
 main().catch(error=> {console.error(error);process.exitCode=1;}).finally(()=> {

@@ -68,6 +68,8 @@ def test_progress_update_requires_current_fingerprint_and_csrf():
         payload["fingerprint"]=endpoint["fingerprint"]
         assert client.post("/__relay/endpoints/update",json=payload).status_code==403
         assert client.post("/__relay/endpoints/update",headers=csrf(client),json={**payload,"progress":"ready"}).status_code==422
+        assert client.post("/__relay/statuses/retry").status_code == 403
+        assert client.post("/__relay/statuses/retry",headers=csrf(client)).status_code == 200
 
 
 def test_http_success_does_not_update_progress_or_store_traffic():
@@ -110,4 +112,40 @@ def test_default_done_migration_preserves_manual_statuses(tmp_path):
     assert store.read()["endpoints"]["GET /test"]["progress"] == "not_started"
     store.sync(normalize(SPEC))
     assert store.read()["endpoints"]["GET /test"]["progress"] == "not_started"
+    store.close()
+
+
+def test_contract_explanation_survives_restart_and_note_save_until_review(tmp_path):
+    path = tmp_path / "contract.sqlite3"
+    snapshot = normalize(SPEC); endpoint = snapshot["endpoints"][0]
+    store = Workspace(path); store.sync(snapshot)
+    changed = json.loads(json.dumps(SPEC))
+    changed["paths"]["/test"]["get"]["responses"]["404"] = {"description":"Missing"}
+    current = normalize(changed)
+    store.sync(current); store.close()
+    store = Workspace(path); store.sync(current)
+    row = store.read()["endpoints"][endpoint["id"]]
+    assert row["contract_changed"] and row["changed_sections"] == ["Responses"]
+    store.update(endpoint["id"], row["fingerprint"], None, "Retest 404")
+    assert store.read()["endpoints"][endpoint["id"]]["contract_changed"]
+    with pytest.raises(Exception) as error:
+        store.update(endpoint["id"], endpoint["fingerprint"], "done", None)
+    assert error.value.status_code == 409
+    store.update(endpoint["id"], row["fingerprint"], "done", None)
+    assert not store.read()["endpoints"][endpoint["id"]]["contract_changed"]
+    assert store.read()["endpoints"][endpoint["id"]]["note"] == "Retest 404"
+    store.close()
+
+
+def test_equivalent_parameter_order_does_not_invalidate_and_activity_is_bounded():
+    raw = json.loads(json.dumps(SPEC))
+    params = [{"name":name,"in":"query","schema":{"type":"string"}} for name in ("a","b")]
+    raw["paths"]["/test"]["get"]["parameters"] = params
+    store = Workspace(); first = normalize(raw); store.sync(first)
+    raw["paths"]["/test"]["get"]["parameters"] = list(reversed(params))
+    store.sync(normalize(raw))
+    assert not store.read()["endpoints"]["GET /test"]["contract_changed"]
+    for number in range(110):
+        store.update("GET /test", first["endpoints"][0]["fingerprint"], None, str(number))
+    assert store.db.execute("SELECT COUNT(*) FROM activity").fetchone()[0] == 100
     store.close()

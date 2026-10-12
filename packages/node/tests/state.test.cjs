@@ -10,6 +10,43 @@ const {GitStatuses,StatusSync}=require('../lib/git.cjs');
 const {prepareReport}=require('../lib/reports.cjs');
 function temp(t) { const dir=fs.mkdtempSync(path.join(os.tmpdir(),'relay-node-')); t.after(()=>fs.rmSync(dir,{recursive:true,force:true})); return dir; }
 function spec() { return {openapi:'3.1.0',info:{title:'Portal',version:'1'},paths:{'/test':{get:{responses:{200:{description:'OK'}}}}}}; }
+test('Contract sections survive restart; notes do not approve a changed contract',async t=> {
+  const file=path.join(temp(t),'workspace.json'),first=normalize(spec()),store=new Workspace(file);
+  store.sync(first); const changed=spec(); changed.paths['/test'].get.responses[404]={description:'Missing'};
+  const current=normalize(changed); store.sync(current);
+  const restarted=new Workspace(file); restarted.sync(current);
+  let row=restarted.read().endpoints['GET /test'];
+  assert.equal(row.contract_changed,true); assert.deepEqual(row.changed_sections,['Responses']);
+  await restarted.update({endpoint_id:row.endpoint_id,fingerprint:row.fingerprint,note:'Retest 404'});
+  assert.equal(restarted.read().endpoints['GET /test'].contract_changed,true);
+  assert.equal(restarted.read().activity[0].kind,'note_updated');
+  await assert.rejects(restarted.update({endpoint_id:row.endpoint_id,fingerprint:first.endpoints[0].fingerprint,progress:'done'}),/contract changed/);
+  await restarted.update({endpoint_id:row.endpoint_id,fingerprint:row.fingerprint,progress:'done'});
+  row=restarted.read().endpoints['GET /test']; assert.equal(row.contract_changed,false); assert.equal(row.note,'Retest 404');
+  const before=restarted.read(); await restarted.update({endpoint_id:row.endpoint_id,fingerprint:row.fingerprint,note:row.note}); assert.deepEqual(restarted.read(),before);
+  await assert.rejects(restarted.update({endpoint_id:row.endpoint_id,fingerprint:row.fingerprint,note:'x'.repeat(4001)}),/Invalid/);
+});
+test('A contract refresh during an awaited shared update cannot approve the new contract',async()=> {
+  let release;
+  const shared={read:()=>({}),update:()=>new Promise(resolve=>{release=resolve;})};
+  const store=new Workspace(null,shared),snapshot=normalize(spec()); store.sync(snapshot);
+  const pending=store.update({endpoint_id:'GET /test',fingerprint:snapshot.endpoints[0].fingerprint,progress:'done'});
+  const changed=spec(); changed.paths['/test'].get.responses[404]={description:'Missing'}; store.sync(normalize(changed));
+  release(); await assert.rejects(pending,/changed during saving/);
+  assert.equal(store.read().endpoints['GET /test'].progress,'needs_fixing');
+});
+test('Notes above the response-preview size remain readable, and disk failures do not report saved edits',async t=> {
+  const file=path.join(temp(t),'workspace.json'),store=new Workspace(file);
+  const endpoint=normalize(spec()).endpoints[0];
+  store.sync({endpoints:Array.from({length:600},(_,index)=>({...endpoint,id:'GET /'+index}))});
+  for (const row of Object.values(store.rows)) row.note='x'.repeat(4000);
+  store.save();
+  assert.equal(new Workspace(file).read().endpoints['GET /0'].note.length,4000);
+  const before=store.read(); store.save=()=> { throw new Error('disk failure'); };
+  await assert.rejects(store.update({endpoint_id:'GET /0',fingerprint:endpoint.fingerprint,note:'Changed'}),/disk failure/);
+  assert.deepEqual(store.read(),before);
+  assert.throws(()=>store.sync({endpoints:[]}),/disk failure/); assert.deepEqual(store.read(),before);
+});
 test('Restart persistence, contract changes and invalid metadata',async t=> {
   const dir=temp(t),file=path.join(dir,'workspace.json'),snapshot=normalize(spec());
   const first=new Workspace(file); first.sync(snapshot);

@@ -1,6 +1,6 @@
 {
   "name": "relay-backend",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Bundled API testing UI for Node backends with endpoint statuses and Git collaboration.",
   "license": "Apache-2.0",
   "main": "./lib/index.cjs",

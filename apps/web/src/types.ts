@@ -102,6 +102,7 @@ export type EndpointMeta = {
   updated_at: string;
   updated_by?: { name: string; email: string };
   contract_changed?: boolean;
+  changed_sections?: string[];
   source?: {
     state: "tracked" | "uncommitted" | "unavailable";
     file?: string;

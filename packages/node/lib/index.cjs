@@ -7,7 +7,7 @@ const { normalize, hash } = require('./openapi.cjs');
 const { request, execute } = require('./runner.cjs');
 const { findProject, GitStatuses, StatusSync } = require('./git.cjs');
 const { Workspace } = require('./workspace.cjs');
-const VERSION = '0.0.3';
+const VERSION = '0.0.4';
 const STATIC = path.resolve(__dirname,'../static');
 const escape = text => String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -80,6 +80,11 @@ function relay(options = {}) {
       if (req.method==='GET' && route==='/__relay/health') return json({status:'ok',mode:'local',version:VERSION,csrf_token:token,base_url:base,spec_url:base+specPath});
       if (req.method==='GET' && route==='/__relay/sources/current') return json({snapshot,raw_spec:rawSpec});
       if (req.method==='GET' && route==='/__relay/workspace') return json(state());
+      if (req.method==='POST' && route==='/__relay/statuses/retry') {
+        await readBody(req,supplied ?? req.body);
+        if (sync) void sync.sync();
+        return json(state());
+      }
       if (req.method==='POST' && route==='/__relay/sources/inspect') {
         await readBody(req,supplied ?? req.body);
         let raw;

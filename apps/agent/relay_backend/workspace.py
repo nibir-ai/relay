@@ -1,10 +1,12 @@
 """Local metadata only. Never store HTTP traffic or credentials here."""
 import sqlite3
 import threading
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import HTTPException
+from .contract import sections, changes
 
 
 class Workspace:
@@ -33,6 +35,13 @@ class Workspace:
                         SELECT 1 FROM activity WHERE activity.endpoint_id=endpoints.endpoint_id
                         AND activity.kind='progress_changed')""")
                 self.db.execute("PRAGMA user_version = 2")
+            columns = {row[1] for row in self.db.execute("PRAGMA table_info(endpoints)")}
+            for name, definition in (("contract_changed", "INTEGER NOT NULL DEFAULT 0"),
+                                     ("contract_sections", "TEXT NOT NULL DEFAULT '{}'"),
+                                     ("changed_sections", "TEXT NOT NULL DEFAULT '[]'")):
+                if name not in columns:
+                    self.db.execute(f"ALTER TABLE endpoints ADD COLUMN {name} {definition}")
+            self.db.execute("PRAGMA user_version = 3")
 
     def sync(self, snapshot: dict):
         now = datetime.now(timezone.utc).isoformat()
@@ -41,13 +50,17 @@ class Workspace:
             present = {e["id"] for e in snapshot["endpoints"]}
             for endpoint in snapshot["endpoints"]:
                 old = previous.get(endpoint["id"])
+                digest = sections(endpoint)
                 if not old:
-                    self.db.execute("INSERT INTO endpoints (endpoint_id, fingerprint, progress, updated_at) VALUES (?, ?, 'done', ?)", (endpoint["id"], endpoint["fingerprint"], now))
+                    self.db.execute("INSERT INTO endpoints (endpoint_id, fingerprint, progress, updated_at, contract_sections) VALUES (?, ?, 'done', ?, ?)", (endpoint["id"], endpoint["fingerprint"], now, json.dumps(digest)))
                     self._event(endpoint["id"], "discovered", "done", now)
                 elif old["fingerprint"] != endpoint["fingerprint"] or not old["active"]:
                     progress = "needs_fixing" if old["progress"] == "done" else old["progress"]
-                    self.db.execute("UPDATE endpoints SET fingerprint=?, progress=?, active=1, updated_at=? WHERE endpoint_id=?", (endpoint["fingerprint"], progress, now, endpoint["id"]))
+                    changed = changes(json.loads(old["contract_sections"]), digest) if old["active"] else ["Restored from source"]
+                    self.db.execute("UPDATE endpoints SET fingerprint=?, progress=?, active=1, updated_at=?, contract_changed=1, contract_sections=?, changed_sections=? WHERE endpoint_id=?", (endpoint["fingerprint"], progress, now, json.dumps(digest), json.dumps(changed), endpoint["id"]))
                     self._event(endpoint["id"], "contract_changed", progress, now)
+                elif not json.loads(old["contract_sections"]):
+                    self.db.execute("UPDATE endpoints SET contract_sections=? WHERE endpoint_id=?", (json.dumps(digest), endpoint["id"]))
             for endpoint_id, old in previous.items():
                 if old["active"] and endpoint_id not in present:
                     self.db.execute("UPDATE endpoints SET active=0, updated_at=? WHERE endpoint_id=?", (now, endpoint_id))
@@ -55,8 +68,11 @@ class Workspace:
 
     def _event(self, endpoint_id, kind, value, now):
         self.db.execute("INSERT INTO activity (endpoint_id, kind, value, created_at) VALUES (?, ?, ?, ?)", (endpoint_id, kind, value, now))
+        self.db.execute("DELETE FROM activity WHERE id NOT IN (SELECT id FROM activity ORDER BY id DESC LIMIT 100)")
 
     def update(self, endpoint_id: str, fingerprint: str, progress: str | None, note: str | None):
+        if note is not None and (not isinstance(note, str) or len(note) > 4000):
+            raise HTTPException(422, "Endpoint notes must be at most 4000 characters.")
         with self.lock, self.db:
             row = self.db.execute("SELECT * FROM endpoints WHERE endpoint_id=? AND active=1", (endpoint_id,)).fetchone()
             if not row:
@@ -69,20 +85,25 @@ class Workspace:
                 if shared.get("progress") != progress or shared.get("fingerprint") != fingerprint:
                     self.shared.update(endpoint_id, fingerprint, progress)
             notes = note if note is not None else row["note"]
-            if status == row["progress"] and notes == row["note"]:
+            if status == row["progress"] and notes == row["note"] and not (progress is not None and row["contract_changed"]):
                 return
             now = datetime.now(timezone.utc).isoformat()
-            self.db.execute("UPDATE endpoints SET progress=?, note=?, updated_at=? WHERE endpoint_id=?", (status, notes, now, endpoint_id))
+            self.db.execute("UPDATE endpoints SET progress=?, note=?, updated_at=?, contract_changed=? WHERE endpoint_id=?", (status, notes, now, 0 if progress is not None else row["contract_changed"], endpoint_id))
             if status != row["progress"]:
                 self._event(endpoint_id, "progress_changed", status, now)
             if notes != row["note"]:
                 self._event(endpoint_id, "note_updated", "", now)
+            if progress is not None and row["contract_changed"]:
+                self._event(endpoint_id, "contract_reviewed", status, now)
 
     def read(self):
         with self.lock:
-            rows = self.db.execute("SELECT endpoint_id, fingerprint, progress, note, active, updated_at FROM endpoints").fetchall()
+            rows = self.db.execute("SELECT endpoint_id, fingerprint, progress, note, active, updated_at, contract_changed, changed_sections FROM endpoints").fetchall()
             activity = self.db.execute("SELECT * FROM activity ORDER BY id DESC LIMIT 100").fetchall()
             endpoints = {r["endpoint_id"]: dict(r) for r in rows}
+            for row in endpoints.values():
+                row["contract_changed"] = bool(row["contract_changed"])
+                row["changed_sections"] = json.loads(row["changed_sections"])
             for endpoint_id, source in self.sources.items():
                 if endpoint_id in endpoints:
                     endpoints[endpoint_id]["source"] = source

@@ -24,9 +24,9 @@ function validate(data) {
     return [key,{fingerprint:row.fingerprint,progress:row.progress,updated_by:{name:row.updated_by.name,email:row.updated_by.email},updated_at:row.updated_at}];
   }));
 }
-function atomic(file, value) {
+function atomic(file, value, limit=MAX_RESPONSE) {
   const encoded = JSON.stringify(value,null,2)+'\n';
-  if (Buffer.byteLength(encoded) > MAX_RESPONSE) throw new RelayError(413,'Status metadata exceeds the 2 MiB limit.');
+  if (Buffer.byteLength(encoded) > limit) throw new RelayError(413,`Metadata exceeds the ${limit/(1024*1024)} MiB limit.`);
   fs.mkdirSync(path.dirname(file),{recursive:true});
   const temporary = path.join(path.dirname(file),'status-'+randomUUID()+'.tmp');
   try { fs.writeFileSync(temporary,encoded,{encoding:'utf8',flag:'wx'}); fs.renameSync(temporary,file); }

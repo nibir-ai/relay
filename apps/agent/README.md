@@ -59,7 +59,13 @@ No repository clone, Node installation, frontend build, CDN, separate Relay proc
 - Manual endpoint status, defaulting to Done, with optional Git-shared status and inferred source attribution.
 - A bundled standalone CLI for local OpenAPI backends and portable `.relay` reports.
 
-Python 3.11+ is required. This is a local development tool: only loopback hosts/clients are accepted. Request execution invokes your real application middleware, dependencies and handlers. Tests can change your development data. Multipart upload, OAuth browser flows, remote/shared deployment are outside v0.0.3. Opt into automatic team statuses with `install_relay(app, sync_status=True)` using the backend repository's existing Git remote. [Team setup](https://github.com/nibir-ai/relay/blob/main/docs/GIT.md) explains access and conflict handling.
+Python 3.11+ is required. This is a local development tool: only loopback hosts/clients are accepted. Request execution invokes your real application middleware, dependencies and handlers. Tests can change your development data. Multipart upload, OAuth browser flows, remote/shared deployment are outside v0.0.4. Opt into automatic team statuses with `install_relay(app, sync_status=True)` using the backend repository's existing Git remote. [Team setup](https://github.com/nibir-ai/relay/blob/main/docs/GIT.md) explains access and conflict handling.
+
+## Setup and handoff tools in 0.0.4
+
+Run `python -m relay_backend init --project ./backend` to preview a supported FastAPI integration. Add `--apply` to write an unambiguous edit; factories and multiple apps receive manual guidance. `python -m relay_backend doctor --target http://127.0.0.1:8000 --json` checks the local runtime, OpenAPI and native mount with sanitized output. See [setup documentation](https://github.com/nibir-ai/relay/blob/main/docs/SETUP.md).
+
+Endpoints include local Notes & activity, retained unsaved edits and explicit contract-change explanations. Named request examples load only when applied. Git shares statuses, not notes, credentials or request traffic.
 
 The PyPI distribution is **relay-backend**; the Python import is **relay_backend**. The former `relay_agent` root import remains compatible. `relay-agent` on PyPI is an unrelated package.
 

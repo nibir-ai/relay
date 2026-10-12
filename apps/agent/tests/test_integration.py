@@ -78,7 +78,7 @@ def test_app_name_is_escaped_in_browser_title_and_legacy_import_still_works(tmp_
     with TestClient(host(tmp_path, title="Ludo <Portal>"), base_url=ORIGIN, client=("127.0.0.1", 4321)) as client:
         page = client.get("/relay/")
         assert "<title>Relay - Ludo &lt;Portal&gt;</title>" in page.text
-        assert "relay-mark.svg?v=0.0.3" in page.text
+        assert "relay-mark.svg?v=0.0.4" in page.text
 
 
 def test_socketio_wrapper_forwards_relay_and_host_lifespan(tmp_path):

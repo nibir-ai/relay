@@ -3,9 +3,28 @@ const http = require('node:http');
 const { relay, version } = require('./index.cjs');
 
 async function main(args = process.argv.slice(2)) {
+  if (['init','doctor'].includes(args[0])) {
+    const {initialize,doctor}=require('./setup.cjs');
+    const action=args[0], options={project:process.cwd()};
+    for (let i=1;i<args.length;i++) {
+      const key=args[i];
+      if (action==='init' && key==='--apply') { options.apply=true; continue; }
+      if (action==='doctor' && key==='--json') { options.json=true; continue; }
+      if (!['--project',...(action==='doctor'?['--target','--spec-path']:[])].includes(key) || !args[i+1] || args[i+1].startsWith('--')) throw new Error('Invalid setup arguments. Use init [--project <directory>] [--apply] or doctor [--project <directory>] [--target <origin>] [--spec-path <path>] [--json].');
+      options[{'--project':'project','--target':'target','--spec-path':'specPath'}[key]]=args[++i];
+    }
+    if (action==='init') initialize(options.project,options.apply);
+    else {
+      const result=await doctor(options.project,options.target,options.specPath);
+      if (options.json) console.log(JSON.stringify(result,null,2));
+      else result.checks.forEach(check=>console.log(`[${check.state}] ${check.name}: ${check.message}`));
+      if (result.checks.some(check=>check.state==='error')) process.exitCode=1;
+    }
+    return;
+  }
   if (args.includes('--version')) { console.log(version); return; }
   if (args.includes('--help') || !args.length) {
-    console.log('Relay API testing\n\nnpx relay-backend --target http://127.0.0.1:3000 [--spec-path /openapi.json] [--port 4477] [--project <directory>] [--sync-status]\nnpx relay-backend open <report.relay>\n\nFor native /relay on your existing backend port, mount the relay middleware or relayFastify plugin.'); return;
+    console.log('Relay API testing\n\nnpx relay-backend init [--project <directory>] [--apply]\nnpx relay-backend doctor [--target <origin>] [--spec-path <path>] [--json]\nnpx relay-backend --target http://127.0.0.1:3000 [--spec-path /openapi.json] [--port 4477] [--project <directory>] [--sync-status]\nnpx relay-backend open <report.relay>\n\nFor native /relay on your existing backend port, mount the relay middleware or relayFastify plugin.'); return;
   }
   if (args[0]==='open') {
     const { openReport } = require('./reports.cjs');

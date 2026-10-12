@@ -49,6 +49,11 @@ async def verify(client):
     assert empty["status"] == 204 and empty["body"] == "" and empty["bytes"] == 0
     workspace = (await client.get("/relay/__relay/workspace")).json()
     assert all(row["progress"] == "done" for row in workspace["endpoints"].values())
+    endpoint = snapshot["endpoints"][0]
+    saved = await client.post("/relay/__relay/endpoints/update", headers=headers, json={"endpoint_id":endpoint["id"],"fingerprint":endpoint["fingerprint"],"note":"Clean consumer note"})
+    assert saved.status_code == 200 and saved.json()["endpoints"][endpoint["id"]]["note"] == "Clean consumer note"
+    assert saved.json()["activity"][0]["kind"] == "note_updated"
+    assert (await client.post("/relay/__relay/statuses/retry", headers=headers)).status_code == 200
 
 
 async def main():
@@ -62,4 +67,19 @@ async def main():
 
 
 asyncio.run(main())
+import subprocess
+import tempfile
+with tempfile.TemporaryDirectory(prefix="relay-init-") as directory:
+    root = Path(directory)
+    entry = root / "entry.py"
+    text = 'from fastapi import FastAPI\napp = FastAPI(title="Setup consumer")\n'
+    entry.write_text(text)
+    command = [sys.executable,"-m","relay_backend","init","--project",str(root)]
+    assert subprocess.run(command,capture_output=True,text=True,check=True).stdout.find("Preview only") >= 0
+    assert entry.read_text() == text
+    subprocess.run([*command,"--apply"],capture_output=True,text=True,check=True)
+    assert "install_relay(app)" in entry.read_text()
+    subprocess.run([sys.executable,"-c","from entry import app; assert app.state.relay is not None"],cwd=root,check=True)
+    result = subprocess.run([sys.executable,"-m","relay_backend","doctor","--project",str(root),"--json"],capture_output=True,text=True,check=True)
+    assert any(check["name"] == "runtime" for check in json.loads(result.stdout)["checks"])
 print("Fresh install verified: assets, factory/router discovery, user/admin auth, nested/optional bodies, arrays, validation, empty responses and disabled mode.")

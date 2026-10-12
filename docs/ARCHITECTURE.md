@@ -23,4 +23,12 @@ Contract snapshots are ephemeral. Automatic status synchronization polls the Git
 
 `workspace.cjs` stores local status metadata in JSON. `git.cjs` handles optional status-file persistence and automatic Git exchange. The frontend, exports and themes are shared with Python. `scripts/package_node.cjs` bundles assets into the npm tarball; `scripts/verify_node_package.cjs` tests a clean packed or registry installation.
 
-A shared Socket.IO status service is a [next-release proposal](REALTIME.md). It does not replace Git sync in the published 0.0.3 package.
+## Setup and handoff in 0.0.4
+
+Both CLIs inspect bounded source trees without executing application code. `init` previews conservative integration edits; applying a supported edit uses atomic replacement. `doctor` checks only supplied local schema/health routes and local Git configuration, with sanitized output.
+
+Workspace metadata stores local notes, at most 100 recent events, a persistent contract-review flag and small per-section digests. Digests identify changed contract sections without storing full historical schemas or captured request traffic. Python uses additive SQLite columns; Node extends its existing version-1 JSON rows with optional fields and a separate 16 MiB metadata cap. Failed Node writes roll back in-memory edits, and stale status updates are rejected even when schema inspection runs during an awaited Git write.
+
+The UI keeps unsaved notes in session memory, distinguishes schema refresh from Git team sync and permits explicit worker retries through the existing same-origin/CSRF boundary. Shared Git metadata remains status-only. Full schemas remain ephemeral; request traffic and credentials are not written by these features.
+
+A shared Socket.IO status service is proposed for [v0.0.5 in November 2026](REALTIME.md). It does not replace current local/Git workflows.

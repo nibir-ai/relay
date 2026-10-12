@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="310" viewBox="0 0 1200 310" role="img" aria-labelledby="title desc">
+<title id="title">Relay documentation — nibir.online/relay</title><desc id="desc">Integration guides, API testing, and team workflows. Open the documentation.</desc>
+<rect width="1200" height="310" rx="20" fill="#eef0e7"/>
+<path d="M825 0H1180Q1200 0 1200 20V290Q1200 310 1180 310H810C861 262 826 221 864 174C902 127 834 72 825 0Z" fill="#19333e"/>
+<g fill="none" stroke="#aec8bc" stroke-opacity=".22"><path d="M910 0V310M960 0V310M1010 0V310M1060 0V310M1110 0V310M1160 0V310M850 55H1200M850 105H1200M850 155H1200M850 205H1200M850 255H1200"/></g>
+<g font-family="Arial,Helvetica,sans-serif"><text x="52" y="57" font-size="13" font-weight="700" letter-spacing="2.2" fill="#496459">RELAY / THE FIELD GUIDE</text><text x="52" y="123" font-size="43" font-weight="700" letter-spacing="-1.5" fill="#173744">Your backend. A little guidance.</text><text x="54" y="164" font-size="19" fill="#496459">Integration guides · API testing · Team workflows</text><rect x="52" y="201" width="344" height="57" rx="8" fill="#173744"/><text x="76" y="237" fill="#fffdf5" font-size="23" font-weight="600">nibir.online/relay</text></g>
+<path d="M356 226H374M367 219L374 226L367 233" fill="none" stroke="#fffdf5" stroke-width="2.2"/>
+<g transform="translate(905 65) rotate(6 110 90)"><rect width="224" height="177" rx="12" fill="#fffdf5"/><rect x="15" y="17" width="194" height="114" rx="5" fill="#284450"/><circle cx="28" cy="29" r="3" fill="#dca979"/><circle cx="38" cy="29" r="3" fill="#a5be9c"/><circle cx="48" cy="29" r="3" fill="#6d9dba"/><g stroke-linecap="round" stroke-width="5"><path d="M30 53H66M30 91H80" stroke="#a5be9c"/><path d="M78 53H141M46 72H112M92 91H170" stroke="#c8dee5"/><path d="M125 72H187M46 110H119" stroke="#dca979"/></g><path d="M22 151H97M151 151H200" stroke="#9fb5a7" stroke-width="5" stroke-linecap="round"/></g>
+</svg>

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "relay-backend"
-version = "0.0.3"
+version = "0.0.4"
 description = "A local API testing interface with native FastAPI integration, endpoint status tracking, and Git attribution."
 readme = "README.md"
 license = "Apache-2.0"

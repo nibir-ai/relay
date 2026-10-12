@@ -19,6 +19,7 @@ class StatusSync:
         self.error = None
         self.last_synced_at = None
         self.stopped = threading.Event()
+        self.wake = threading.Event()
         self.thread = None
         self.lock = threading.Lock()
 
@@ -93,12 +94,17 @@ class StatusSync:
         def run():
             while not self.stopped.is_set():
                 self.sync_once()
-                self.stopped.wait(self.interval)
+                self.wake.wait(self.interval)
+                self.wake.clear()
         self.thread = threading.Thread(target=run, name="relay-status-sync", daemon=True)
         self.thread.start()
 
+    def request_sync(self):
+        self.wake.set()
+
     def close(self):
         self.stopped.set()
+        self.wake.set()
         if self.thread:
             self.thread.join(timeout=1)
 

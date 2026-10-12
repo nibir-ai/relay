@@ -44,6 +44,22 @@ When a response is truncated, Copy and Export contain only the retained preview.
 
 Sync reloads schema; Auto refresh checks the schema every ten seconds. Team statuses refresh independently when automatic Git sync is enabled. Invalid imports preserve the previous successful contract. FastAPI's schema cache still applies. Done is the default manual status; execution never changes it. A contract change can flag a previously Done API as Needs fixing.
 
+In 0.0.4, schema and team sync states appear separately with last-success times. Schema refresh shows added/changed/removed counts; failed refresh retains the last good contract. Sync team statuses requests a retry only when automatic Git sharing is enabled; success is shown after the worker's acknowledgement.
+
+Changed endpoints explain which contract sections changed (parameters, request body, responses or authentication). The comparison is conservative and does not classify breaking changes. Existing workspaces may lack details for their first observed change. Retest and explicitly choose a status to acknowledge the current contract; editing a note does not approve it.
+
+### Local notes and activity
+
+Open Notes & activity inside an endpoint. Notes support up to 4,000 characters with Save note and Cancel edit. Unsaved edits survive endpoint switches and failed saves within the browser session; reload clears unsaved edits. Saved notes survive backend restart and schema refresh. They remain local: Git sharing exchanges statuses, not notes.
+
+If a contract changes while a note is being edited, review the definition and choose Use current contract before saving. Recent local activity includes discovery, removal, contract changes, status updates and note saves, with at most 100 events retained per workspace. Git updater attribution is displayed separately where available; historical local events do not claim an authenticated author.
+
+The Node workspace file has a 16 MiB metadata limit, separate from the 2 MiB response preview limit. Failed disk writes retain the last saved metadata and report a save failure; notes are never reported saved solely because they reached browser memory.
+
+### Request examples
+
+Select a named OpenAPI example, then click Use selected example to replace the body explicitly. Selecting an example or changing content type does not silently overwrite body edits or execute a request. Reset to spec example loads the default. Required-input errors identify the affected control; backend validation responses remain available for testing invalid payloads.
+
 ## Execution boundaries
 
 Relay enforces loopback Host/client checks, Origin, Fetch Metadata and CSRF. Native ASGI execution does not test network/TLS/DNS or middleware outside the FastAPI host. Standalone mode targets literal loopback HTTP origins, with redirects and ambient proxies disabled.

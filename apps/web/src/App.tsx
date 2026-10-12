@@ -11,6 +11,7 @@ import { api } from "./api";
 import Operations from "./Operations";
 import Playground from "./Playground";
 import AuthPanel from "./AuthPanel";
+import type { NoteDraft } from "./Handoff";
 import type {
   Endpoint,
   Health,
@@ -43,9 +44,16 @@ export default function App() {
   const [autoSync, setAutoSync] = useState(false);
   const [syncedAt, setSyncedAt] = useState<Date | null>(null);
   const [copied, setCopied] = useState(false);
+  const [workspaceError, setWorkspaceError] = useState("");
+  const [schemaState, setSchemaState] = useState("Checking");
+  const [schemaChanges, setSchemaChanges] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const syncing = useRef(false);
   const statusRevision = useRef(0);
+  const savingRef = useRef(false);
+  const noteDrafts = useRef(new Map<string, NoteDraft>());
+  const snapshotRef = useRef<Snapshot | null>(null);
+  snapshotRef.current = snapshot;
   const drafts = useRef(new Map<string, PlaygroundDraft>());
   function focusToken() {
     setAuthEndpoint(null);
@@ -75,10 +83,11 @@ export default function App() {
     }
   }, [theme]);
   async function sync(background = false) {
-    if (syncing.current) return;
+    if (syncing.current || savingRef.current) return;
     syncing.current = true;
     if (!background) setLoading(true);
     setError("");
+    setSchemaState("Checking");
     try {
       const session = await api.health();
       setHealth(session);
@@ -88,6 +97,15 @@ export default function App() {
           previous?.hash === saved.snapshot?.hash ? previous : saved.snapshot,
         );
       const data = await api.inspect(session.csrf_token);
+      const previous = snapshotRef.current;
+      if (previous) {
+        const prior = new Map(previous.endpoints.map(endpoint => [endpoint.id, endpoint.fingerprint]));
+        const next = new Set(data.endpoints.map(endpoint => endpoint.id));
+        const added = data.endpoints.filter(endpoint => !prior.has(endpoint.id)).length;
+        const changed = data.endpoints.filter(endpoint => prior.has(endpoint.id) && prior.get(endpoint.id) !== endpoint.fingerprint).length;
+        const removed = previous.endpoints.filter(endpoint => !next.has(endpoint.id)).length;
+        setSchemaChanges(`${added} added · ${changed} changed · ${removed} removed`);
+      }
       setSnapshot((previous) =>
         previous?.hash === data.hash ? previous : data,
       );
@@ -96,9 +114,14 @@ export default function App() {
           ? ""
           : previous,
       );
-      setWorkspace(await api.workspace());
+      const revision = statusRevision.current;
+      const nextWorkspace = await api.workspace();
+      if (revision === statusRevision.current) setWorkspace(nextWorkspace);
+      setWorkspaceError("");
       setSyncedAt(new Date());
+      setSchemaState("Synced");
     } catch (err) {
+      setSchemaState("Error");
       setError(
         err instanceof Error
           ? err.message
@@ -125,8 +148,8 @@ export default function App() {
       const revision = statusRevision.current;
       try {
         const next = await api.workspace();
-        if (active && !syncing.current && revision === statusRevision.current) setWorkspace(next);
-      } catch { /* Sync exposes persistent storage failures without interrupting request testing. */ }
+        if (active && !syncing.current && revision === statusRevision.current) { setWorkspace(next); setWorkspaceError(""); }
+      } catch { if (active) setWorkspaceError("Status refresh unavailable. Local testing remains usable; retry to reconnect."); }
       finally { pending = false; }
     }, 5000);
     return () => { active = false; clearInterval(timer); };
@@ -156,7 +179,12 @@ export default function App() {
     return () => window.removeEventListener("keydown", keyboard);
   }, []);
   async function update(endpoint: Endpoint, progress: Progress) {
-    if (!health || saving) return;
+    try { await saveMetadata(endpoint, progress); }
+    catch (err) { setError(err instanceof Error ? err.message : "Could not save status. Try again."); }
+  }
+  async function saveMetadata(endpoint: Endpoint, progress?: Progress, note?: string) {
+    if (!health || savingRef.current || syncing.current) throw new Error("A sync or save is in progress. Your edit is retained; try again shortly.");
+    savingRef.current = true;
     statusRevision.current++;
     setSaving(true);
     setError("");
@@ -167,15 +195,11 @@ export default function App() {
           endpoint.id,
           endpoint.fingerprint,
           progress,
+          note,
         ),
       );
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Could not save status. Try again.",
-      );
     } finally {
+      savingRef.current = false;
       statusRevision.current++;
       setSaving(false);
     }
@@ -190,6 +214,14 @@ export default function App() {
         "Clipboard unavailable. Select the server URL and copy it manually.",
       );
     }
+  }
+  async function retryStatuses() {
+    if (!health || savingRef.current || syncing.current) return;
+    const revision = ++statusRevision.current;
+    try {
+      const next = await api.retrySync(health.csrf_token);
+      if (revision === statusRevision.current) { setWorkspace(next); setWorkspaceError(""); }
+    } catch { setWorkspaceError("Could not retry status sync. Check the backend and Git remote access."); }
   }
   return (
     <div className="app-shell">
@@ -276,6 +308,14 @@ export default function App() {
             </span>
           </div>
         </div>
+        <div className="sync-status" aria-live="polite">
+          <span>Schema: {schemaState}{schemaChanges && ` · ${schemaChanges}`}</span>
+          <span>Team statuses: {workspaceError ? "Unavailable" : workspace.status_sync?.enabled ? workspace.status_sync.state : "Automatic sync disabled"}
+            {workspace.status_sync?.last_synced_at && ` · Last synced ${new Date(workspace.status_sync.last_synced_at).toLocaleTimeString()}`}</span>
+          {(workspaceError || workspace.status_sync?.error) && <p className="auth-error">{workspaceError || workspace.status_sync?.error}</p>}
+          {(schemaState === "Error" || workspaceError || workspace.status_sync?.error) && <button className="text-button" disabled={loading || saving} onClick={() => void sync()}>Retry refresh</button>}
+          {workspace.status_sync?.enabled && <button className="text-button" disabled={loading || saving || workspace.status_sync.state === "syncing"} onClick={() => void retryStatuses()}>Sync team statuses</button>}
+        </div>
         {error && (
           <div className="error" role="alert">
             <strong>Unable to complete the action</strong>
@@ -297,6 +337,8 @@ export default function App() {
           searchRef={searchRef}
           loading={loading}
           busy={saving}
+          noteDrafts={noteDrafts.current}
+          saveNote={(endpoint, note) => saveMetadata(endpoint, undefined, note)}
           update={update}
           authorize={openEndpointAuth}
           authFocus={authFocus}
@@ -310,6 +352,8 @@ export default function App() {
                 health={health}
                 snapshot={snapshot}
                 auth={auth}
+                progress={workspace.endpoints[endpoint.id]?.progress ?? "done"}
+                changedBy={workspace.endpoints[endpoint.id]?.updated_by?.name}
                 authorize={focusToken}
                 useToken={(token) => setAuth({ token, enabled: true })}
                 draftCache={drafts.current}
@@ -318,6 +362,7 @@ export default function App() {
                 changeCredentials={(value) => saveCredentials(endpoint, value)}
                 quickAuthorize={() => openEndpointAuth(endpoint)}
                 inline
+                keyboardEnabled={!authOpen}
               />
             )
           }

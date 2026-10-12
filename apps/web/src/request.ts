@@ -109,9 +109,10 @@ export function example(schema: Schema | undefined, depth = 0): unknown {
   if (schema.type === "boolean") return false;
   return "";
 }
-export function bodyExample(media?: Media, mediaType = "application/json") {
+export function bodyExample(media?: Media, mediaType = "application/json", namedExample?: string) {
+  const named = namedExample ? media?.examples?.[namedExample] : undefined;
   const value =
-    media?.example ??
+    named && Object.hasOwn(named, "value") ? named.value : media?.example ??
     Object.values(media?.examples ?? {})[0]?.value ??
     example(media?.schema);
   if (
@@ -129,6 +130,9 @@ export function bodyExample(media?: Media, mediaType = "application/json") {
     return typeof value === "string" ? value : "";
   return JSON.stringify(value, null, 2);
 }
+export class InputError extends Error {
+  constructor(message: string, public field: string) { super(message); }
+}
 export function makeRequest(
   endpoint: Endpoint,
   values: Record<string, string>,
@@ -143,11 +147,14 @@ export function makeRequest(
   for (const param of endpoint.parameters) {
     const value = values[`${param.in}:${param.name}`] ?? "";
     if (param.required && !value.trim())
-      throw new Error(`Enter a value for ${param.name}.`);
+      throw new InputError(`Enter a value for ${param.name}.`, `${param.in}:${param.name}`);
     if (!value) continue;
     if (param.in === "path")
       path = path.replaceAll(`{${param.name}}`, encodeURIComponent(value));
-    if (param.in === "query") query[param.name] = queryValue(param, value);
+    if (param.in === "query") {
+      try { query[param.name] = queryValue(param, value); }
+      catch (err) { throw new InputError(err instanceof Error ? err.message : "Invalid query parameter.", `${param.in}:${param.name}`); }
+    }
     if (param.in === "header") requestHeaders[param.name] = value;
     if (param.in === "cookie")
       cookies.push(
@@ -158,7 +165,7 @@ export function makeRequest(
     throw new Error("Fill in all path parameters before executing.");
   if (cookies.length) requestHeaders.Cookie = cookies.join("; ");
   if (endpoint.requestBody?.required && !body.trim())
-    throw new Error("Enter the required request body before executing.");
+    throw new InputError("Enter the required request body before executing.", "body");
   const mode = !endpoint.requestBody || (!endpoint.requestBody.required && !body.trim())
     ? "none"
     : mediaType.includes("json")
@@ -167,12 +174,12 @@ export function makeRequest(
         ? "form"
         : "text";
   if (mediaType.includes("multipart"))
-    throw new Error("Multipart upload is not supported yet.");
+    throw new InputError("Multipart upload is not supported yet.", "body");
   if (mode === "json") {
     try {
       JSON.parse(body);
     } catch {
-      throw new Error("Invalid JSON. Fix the request body before executing.");
+      throw new InputError("Invalid JSON. Fix the request body before executing.", "body");
     }
   }
   if (mode !== "none") {

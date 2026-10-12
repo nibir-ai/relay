@@ -50,6 +50,27 @@ const snapshot: Snapshot = {
   hash: "abc",
   securitySchemes: {},
 };
+it("selects named examples without replacing edits until explicitly applied", () => {
+  const withExamples={...endpoint,requestBody:{required:true,content:{"application/json":{examples:{first:{value:{email:"first"}},second:{value:{email:"second"}}}},"text/plain":{example:"plain"}}}};
+  render(<Playground endpoint={withExamples} health={health} snapshot={snapshot}/>);
+  fireEvent.change(screen.getByLabelText("Request body"),{target:{value:'{"email":"edited"}'}});
+  fireEvent.change(screen.getByLabelText("Spec request example"),{target:{value:"second"}});
+  expect(screen.getByLabelText("Request body")).toHaveValue('{"email":"edited"}');
+  fireEvent.click(screen.getByRole("button",{name:"Use selected example"}));
+  expect(screen.getByLabelText("Request body")).toHaveValue('{\n  "email": "second"\n}');
+  expect(api.execute).not.toHaveBeenCalled();
+  fireEvent.change(screen.getByLabelText("Request content type"),{target:{value:"text/plain"}});
+  expect(screen.getByLabelText("Request body")).toHaveValue('{\n  "email": "second"\n}');
+});
+it("marks missing required inputs without sending a request", async () => {
+  const required={...endpoint,parameters:[{name:"id",in:"path" as const,required:true,schema:{type:"integer"}}]};
+  render(<Playground endpoint={required} health={health} snapshot={snapshot}/>);
+  fireEvent.click(screen.getByRole("button",{name:"Execute request"}));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Enter a value for id");
+  expect(screen.getByLabelText("id")).toHaveAttribute("aria-invalid","true");
+  expect(screen.getByLabelText("id")).toHaveAccessibleDescription("Enter a value for id.");
+  expect(api.execute).not.toHaveBeenCalled();
+});
 it("renders generated inputs and inspects genuine non-2xx responses without marking Ready", async () => {
   vi.mocked(api.execute).mockResolvedValue({
     status: 401,

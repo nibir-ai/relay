@@ -110,7 +110,7 @@ def create_app(settings: Settings | None = None, transport=None, static_dir: Pat
 
     @app.get("/__relay/health")
     def health(request: Request):
-        return {"status": "ok", "mode": "local", "version": "0.0.3", "csrf_token": token,
+        return {"status": "ok", "mode": "local", "version": "0.0.4", "csrf_token": token,
                 "base_url": target_base(request), "spec_url": target_base(request) + (native_host.openapi_url or "") if native_host else settings.target(settings.spec_path)}
 
     @app.post("/__relay/sources/inspect")
@@ -146,6 +146,13 @@ def create_app(settings: Settings | None = None, transport=None, static_dir: Pat
     @app.post("/__relay/endpoints/update")
     def update_endpoint(payload: EndpointUpdate):
         app.state.workspace.update(payload.endpoint_id, payload.fingerprint, payload.progress, payload.note)
+        return read_workspace()
+
+    @app.post("/__relay/statuses/retry")
+    def retry_statuses():
+        worker = app.state.status_sync
+        if worker:
+            worker.request_sync()
         return read_workspace()
 
     @app.get("/__relay/sources/current")
@@ -218,7 +225,7 @@ def create_app(settings: Settings | None = None, transport=None, static_dir: Pat
             if native_host:
                 html = html.replace("<title>Relay</title>", f"<title>Relay - {escape(native_host.title)}</title>")
             # Version every non-hashed favicon URL so upgrades refresh it on every device.
-            html = html.replace("relay-mark.svg?v=2", "relay-mark.svg?v=0.0.3")
+            html = html.replace("relay-mark.svg?v=2", "relay-mark.svg?v=0.0.4")
             html = html.replace("<head>", f'<head><base href="{escape(base + "/", quote=True)}">', 1)
             return HTMLResponse(html)
         if not native_host:

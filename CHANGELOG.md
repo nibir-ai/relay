@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.0.4 - Unreleased
+
+- Guided `init` commands for Python and Node: bounded framework detection, preview-first FastAPI/Express integration edits and manual guidance for ambiguous layouts.
+- `doctor` commands with local runtime/package, OpenAPI, mount and Git configuration checks; sanitized JSON output.
+- Local endpoint note editing with explicit Save/Cancel, retained unsaved edits, stale-contract review and recent endpoint activity.
+- Persistent contract-change explanations identifying changed parameter/body/response/authentication sections without storing duplicate contracts or traffic.
+- Separate schema/team sync feedback, schema change counts and an explicit retry for enabled Git sharing.
+- Explicit named request-example loading, preserved body edits during content-type switches and accessible required-input errors.
+- Exports use the endpoint's current manual status, including contract-invalidated Needs fixing.
+- Bounded local activity history, additive workspace migration and protection against Node status-save/schema-refresh races.
+- Windows report compatibility: restore the legacy module entry point and use the canonical module for new associations.
+
+Realtime collaboration, multipart uploads and optional request history/assertion/export-review features remain deferred. This version has not been published to npm or PyPI.
+
 ## Node 0.0.3 - 9 October 2026
 
 Published on [npm](https://www.npmjs.com/package/relay-backend/v/0.0.3). Fresh `npm install relay-backend` installation, bundled assets, API execution and TypeScript consumers passed registry verification.
@@ -10,10 +24,6 @@ Published on [npm](https://www.npmjs.com/package/relay-backend/v/0.0.3). Fresh `
 - Standalone `npx relay-backend` tester and portable `.relay` report opener without Python.
 - Clean npm consumer checks and supported-Node CI release gates.
 - Helpful `pip install relay-backend` startup guidance in the FastAPI example and Ludo consumer when the package is absent.
-
-## Unreleased Python fixes
-
-- Restore the legacy report module entry point for existing Windows `.relay` associations and use the canonical module for new associations.
 
 ## 0.0.3 — 9 October 2026
 

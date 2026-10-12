@@ -39,6 +39,7 @@ export const api = {
   execute: (token: string, payload: RequestPayload) =>
     request<LiveResponse>("execute", token, payload),
   workspace: () => request<Workspace>("workspace"),
+  retrySync: (token: string) => request<Workspace>("statuses/retry", token),
   update: (
     token: string,
     endpoint_id: string,

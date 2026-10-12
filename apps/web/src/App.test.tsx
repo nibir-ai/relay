@@ -2,9 +2,11 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { afterEach, beforeAll, expect, it, vi } from "vitest";
 import App from "./App";
 import { api } from "./api";
+import { downloadExport } from "./export";
 import type { Endpoint, Snapshot } from "./types";
 
-vi.mock("./api", () => ({api:{health:vi.fn(),current:vi.fn(),inspect:vi.fn(),workspace:vi.fn(),execute:vi.fn(),update:vi.fn()}}));
+vi.mock("./api", () => ({api:{health:vi.fn(),current:vi.fn(),inspect:vi.fn(),workspace:vi.fn(),execute:vi.fn(),update:vi.fn(),retrySync:vi.fn()}}));
+vi.mock("./export", async (importOriginal) => ({...await importOriginal<typeof import("./export")>(),downloadExport:vi.fn()}));
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
   HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
@@ -24,6 +26,39 @@ function setup() {
   vi.mocked(api.execute).mockResolvedValue({status:200,reason:"OK",body:"{}",headers:{},bytes:2,duration_ms:1,truncated:false,content_type:"application/json",url:"http://127.0.0.1:8000/admin",method:"GET"});
   render(<App />);
 }
+it("ignores a workspace poll that completes after a note save", async () => {
+  const interval = window.setInterval;
+  let poll: (() => Promise<void>) | undefined;
+  vi.spyOn(globalThis, "setInterval").mockImplementation(((callback: TimerHandler, delay?: number) => {
+    if (delay === 5000) poll = callback as () => Promise<void>;
+    return interval(callback, delay);
+  }) as typeof setInterval);
+  vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+  setup(); fireEvent.click(await screen.findByRole("button", {name:"GET /admin"}));
+  fireEvent.click(screen.getByText("Notes & activity"));
+  let finish: ((value: {endpoints:{},activity:[]}) => void) | undefined;
+  vi.mocked(api.workspace).mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));
+  let polling: Promise<void>;
+  await act(async()=>{ polling=poll!(); });
+  vi.mocked(api.update).mockResolvedValue({endpoints:{"GET /admin":{endpoint_id:"GET /admin",fingerprint:"/admin",progress:"done",note:"New saved note",active:1,updated_at:"2026-10-12T00:00:00Z"}},activity:[]});
+  fireEvent.change(screen.getByLabelText("Local endpoint note"),{target:{value:"New saved note"}});
+  fireEvent.click(screen.getByRole("button",{name:"Save note"}));
+  await screen.findByText("Local note saved.");
+  await act(async()=>{ finish!({endpoints:{},activity:[]}); await polling!; });
+  expect(screen.getByLabelText("Local endpoint note")).toHaveValue("New saved note");
+  expect(screen.getByRole("button",{name:"Cancel edit"})).toBeDisabled();
+});
+it("requests an enabled team sync explicitly without treating it as acknowledged", async () => {
+  setup(); await screen.findByRole("button",{name:"GET /admin"});
+  vi.mocked(api.workspace).mockResolvedValue({endpoints:{},activity:[],status_sync:{enabled:true,state:"error",error:"Check Git access"}});
+  fireEvent.click(screen.getByRole("button",{name:"Sync"}));
+  const retry=await screen.findByRole("button",{name:"Sync team statuses"});
+  vi.mocked(api.retrySync).mockResolvedValue({endpoints:{},activity:[],status_sync:{enabled:true,state:"syncing"}});
+  fireEvent.click(retry);
+  await waitFor(()=>expect(api.retrySync).toHaveBeenCalledWith("csrf"));
+  await screen.findByText("Team statuses: syncing");
+  expect(screen.queryByText("Team statuses: synced")).not.toBeInTheDocument();
+});
 it("names the browser tab after the discovered application", async () => {
   setup();
   await waitFor(() => expect(document.title).toBe("Relay - Test API"));
@@ -95,4 +130,18 @@ it("refreshes team status without collapsing the tester or clearing its response
   expect(screen.getByRole("button", {name:"GET /admin"})).toHaveAttribute("aria-expanded","true");
   expect(screen.getByText("200 OK")).toBeVisible();
   expect(screen.getByRole("combobox", {name:"Status for GET /admin"})).toHaveValue("needs_fixing");
+});
+
+it("includes the current workspace status in endpoint exports", async () => {
+  setup();
+  const endpoint = await screen.findByRole("button", {name:"GET /admin"});
+  vi.mocked(api.workspace).mockResolvedValue({endpoints:{"GET /admin":{endpoint_id:"GET /admin",fingerprint:"/admin",progress:"needs_fixing",note:"",active:1,updated_at:"2026-10-09T09:00:00Z"}},activity:[]});
+  fireEvent.click(screen.getByRole("button", {name:"Sync"}));
+  await waitFor(() => expect(screen.getByRole("combobox", {name:"Status for GET /admin"})).toHaveValue("needs_fixing"));
+  fireEvent.click(endpoint);
+  fireEvent.click(screen.getByText("Export"));
+  fireEvent.click(screen.getByRole("button", {name:/JSON/}));
+  await waitFor(() => expect(downloadExport).toHaveBeenCalled());
+  expect(vi.mocked(downloadExport).mock.calls[0][1].endpoint.progress).toBe("needs_fixing");
+  expect(api.execute).not.toHaveBeenCalled();
 });

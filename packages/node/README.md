@@ -6,7 +6,13 @@ API testing on your backend's existing `/relay` route. The UI, themes and assets
 npm install relay-backend
 ```
 
-## Express
+## Setup and handoff tools in 0.0.4
+
+`npx relay-backend init --project ./backend` detects Express/Fastify and previews simple JavaScript Express integration edits. Add `--apply` to write a supported edit. TypeScript, factories and Fastify plugin ordering receive manual instructions. `npx relay-backend doctor --target http://127.0.0.1:3000 --json` checks local OpenAPI, the native mount and Git configuration without executing business endpoints or exposing tokens.
+
+The endpoint UI adds local notes/activity, persistent contract-change explanations, separate schema/team sync feedback and explicit named request-example loading. Git shares statuses, not notes or request traffic. See [setup documentation](https://github.com/nibir-ai/relay/blob/main/docs/SETUP.md).
+
+## Express integration
 
 ```js
 import express from 'express';

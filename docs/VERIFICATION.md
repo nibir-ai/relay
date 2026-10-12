@@ -2,6 +2,14 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## 0.0.4 release candidate — 12 October 2026
+
+The 0.0.4 source and artifacts are prepared; registry publication has not been attempted. Local validation passed on Windows with Python 3.12 and Node 26.3: 103 Python tests, 16 Node tests, 51 frontend tests (including endpoint export status), strict frontend production build, Node consumer type checks, Twine metadata checks, and clean isolated Python wheel and Node tarball consumers. Python wheel consumers passed with current dependencies (FastAPI 0.143.0, Uvicorn 0.54.0, HTTPX 0.28.1) and minimum supported dependencies (FastAPI 0.115.0, Uvicorn 0.30.0, HTTPX 0.28.0). The clean consumers verified setup preview/apply and diagnostics as well as their existing integration checks.
+
+The suite covers bounded project scans, conservative source editing, diagnostics that avoid exposing request data, schema-change summaries and explicit review, local note persistence, save/poll races, shared Git retry behavior and failed-write recovery. A local fixture verified OpenAPI and mounted-health diagnostics. A targeted Node grouping microbenchmark on 1,000 endpoints measured 0.038 ms per group operation after replacing repeated array copies (2.027 ms before); this measures the isolated grouping operation, not browser rendering.
+
+Live browser interaction and visual checks across themes and mobile widths remain pending, as does the public Python/Node CI matrix. The local UI automation environment exposed no browser surface, so no visual or browser performance claim is made. Complete these checks and verify fresh public registry installs after publication before calling the release fully verified. An existing FastAPI/Starlette TestClient deprecation warning appeared during the Python suite; all tests passed.
+
 ## Published 0.0.3
 
 This release adds the canonical import, application-specific titles and opt-in automatic status synchronization. Tests use two independent backend clones and a bare remote. They cover background propagation with updater identity, concurrent push retries, preservation of staged and uncommitted application code, unavailable remotes, invalid metadata, exclusion of non-status fields and native lifespan cleanup.

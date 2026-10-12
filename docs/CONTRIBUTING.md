@@ -17,7 +17,7 @@ python -m pytest apps/agent/tests -q
 python scripts/package.py
 python scripts/verify_package.py
 python scripts/verify_clean_install.py
-python -m twine check dist/relay_backend-0.0.3*
+python -m twine check dist/relay_backend-0.0.4*
 ```
 
 Packaging builds Vite, copies the compiled assets into Python, and produces sdist plus wheel. The wheel is built from sdist, checking source-distribution asset inclusion. Wheel verification runs outside the editable checkout; customer verification creates a new venv and installs dependencies without Node or a checkout.
@@ -34,6 +34,6 @@ pnpm --dir packages/node check:types
 node scripts/verify_node_package.cjs
 ```
 
-This creates `dist/relay-backend-0.0.3.tgz` with native adapters, declarations and the built UI. The clean consumer check installs outside the checkout with lifecycle scripts disabled and verifies CommonJS, ESM, TypeScript, assets and real API execution. `node scripts/verify_node_package.cjs --public-index` verifies the actual latest npm registry release instead of the local tarball.
+This creates `dist/relay-backend-0.0.4.tgz` with native adapters, declarations and the built UI. The clean consumer check installs outside the checkout with lifecycle scripts disabled and verifies CommonJS, ESM, TypeScript, assets and real API execution. `node scripts/verify_node_package.cjs --public-index` verifies the actual latest npm registry release instead of the local tarball.
 
 Node CI runs on 22.13, 24 and 26. Consumers use the published npm package; contributor commands are not part of their integration.

@@ -9,7 +9,9 @@ Test your API where it runs. Relay adds a testing workspace at **`/relay`** on y
 [![PyPI](https://img.shields.io/pypi/v/relay-backend?label=PyPI&color=8ccf7e)](https://pypi.org/project/relay-backend/)
 [![Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-e5c76b)](LICENSE)
 
-[Documentation](docs/README.md) · [FastAPI](#add-relay-to-fastapi) · [Node](#add-relay-to-node) · [Roadmap](#next-release)
+[**Documentation ↗**](https://nibir.online/relay/) · [Repository docs](docs/README.md) · [FastAPI](#add-relay-to-fastapi) · [Node](#add-relay-to-node) · [Roadmap](#release-roadmap)
+
+[![Open the Relay documentation — integration guides, API testing, and team workflows at nibir.online/relay](docs/assets/relay-documentation.svg)](https://nibir.online/relay/)
 
 ## Choose your backend
 
@@ -111,16 +113,51 @@ Relay is an alpha for local development. Multipart uploads, OAuth browser flows,
 
 Tokens and drafts stay in browser session memory. Explicit exports include request bodies, parameters and captured responses, which may contain secrets; inspect them before sharing. See the [export format and handling guide](docs/EXPORTS.md).
 
-## Next release
+## Release roadmap
 
-- [ ] Add `relay init` for backend detection and guided automatic integration setup.
-- [ ] Add optional realtime team statuses through a shared backend, without creating a Git status branch.
-- [ ] Authenticate developers and check contributor/team permissions for shared statuses.
-- [ ] Persist status updates, handle concurrent edits and restore missed updates after reconnecting.
-- [ ] Keep API testing local and provide minimal shared-service configuration.
-- [ ] Ship the Windows report-association compatibility fix in a new Python patch release.
+| Version | Status / target | Focus |
+| --- | --- | --- |
+| **0.0.3** | Published on PyPI and npm | Native backend testing, auth, reports and opt-in Git status sharing. |
+| **0.0.4** | Current release preparation · October 2026 | Guided setup, diagnostics, local handoff notes, contract-change explanations and reliable refresh. |
+| **0.0.5** | Planned launch · **November 2026** | Authenticated realtime team statuses through an optional shared service. |
 
-The realtime design is planned, not included in 0.0.3. Socket.IO is the proposed transport; see the [team sync proposal](docs/REALTIME.md). Git sync remains opt-in in the current release.
+### 0.0.4 — easier setup and clearer handoffs
+
+- [x] Add guided `init` commands for backend detection and reviewable integration setup.
+- [x] Add `doctor` commands for actionable setup and Git configuration diagnostics.
+- [x] Expose local endpoint notes and recent status/contract activity.
+- [x] Explain contract changes and improve schema/Git sync feedback and recovery.
+- [x] Refine request examples and accessible validation feedback.
+- [x] Pass clean Python and Node package consumer checks, including current and minimum Python dependencies.
+- [ ] Complete browser and public compatibility-matrix verification before publication.
+
+The source is preparing 0.0.4; the latest published distributions are still 0.0.3. See [guided setup and diagnostics](docs/SETUP.md), the [v0.0.4 plan](docs/RELEASE-0.0.4.md) and [verification notes](docs/VERIFICATION.md).
+
+### 0.0.5 — realtime team statuses
+
+Target: launch in **November 2026**, after 0.0.4 is verified and released. Two developers using separate local backends should see each other's manual endpoint statuses and verified updater identity without a Git status branch.
+
+- [ ] Provide an optional shared status service with a documented self-hosted setup.
+- [ ] Authenticate developers and enforce project membership/read-write permissions.
+- [ ] Persist status, contract fingerprint, updater and timestamp across service restarts.
+- [ ] Deliver live updates to both Python and Node integrations with explicit acknowledgements.
+- [ ] Reject stale revisions, resolve concurrent edits clearly and recover missed updates after reconnect.
+- [ ] Show connection/offline/conflict states and keep local API testing usable during service outages.
+- [ ] Make local, Git and realtime modes explicit; provide a reviewed migration path for existing Git statuses.
+- [ ] Verify two independent developer environments, unauthorized access, project isolation, restart recovery and clean package upgrades.
+
+| November milestone | Expected result |
+| --- | --- |
+| **Week 1 · Nov 1–7** | Settle service hosting, identity/permissions and the Python/Node event protocol; publish the setup design. |
+| **Week 2 · Nov 8–14** | Build the authenticated service, durable storage and revision/conflict handling. |
+| **Week 3 · Nov 15–21** | Connect both integrations; complete reconnect recovery, offline UX and Git migration tests. |
+| **Week 4 · Nov 22–30** | Dogfood with two developers, freeze features, verify artifacts and launch 0.0.5 when release gates pass. |
+
+Only status metadata goes to the shared service. API requests, credentials, local notes, drafts and captured responses stay local. Realtime is opt-in; existing local and Git workflows remain available. November is the launch target, subject to the authentication, durability and recovery gates above. See the [team sync design](docs/REALTIME.md).
+
+### Later candidates — not committed to 0.0.5
+
+Bounded session request history, simple response checks, reviewed export redaction, multipart uploads and richer schema inputs will be prioritized after team-sync dogfooding. OAuth browser flows, remote API execution and AI features are outside the next release's scope.
 
 <details>
 <summary>Completed release milestones</summary>

@@ -3,6 +3,7 @@ import { ChevronDown, ChevronsDownUp, ChevronsUpDown, LockKeyhole, Search, X } f
 import { Method } from "./Explorer";
 import { progressLabels, progressValues } from "./progress";
 import type { Endpoint, Progress, Snapshot, Workspace } from "./types";
+import Handoff, { type NoteDraft } from "./Handoff";
 
 export default function Operations({
   snapshot,
@@ -19,6 +20,8 @@ export default function Operations({
   authorize,
   authModes = {},
   authFocus = { id: "", revision: 0 },
+  noteDrafts,
+  saveNote,
 }: {
   snapshot: Snapshot | null;
   workspace: Workspace;
@@ -34,6 +37,8 @@ export default function Operations({
   authorize: (endpoint: Endpoint) => void;
   authModes?: Record<string, string>;
   authFocus?: { id: string; revision: number };
+  noteDrafts?: Map<string, NoteDraft>;
+  saveNote?: (endpoint: Endpoint, note: string) => Promise<void>;
 }) {
   const [method, setMethod] = useState("all");
   const [progress, setProgress] = useState<Progress | "all">("all");
@@ -51,7 +56,9 @@ export default function Operations({
   const groups = new Map<string, Endpoint[]>();
   for (const endpoint of endpoints) {
     const tag = endpoint.tags[0] ?? "Default";
-    groups.set(tag, [...(groups.get(tag) ?? []), endpoint]);
+    const group = groups.get(tag);
+    if (group) group.push(endpoint);
+    else groups.set(tag, [endpoint]);
   }
   const allClosed = groups.size > 0 && [...groups.keys()].every((tag) => collapsed.has(tag));
   function toggle(tag: string) {
@@ -245,7 +252,13 @@ export default function Operations({
                               {meta.updated_by.name}
                             </small>
                           )}
+                          {meta?.updated_at && <small>Updated <time dateTime={meta.updated_at}>{new Date(meta.updated_at).toLocaleString()}</time></small>}
                         </div>
+                        {meta?.contract_changed && <div className="contract-notice" role="status">
+                          <strong>Contract changed — review required</strong>
+                          <p>{meta.changed_sections?.length ? `Changed: ${meta.changed_sections.join(", ")}.` : "The current contract differs from the recorded status."} Retest and explicitly choose a status after review.</p>
+                          <small>This comparison does not classify breaking changes.</small>
+                        </div>}
                         {meta?.source && <div className="operation-source">
                           {meta.source.created_by && <span>Introduced by {meta.source.created_by.name}</span>}
                           {!meta.source.created_by && <span>{meta.source.state === "uncommitted" ? "Not committed" : "Git author unavailable"}</span>}
@@ -254,6 +267,8 @@ export default function Operations({
                           {meta.source.file && <code title={meta.source.commit}>{meta.source.file}:{meta.source.line}</code>}
                         </div>}
                         {render(endpoint, authFocus.id === endpoint.id ? authFocus.revision : 0)}
+                        {noteDrafts && saveNote && <Handoff key={endpoint.id} endpoint={endpoint} meta={meta} activity={workspace.activity}
+                          drafts={noteDrafts} save={(note) => saveNote(endpoint, note)} busy={busy} />}
                       </div>
                     )}
                   </article>
