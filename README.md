@@ -130,7 +130,7 @@ Tokens and drafts stay in browser session memory. Explicit exports include reque
 - [x] Refine request examples and accessible validation feedback.
 - [x] Pass clean Python and Node package consumer checks, including current and minimum Python dependencies.
 - [x] Pass the public Python 3.11–3.13 and Node 22.13/24/26 compatibility matrices.
-- [ ] Complete the manual browser sweep across themes and mobile widths as a follow-up.
+- [x] Complete browser interaction checks across all five themes and desktop/mobile widths.
 
 Python 0.0.4 is published on PyPI, with wheel, source and Node 0.0.4 tarball assets on [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.4). The latest npm distribution is 0.0.3 while the 0.0.4 upload awaits account authentication. See [guided setup and diagnostics](docs/SETUP.md), the [v0.0.4 plan](docs/RELEASE-0.0.4.md) and [verification notes](docs/VERIFICATION.md).
 
