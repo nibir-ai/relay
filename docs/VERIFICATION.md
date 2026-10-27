@@ -2,11 +2,17 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## 0.0.5 live service transport — 27 October 2026
+
+The team service now broadcasts committed status records through authenticated project-scoped Socket.IO connections. All 19 service tests passed, including real Python WebSocket clients, reader rejection, project isolation, explicit stale-write acknowledgements, HTTP-to-socket delivery and full-snapshot recovery after polling reconnect. An installed service wheel passed the Node consumer check with independent Socket.IO clients and a separate Python HTTP writer; accepted revisions arrived in order, credentials remained project-scoped, and missed state recovered after reconnect. Service startup/shutdown and the existing HTTP/restart smoke check remain covered. CI runs the Node transport consumer against a fresh service wheel on every Python compatibility-matrix entry.
+
+This completes service transport verification, not native Relay integration. Python/Node bridges, collaboration UI, gap/conflict UX and migration remain pending. No package release was published; the npm 0.0.4 authentication blocker is unchanged.
+
 ## 0.0.5 service foundation — 27 October 2026
 
 The standalone team-service development package passed 16 focused tests covering authentication, project isolation, read/write roles, server-assigned attribution, restart durability and revocation, concurrent and stale updates, independent endpoint edits, strict mutation fields and environment-based startup. A wheel and source archive built successfully and passed Twine metadata checks. A fresh isolated environment installed the wheel with current dependencies (FastAPI 0.162.0, Uvicorn 0.54.0 and Pydantic 2.14.1); the installed service started outside the checkout and passed real HTTP authentication, writes, conflict acknowledgement and restart persistence checks. The public Python matrix runs the same service suite and installed-wheel smoke check.
 
-This verifies the service foundation only. Socket delivery, Python/Node bridges, collaboration UI, reconnect/conflict UX, migration and complete 0.0.5 release gates remain pending. No 0.0.5 package or release has been published. The existing npm 0.0.4 authentication blocker is unchanged.
+This verifies the service foundation only. At this foundation milestone, socket delivery, Python/Node bridges, collaboration UI, reconnect/conflict UX, migration and complete 0.0.5 release gates were pending; the transport follow-up above records subsequent progress. No 0.0.5 package or release has been published. The existing npm 0.0.4 authentication blocker is unchanged.
 
 ## Published Python 0.0.4 — 12 October 2026
 

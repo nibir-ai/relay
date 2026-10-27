@@ -141,8 +141,9 @@ Target: launch in **November 2026**, following the 0.0.4 release. Two developers
 - [x] Provide an optional shared status service with a documented self-hosted setup.
 - [x] Authenticate developers and enforce project membership/read-write permissions.
 - [x] Persist status, contract fingerprint, updater and timestamp across service restarts.
-The [service foundation](apps/team-service/README.md) provides authenticated HTTP snapshots and durable revision-checked writes. It is development work for 0.0.5; the published packages do not connect to it yet.
+The [service foundation](apps/team-service/README.md) provides authenticated HTTP snapshots, durable revision-checked writes and project-scoped Socket.IO notifications, verified with Python and Node transport clients. It is development work for 0.0.5; the published packages do not connect to it yet.
 
+- [x] Verify authenticated Socket.IO transport with independent Python and Node clients.
 - [ ] Deliver live updates to both Python and Node integrations with explicit acknowledgements.
 - [ ] Reject stale revisions, resolve concurrent edits clearly and recover missed updates after reconnect.
 - [ ] Show connection/offline/conflict states and keep local API testing usable during service outages.

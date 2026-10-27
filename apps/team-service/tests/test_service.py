@@ -20,7 +20,8 @@ def service(tmp_path):
         "beta": {"members": [member("carol", "carol-token")]},
     }}
     database = tmp_path / "service.sqlite3"
-    return TestClient(create_app(config=config, db_path=database)), config, database
+    with TestClient(create_app(config=config, db_path=database)) as client:
+        yield client, config, database
 
 
 def headers(token="alice-token"):
