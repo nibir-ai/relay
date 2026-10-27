@@ -2,6 +2,16 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## Published 0.0.5 — 27 October 2026
+
+[Python publication](https://github.com/nibir-ai/relay/actions/runs/40491186153) and [npm publication](https://github.com/nibir-ai/relay/actions/runs/40491187326) succeeded for source commit `c924bca`. The existing PyPI trust and newly configured npm trust both used GitHub OIDC. The [GitHub release](https://github.com/nibir-ai/relay/releases/tag/v0.0.5) includes the CI-built wheel, source archive, npm tarball and SHA-256 checksums.
+
+The release passed Python 3.11/3.12/3.13 and Node 22.13/24/26 compatibility CI. Coverage includes 132 Python, 56 frontend and 21 Node tests, strict build, TypeScript consumers, independent installed artifacts, current/minimum Python dependencies, actual public-package upgrades and the browser migration/theme/mobile/export sweep below. The publication workflow repeated native, upgrade and package checks before upload.
+
+After registry propagation, fresh unpinned installs resolved 0.0.5 from both registries. The plain Python consumer passed native assets, factory/router discovery, separate user/admin auth, execution, nested/optional bodies, arrays, validation, empty responses and disabled mode. The npm consumer passed CommonJS/ESM, TypeScript, CLI, bundled assets and real request execution without Python or consumer build scripts. An independent fresh `relay-backend[realtime]` PyPI installation ran the bundled service through `relay team serve`; the cross-runtime consumer installed the unpinned public npm package and passed reviewed create-only migration, stale-preview rejection, updater attribution, conflicts, private notes, offline execution, durable caches and reconnect recovery. No repository checkout was needed by either consumer.
+
+Both registries briefly served prior metadata after accepting upload. The npm registry verifier now uses an isolated cache and prefers online metadata, so previous local metadata cannot masquerade as a new consumer installation. Publication success is recorded only after the public consumer checks passed.
+
 ## 0.0.5 migration and upgrade candidate — 27 October 2026
 
 Local validation passed 132 Python tests, 56 frontend tests, the strict production build and TypeScript consumer checks. Native Node coverage includes reviewed create-only import and retained Git metadata. Independent wheel/tarball consumers passed native discovery, execution, assets and status persistence; Python clean consumers passed with both current and minimum supported dependencies. Twine validated wheel/source metadata. The backend wheel bundles the optional service from its canonical source, verified byte-for-byte; consumers install only `relay-backend[realtime]` to run the service and bridge.
@@ -10,7 +20,7 @@ The upgrade gate installed the actual public Python 0.0.4 and npm 0.0.3 packages
 
 Browser checks against installed candidate artifacts verified explicit migration selection and acknowledgement, exclusion of existing team statuses, peer delivery, endpoint auth, captured responses and both JSON/`.relay` downloads. Everblush, One Dark, Gruvbox, Nord and Paper were inspected. The import dialog and tester had no document-level horizontal overflow at 390 and 320 CSS pixels; no browser console errors were recorded. This is a single-browser smoke/visual check, not a cross-browser benchmark.
 
-The npm publisher for `nibir-ai/relay`, `publish-node.yml`, environment `npm` is configured. Publication and fresh public-registry checks remain pending until compatibility CI completes. No 0.0.5 publication is claimed by these candidate checks.
+At this candidate milestone, the npm publisher for `nibir-ai/relay`, `publish-node.yml`, environment `npm` was configured and publication/public-registry checks remained pending. The publication follow-up above records their completion.
 
 ## 0.0.5 native realtime integrations — 27 October 2026
 
@@ -18,7 +28,7 @@ Local checks passed: 129 Python tests, 54 frontend tests, 18 Node tests, the str
 
 Browser testing against those installed artifacts verified both directions of status changes with updater attribution, preservation of an expanded operation and captured response, separate endpoint API auth, JSON and `.relay` exports with the current team status, and the realtime connection label. The 390-pixel layout had no document-level horizontal overflow or console errors. Frontend regression coverage checks displayed-revision submission, accepted-peer refresh after conflicts and API testing for read-only membership. Package keywords and the public API-testing workflow guide describe the supported testing capabilities.
 
-The source remains unreleased. Reviewed Git migration and complete upgrade/release verification are still pending; registry versions have not changed. The npm authentication blocker is unchanged.
+At this native-bridge milestone the source remained unreleased and migration/upgrade gates were pending; the publication and migration follow-ups above record their completion.
 
 ## 0.0.5 live service transport — 27 October 2026
 

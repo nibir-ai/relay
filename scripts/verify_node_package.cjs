@@ -20,7 +20,7 @@ function run(binary,args) {
 async function main() {
   if(!publicIndex) assert.ok(fs.existsSync(archive),'Build the npm tarball first.');
   fs.writeFileSync(path.join(directory,'package.json'),JSON.stringify({name:'relay-clean-consumer',private:true}));
-  run(npmBinary,[...npmPrefix,'install','--ignore-scripts','--no-audit','--no-fund','--registry=https://registry.npmjs.org',publicIndex?'relay-backend':archive,'express@5','typescript@5','@types/node@22','@types/express@5']);
+  run(npmBinary,[...npmPrefix,'install','--ignore-scripts','--no-audit','--no-fund','--registry=https://registry.npmjs.org',...(publicIndex?['--prefer-online','--cache',path.join(directory,'npm-cache')]:[]),publicIndex?'relay-backend':archive,'express@5','typescript@5','@types/node@22','@types/express@5']);
   assert.ok(!fs.existsSync(path.join(directory,'node_modules/fastify')),'Express consumer must not require Fastify.');
   const installed=JSON.parse(fs.readFileSync(path.join(directory,'node_modules/relay-backend/package.json'),'utf8'));
   assert.equal(installed.version,version); assert.deepEqual(Object.keys(installed.dependencies||{}),['socket.io-client']);

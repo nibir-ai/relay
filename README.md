@@ -127,7 +127,7 @@ Tokens and drafts stay in browser session memory. Explicit exports include reque
 | Version | Status / target | Focus |
 | --- | --- | --- |
 | **0.0.3** | Published on PyPI and npm | Native backend testing, auth, reports and opt-in Git status sharing. |
-| **0.0.4** | Published on PyPI and GitHub · 12 October 2026; npm pending | Guided setup, diagnostics, local handoff notes, contract-change explanations and reliable refresh. |
+| **0.0.4** | Published on PyPI and GitHub · 12 October 2026 | Guided setup, diagnostics, local handoff notes, contract-change explanations and reliable refresh. |
 | **0.0.5** | Planned launch · **November 2026** | Authenticated realtime team statuses through an optional shared service. |
 
 ### 0.0.4 — easier setup and clearer handoffs
@@ -141,7 +141,7 @@ Tokens and drafts stay in browser session memory. Explicit exports include reque
 - [x] Pass the public Python 3.11–3.13 and Node 22.13/24/26 compatibility matrices.
 - [x] Complete browser interaction checks across all five themes and desktop/mobile widths.
 
-Python 0.0.4 is published on PyPI, with wheel, source and Node 0.0.4 tarball assets on [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.4). The latest npm distribution is 0.0.3 while the 0.0.4 upload awaits account authentication. See [guided setup and diagnostics](docs/SETUP.md), the [v0.0.4 plan](docs/RELEASE-0.0.4.md) and [verification notes](docs/VERIFICATION.md).
+Python 0.0.4 is published on PyPI, with wheel, source and Node 0.0.4 tarball assets on [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.4). npm upgrades directly from 0.0.3 to the current 0.0.5 release; the 0.0.4 tarball remains available as a historical artifact. See [guided setup and diagnostics](docs/SETUP.md), the [v0.0.4 plan](docs/RELEASE-0.0.4.md) and [verification notes](docs/VERIFICATION.md).
 
 ### 0.0.5 — realtime team statuses
 

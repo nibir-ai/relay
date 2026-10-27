@@ -49,6 +49,7 @@ The local companion uses the backend's `/relay/__relay/` namespace. Read `health
 | `sources/inspect` | POST | Discover the generated OpenAPI contract. |
 | `workspace` | GET | Endpoint metadata and team-sync connection state. |
 | `execute` | POST | Execute a relative API method/path with explicit parameters, headers and body. |
+| `statuses/migration` | GET / POST | Preview Git statuses, then import explicitly selected eligible records using the reviewed plan ID. Realtime writer access is required. |
 | `endpoints/update` | POST | Save a local note or explicitly change an endpoint status. Realtime writes require the displayed `team_revision` as `expected_revision`. |
 
 These are local companion routes, not public backend APIs. They require the same localhost/origin checks as the UI. See [testing and verification](TESTING.md) for runnable fixtures and consumer checks. Realtime integration is under development for 0.0.5; consult [team setup](REALTIME.md) before enabling it.
