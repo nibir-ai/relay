@@ -1,4 +1,6 @@
 <picture>
+
+[API testing workflow](docs/API-TESTING.md) covers discovery, authorization, requests, responses and exports.
   <source media="(prefers-color-scheme: dark)" srcset="apps/web/public/brand/relay-logo.svg" />
   <img src="apps/web/public/brand/relay-logo-light.svg" width="240" height="59" alt="Relay" />
 </picture>
@@ -141,12 +143,12 @@ Target: launch in **November 2026**, following the 0.0.4 release. Two developers
 - [x] Provide an optional shared status service with a documented self-hosted setup.
 - [x] Authenticate developers and enforce project membership/read-write permissions.
 - [x] Persist status, contract fingerprint, updater and timestamp across service restarts.
-The [service foundation](apps/team-service/README.md) provides authenticated HTTP snapshots, durable revision-checked writes and project-scoped Socket.IO notifications, verified with Python and Node transport clients. It is development work for 0.0.5; the published packages do not connect to it yet.
+The [service foundation](apps/team-service/README.md) provides authenticated HTTP snapshots, durable revision-checked writes and project-scoped Socket.IO notifications, verified with Python and Node transport clients. The source integrations now connect with three backend environment variables; this is development work for 0.0.5 and is not in the published packages yet.
 
 - [x] Verify authenticated Socket.IO transport with independent Python and Node clients.
-- [ ] Deliver live updates to both Python and Node integrations with explicit acknowledgements.
-- [ ] Reject stale revisions, resolve concurrent edits clearly and recover missed updates after reconnect.
-- [ ] Show connection/offline/conflict states and keep local API testing usable during service outages.
+- [x] Deliver live updates to both Python and Node integrations with explicit acknowledgements.
+- [x] Reject stale revisions, resolve concurrent edits clearly and recover missed updates after reconnect.
+- [x] Show connection/offline/conflict states and keep local API testing usable during service outages.
 - [ ] Make local, Git and realtime modes explicit; provide a reviewed migration path for existing Git statuses.
 - [ ] Verify two independent developer environments, unauthorized access, project isolation, restart recovery and clean package upgrades.
 

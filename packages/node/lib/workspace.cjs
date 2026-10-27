@@ -47,12 +47,16 @@ class Workspace {
     try { this.save(); }
     catch (error) { this.rows=previousRows; this.activity=previousActivity; throw error; }
   }
-  async update(payload) {
+  validate(payload) {
     if (!object(payload) || typeof payload.endpoint_id!=='string' || typeof payload.fingerprint!=='string' || !/^[a-f0-9]{64}$/.test(payload.fingerprint) ||
         (payload.progress!==undefined && !PROGRESS.has(payload.progress)) || (payload.note!==undefined && (typeof payload.note!=='string' || payload.note.length>4000))) throw new RelayError(422,'Invalid endpoint status update.');
     const row=this.rows[payload.endpoint_id];
     if (!row?.active) throw new RelayError(404,'Endpoint is no longer active. Sync and try again.');
     if (row.fingerprint!==payload.fingerprint) throw new RelayError(409,'The contract changed. Sync before updating progress.');
+  }
+  async update(payload) {
+    this.validate(payload);
+    const row=this.rows[payload.endpoint_id];
     if (this.shared && payload.progress!==undefined) await this.shared.update(payload.endpoint_id,payload.fingerprint,payload.progress);
     // Schema inspection can run while the Git write awaits its lock.
     if (!row.active || row.fingerprint!==payload.fingerprint) throw new RelayError(409,'The contract changed during saving. Sync and review before updating progress.');

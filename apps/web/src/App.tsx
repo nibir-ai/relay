@@ -151,9 +151,9 @@ export default function App() {
         if (active && !syncing.current && revision === statusRevision.current) { setWorkspace(next); setWorkspaceError(""); }
       } catch { if (active) setWorkspaceError("Status refresh unavailable. Local testing remains usable; retry to reconnect."); }
       finally { pending = false; }
-    }, 5000);
+    }, workspace.status_sync?.mode === "realtime" ? 1000 : 5000);
     return () => { active = false; clearInterval(timer); };
-  }, [health?.csrf_token, saving]);
+  }, [health?.csrf_token, saving, workspace.status_sync?.mode]);
   const syncRef = useRef(sync);
   syncRef.current = sync;
   useEffect(() => {
@@ -196,8 +196,15 @@ export default function App() {
           endpoint.fingerprint,
           progress,
           note,
+          workspace.endpoints[endpoint.id]?.team_revision,
         ),
       );
+    } catch (err) {
+      if (progress !== undefined) {
+        try { setWorkspace(await api.workspace()); }
+        catch { /* Preserve the last acknowledged workspace during an outage. */ }
+      }
+      throw err;
     } finally {
       savingRef.current = false;
       statusRevision.current++;
@@ -221,7 +228,7 @@ export default function App() {
     try {
       const next = await api.retrySync(health.csrf_token);
       if (revision === statusRevision.current) { setWorkspace(next); setWorkspaceError(""); }
-    } catch { setWorkspaceError("Could not retry status sync. Check the backend and Git remote access."); }
+    } catch { setWorkspaceError("Could not retry team status sync. Check the backend connection and project access."); }
   }
   return (
     <div className="app-shell">
@@ -310,8 +317,9 @@ export default function App() {
         </div>
         <div className="sync-status" aria-live="polite">
           <span>Schema: {schemaState}{schemaChanges && ` · ${schemaChanges}`}</span>
-          <span>Team statuses: {workspaceError ? "Unavailable" : workspace.status_sync?.enabled ? workspace.status_sync.state : "Automatic sync disabled"}
+          <span>Team statuses{workspace.status_sync?.mode && workspace.status_sync.mode !== "local" ? ` (${workspace.status_sync.mode})` : ""}: {workspaceError ? "Unavailable" : workspace.status_sync?.enabled ? workspace.status_sync.state : "Automatic sync disabled"}
             {workspace.status_sync?.last_synced_at && ` · Last synced ${new Date(workspace.status_sync.last_synced_at).toLocaleTimeString()}`}</span>
+          {workspace.status_sync?.can_write === false && <span>Read-only project access</span>}
           {(workspaceError || workspace.status_sync?.error) && <p className="auth-error">{workspaceError || workspace.status_sync?.error}</p>}
           {(schemaState === "Error" || workspaceError || workspace.status_sync?.error) && <button className="text-button" disabled={loading || saving} onClick={() => void sync()}>Retry refresh</button>}
           {workspace.status_sync?.enabled && <button className="text-button" disabled={loading || saving || workspace.status_sync.state === "syncing"} onClick={() => void retryStatuses()}>Sync team statuses</button>}

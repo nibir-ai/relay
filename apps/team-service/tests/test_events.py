@@ -67,7 +67,8 @@ def test_socket_membership_and_reader_permissions(live_service):
     with pytest.raises(socketio.exceptions.ConnectionError):
         client("carol", "alpha")
     reader = client("reader")
-    assert reader.call("snapshot:get", timeout=3)["revision"] == 0
+    snapshot = reader.call("snapshot:get", timeout=3)
+    assert snapshot["revision"] == 0 and snapshot["can_write"] is False
     assert reader.call("status:update", mutation(), timeout=3) == {
         "ok": False, "status": 403, "code": "write_forbidden"}
 

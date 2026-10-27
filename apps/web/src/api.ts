@@ -46,11 +46,13 @@ export const api = {
     fingerprint: string,
     progress?: Progress,
     note?: string,
+    expected_revision?: number,
   ) =>
     request<Workspace>("endpoints/update", token, {
       endpoint_id,
       fingerprint,
       progress,
       note,
+      expected_revision,
     }),
 };

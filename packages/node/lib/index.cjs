@@ -7,6 +7,7 @@ const { normalize, hash } = require('./openapi.cjs');
 const { request, execute } = require('./runner.cjs');
 const { findProject, GitStatuses, StatusSync } = require('./git.cjs');
 const { Workspace } = require('./workspace.cjs');
+const {configuration:teamConfiguration,RealtimeSync,sourceKey} = require('./realtime.cjs');
 const VERSION = '0.0.4';
 const STATIC = path.resolve(__dirname,'../static');
 const escape = text => String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -40,10 +41,15 @@ function relay(options = {}) {
     disabled.close=async()=>{}; return disabled;
   }
   const token=randomBytes(32).toString('base64url');
+  if (![undefined,'local','git','realtime'].includes(options.statusMode)) throw new Error('Relay status mode must be local, git or realtime.');
+  if (options.statusMode==='local' && options.syncStatus || ['local','git'].includes(options.statusMode) && options.realtime!==undefined) throw new Error('Choose one Relay status authority: local, git or realtime.');
+  const team=['local','git'].includes(options.statusMode)?null:teamConfiguration(options.realtime);
+  if (options.statusMode==='realtime' && !team) throw new Error('Set RELAY_TEAM_URL, RELAY_TEAM_PROJECT and RELAY_TEAM_TOKEN together.');
+  if (team && options.syncStatus) throw new Error('Choose realtime or Git status sync; do not enable both.');
   const project=options.project === false ? null : findProject(options.project || process.cwd());
   if (options.project && !project) throw new Error('Relay project must be an existing Git repository.');
-  const shared=project ? new GitStatuses(project) : null;
-  const sync=options.syncStatus && shared ? new StatusSync(shared) : null;
+  const shared=project && !team && options.statusMode!=='local' ? new GitStatuses(project) : null;
+  let sync=(options.syncStatus || options.statusMode==='git') && shared ? new StatusSync(shared) : null;
   const target=options.target ? targetOrigin(options.target) : null;
   const specPath=pathOnly(options.specPath || '/openapi.json');
   let snapshot=null, rawSpec=null, workspace=null, started=false, closed=false;
@@ -51,12 +57,14 @@ function relay(options = {}) {
     if (!workspace) {
       const file=options.dataDir === false ? null : path.join(options.dataDir || path.join(os.homedir(),'.relay'),'node-'+hash([project || process.cwd(),title]).slice(0,16)+'.json');
       workspace=new Workspace(file,shared);
+      if (team) {sync=new RealtimeSync(team,file?file+'.team-'+sourceKey(team)+'.json':null);sync.start();}
     }
     return workspace;
   }
   function state() {
     const value=workspace?.read() ?? {endpoints:{},activity:[]};
-    value.status_sync=sync ? sync.info() : {enabled:false,state:'local',error:options.syncStatus && !shared ? 'No Git repository detected.' : null};
+    if (team && sync) sync.overlay(value);
+    value.status_sync=sync ? {...sync.info(),mode:team?'realtime':'git'} : {enabled:false,mode:'local',state:'local',error:options.syncStatus && !shared ? 'No Git repository detected.' : null};
     return value;
   }
   async function handle(req,res,next, supplied) {
@@ -82,7 +90,7 @@ function relay(options = {}) {
       if (req.method==='GET' && route==='/__relay/workspace') return json(state());
       if (req.method==='POST' && route==='/__relay/statuses/retry') {
         await readBody(req,supplied ?? req.body);
-        if (sync) void sync.sync();
+        if (sync) {if(team) await sync.request_sync();else void sync.sync();}
         return json(state());
       }
       if (req.method==='POST' && route==='/__relay/sources/inspect') {
@@ -103,7 +111,12 @@ function relay(options = {}) {
       }
       if (req.method==='POST' && route==='/__relay/endpoints/update') {
         if (!workspace) throw new RelayError(409,'Sync the OpenAPI contract first.');
-        await workspace.update(await readBody(req,supplied ?? req.body)); return json(state());
+        const payload=await readBody(req,supplied ?? req.body);
+        if (team && payload.progress!==undefined) {
+          workspace.validate(payload);
+          await sync.update(payload.endpoint_id,payload.fingerprint,payload.progress,payload.expected_revision);
+        }
+        await workspace.update(payload); return json(state());
       }
       if (req.method==='POST' && route==='/__relay/execute') return json(await execute(base,await readBody(req,supplied ?? req.body)));
       if (!['GET','HEAD'].includes(req.method)) throw new RelayError(405,'Method not allowed.');
