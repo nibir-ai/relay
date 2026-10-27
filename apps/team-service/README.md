@@ -2,7 +2,7 @@
 
 Development foundation for **0.0.5**, not a published package or a connected Relay UI feature yet. This optional service stores manual endpoint statuses for independent developer environments. Local API testing continues through the existing Python and Node packages.
 
-The service currently provides authenticated snapshots and revision-checked writes. Live delivery, backend bridges, collaboration sign-in in the UI, migration and offline/conflict UX are still pending. It does not create a Git branch.
+The service provides authenticated snapshots, revision-checked writes and project-scoped Socket.IO delivery. Backend bridges, collaboration sign-in in the UI, migration and offline/conflict UX are still pending. It does not create a Git branch.
 
 ## Run one shared instance
 
@@ -44,7 +44,7 @@ Use `reader` for snapshot-only access. Project names use letters, numbers, under
 Set `RELAY_TEAM_CONFIG` to the absolute membership-file path and `RELAY_TEAM_DB` to a persistent SQLite file outside the repository, using your host's environment settings. Then run:
 
 ```sh
-python -m uvicorn relay_team.app:create_app --factory --host 127.0.0.1 --port 4490
+python -m uvicorn relay_team.app:create_app --factory --host 127.0.0.1 --port 4490 --timeout-graceful-shutdown 5
 ```
 
 `GET /health` reports protocol version 1 without exposing membership or configuration. Start a single service instance with a local persistent disk; do not share the SQLite file over a network filesystem. Back up the database and membership configuration together. Restart after membership edits or credential revocation. Removing a member denies subsequent access after restart without deleting their historical attribution.
@@ -76,9 +76,25 @@ Every project request requires `Authorization: Bearer <developer-token>`. Unknow
 
 A successful write returns `{"protocol":1,"status":{...}}`. The stored record includes the submitted endpoint ID, fingerprint and progress plus the authenticated `actor_id`, `actor_name`, server `updated_at` and monotonically increasing project `revision`. Clients cannot supply actor, timestamp or revision fields. Status, fingerprint and attribution are committed in one SQLite transaction before acknowledgement.
 
-Stale writes return HTTP 409 with `detail.code` set to `revision_conflict` and `detail.current` containing the accepted record. Do not silently retry with a new revision: show the conflict for deliberate resolution. Concurrent first writes produce one successful acknowledgement and one conflict. A full authenticated snapshot recovers missed state after reconnect or service restart; live events and revision-gap delivery are a later implementation step.
+Stale writes return HTTP 409 with `detail.code` set to `revision_conflict` and `detail.current` containing the accepted record. Do not silently retry with a new revision: show the conflict for deliberate resolution. Concurrent first writes produce one successful acknowledgement and one conflict. A full authenticated snapshot recovers missed state after reconnect or service restart; incremental revision-gap replay is a later implementation step.
 
-Send only status metadata. API bearer tokens, request bodies, local notes, drafts and captured responses have no fields in this protocol and must stay local. Responses use `Cache-Control: no-store`.
+Send only status metadata. API bearer tokens, request bodies, local notes, drafts and captured responses have no fields in this protocol and must stay local. HTTP snapshot and write responses use `Cache-Control: no-store`.
+
+## Socket.IO delivery
+
+Use Socket.IO client protocol 4.x (JavaScript) or python-socketio 5.x with the default `/socket.io` transport path and namespace `/`. Both WebSocket and HTTP polling are supported. Authenticate the namespace connection using `auth: {project, token}`; do not put tokens in query strings. The project is fixed for the lifetime of that authenticated connection. Invalid credentials are rejected before room subscription, and there is no client-controlled room-join operation. See the [Python server reference](https://python-socketio.readthedocs.io/en/stable/server.html) and [JavaScript client API](https://socket.io/docs/v4/client-api/).
+
+| Event | Direction | Contract |
+| --- | --- | --- |
+| `snapshot:get` | Client request with acknowledgement | No arguments. Returns `{ok:true, protocol:1, revision, statuses}`. |
+| `status:update` | Client request with acknowledgement | The same strict mutation fields as HTTP PUT. Returns `{ok:true, protocol:1, status}` after commit, or an explicit error acknowledgement. |
+| `status:updated` | Server notification to project members | `{protocol:1, status}` with the accepted server-attributed record. Includes the writer. |
+
+A stale mutation returns `{ok:false, status:409, code:"revision_conflict", current}`. Reader writes return `{ok:false, status:403, code:"write_forbidden"}`. Invalid mutation fields return `{ok:false, status:422, code:"invalid_status"}` without echoing submitted data. HTTP writes and socket writes use the same transaction and notification path; accepted writes are broadcast in revision order within the single service process.
+
+On every connection or reconnection, request a full snapshot. Buffer events while that request is pending, then apply only revisions newer than the snapshot; fetch another snapshot if a gap appears. A timeout is an unknown outcome, not proof that a write failed: inspect current state before deliberately resolving or resubmitting a change. Events are live notifications rather than a durable message queue. Database snapshots recover updates missed during disconnects and process restarts.
+
+Run one process/worker for this initial service; multiple worker processes need shared delivery coordination that is not implemented yet. The example uses a bounded graceful-shutdown timeout because outstanding polling requests can otherwise keep a shutting-down worker alive. Clients must reconnect and recover a snapshot after service restarts. The service transport is tested directly from Python and Node clients; the published Relay integrations do not connect to it yet.
 
 ## Verification
 
@@ -87,4 +103,4 @@ python -m pip install -e "./apps/team-service[test]"
 python -m pytest apps/team-service/tests -q
 ```
 
-The suite covers project isolation, reader/writer permissions, authenticated attribution, restart durability and revocation, stale revisions, concurrent developer edits, independent endpoint edits and rejection of unsupported fields. Full Python/Node integration and package-upgrade verification remain release gates for 0.0.5.
+The suite covers project isolation, reader/writer permissions, authenticated attribution, restart durability and revocation, stale revisions, concurrent developer edits, independent endpoint edits and rejection of unsupported fields. Real Python Socket.IO clients additionally cover authenticated subscription, live delivery, cross-project isolation, reader rejection, stale acknowledgements, HTTP-to-socket notifications and polling reconnect recovery. `scripts/verify_team_events.cjs` exercises an installed wheel with independent Node clients and a separate Python HTTP writer. Full Relay integration and package-upgrade verification remain release gates for 0.0.5.

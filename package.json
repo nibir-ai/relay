@@ -10,5 +10,8 @@
     "package:node": "node scripts/package_node.cjs",
     "test:node": "pnpm --dir packages/node test",
     "verify:node": "node scripts/verify_node_package.cjs"
+  },
+  "devDependencies": {
+    "socket.io-client": "4.8.4"
   }
 }

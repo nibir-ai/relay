@@ -33,6 +33,9 @@ jobs:
       - run: python -m venv .team-consumer
       - run: .team-consumer/bin/python -m pip install dist/team-service/*.whl
       - run: .team-consumer/bin/python scripts/verify_team_service.py
+      - run: node scripts/verify_team_events.cjs
+        env:
+          RELAY_TEAM_PYTHON: ${{ github.workspace }}/.team-consumer/bin/python
       - run: python scripts/verify_package.py
       - run: python scripts/verify_clean_install.py
       - run: python scripts/verify_clean_install.py --minimum-dependencies
