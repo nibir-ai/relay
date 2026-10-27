@@ -20,11 +20,10 @@ jobs:
         with:
           version: 11.25.0
       - run: pnpm install --frozen-lockfile
-      - run: python -m pip install build twine -e "./apps/agent[realtime,test]"
+      - run: python -m pip install build twine -e "./apps/agent[realtime,test]" -e "./apps/team-service[test]"
       - run: pnpm --dir apps/web test
       - run: python scripts/package.py
       - run: python -m pytest apps/agent/tests -q
-      - run: python -m pip install -e "./apps/team-service[test]"
       - run: python -m pytest apps/team-service/tests -q
       - run: node scripts/package_node.cjs
       - run: pnpm --dir packages/node test
