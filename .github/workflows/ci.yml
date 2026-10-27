@@ -33,9 +33,11 @@ jobs:
       - run: python -m venv .team-consumer
       - run: .team-consumer/bin/python -m pip install dist/team-service/*.whl
       - run: .team-consumer/bin/python scripts/verify_team_service.py
-      - run: .team-consumer/bin/python -m pip install "dist/relay_backend-0.0.4-py3-none-any.whl[realtime]"
+      - run: .team-consumer/bin/python -m pip install "dist/relay_backend-0.0.5-py3-none-any.whl[realtime]"
       - run: node scripts/package_node.cjs
       - run: .team-consumer/bin/python scripts/verify_realtime_integrations.py --require-installed
+      - run: python scripts/verify_upgrades.py
+        if: matrix.python == '3.12'
       - run: node scripts/verify_team_events.cjs
         env:
           RELAY_TEAM_PYTHON: ${{ github.workspace }}/.team-consumer/bin/python
@@ -43,4 +45,4 @@ jobs:
       - run: python scripts/verify_clean_install.py
       - run: python scripts/verify_clean_install.py --minimum-dependencies
         if: matrix.python == '3.11'
-      - run: python -m twine check dist/relay_backend-0.0.4*
+      - run: python -m twine check dist/relay_backend-0.0.5*

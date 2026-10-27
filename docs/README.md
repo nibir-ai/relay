@@ -29,7 +29,7 @@ The [relay-backend npm package](https://www.npmjs.com/package/relay-backend) is 
 
 ## Guides
 
-New in the 0.0.4 source: [guided setup and diagnostics](SETUP.md), local endpoint notes/activity and persistent contract-change explanations.
+New in 0.0.5: [realtime team setup, reviewed Git migration and upgrades](REALTIME.md). Existing setup tools include [guided setup and diagnostics](SETUP.md), local endpoint notes/activity and persistent contract-change explanations.
 
 1. [FastAPI integration](FASTAPI.md): installation, existing apps, factories, development flags, Socket.IO and optional settings.
 2. [Testing APIs](TESTING.md): inputs, shared and endpoint auth, responses, limits and shortcuts.

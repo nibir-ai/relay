@@ -74,3 +74,9 @@ The PyPI distribution is **relay-backend**; the Python import is **relay_backend
 [Documentation](https://github.com/nibir-ai/relay/blob/main/docs/README.md) · [Source](https://github.com/nibir-ai/relay) · [Issues](https://github.com/nibir-ai/relay/issues)
 
 Licensed under Apache-2.0. Bundled React, Lucide and JetBrains Mono assets retain their respective licenses; see THIRD_PARTY_NOTICES.md.
+
+## Realtime team statuses in 0.0.5
+
+Keep your native integration. Set `RELAY_TEAM_URL`, `RELAY_TEAM_PROJECT` and your private `RELAY_TEAM_TOKEN` on the backend, then restart. Python uses `pip install --upgrade "relay-backend[realtime]"`; Node includes its realtime client. A team administrator runs the optional shared service once using the same Python package. Existing Git statuses can be reviewed and imported from `/relay/` without modifying Git files. Local API testing remains usable during service outages.
+
+[Team setup, upgrades and migration](https://github.com/nibir-ai/relay/blob/main/docs/REALTIME.md)

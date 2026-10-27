@@ -12,6 +12,8 @@ wheel = ROOT / f"dist/{metadata['name'].replace('-', '_')}-{metadata['version']}
 with zipfile.ZipFile(wheel) as archive:
     names = archive.namelist()
     assert "relay_backend/static/index.html" in names
+    for service_file in (ROOT / "apps/team-service/relay_team").glob("*.py"):
+        assert archive.read("relay_team/" + service_file.name).decode().replace("\r\n", "\n") == service_file.read_text()
     assert "relay_backend/static/brand/relay-symbol.svg" in names
     assert "relay_backend/static/brand/relay-wordmark.svg" in names
     assert len([name for name in names if name.endswith(".js") and "/static/" in name]) == 1

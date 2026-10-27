@@ -32,7 +32,10 @@ async function request<T>(
     );
   return result as T;
 }
+export type MigrationPlan = {plan_id:string; entries:{endpoint_id:string;fingerprint:string;progress:Progress;previous_author:string;eligible:boolean;reason:string|null}[]};
 export const api = {
+  migrationPreview: () => request<MigrationPlan>("statuses/migration"),
+  migrationApply: (token:string, plan_id:string, selected:string[]) => request<{imported:string[];stopped:boolean;message:string}>("statuses/migration",token,{plan_id,selected}),
   health: () => request<Health>("health"),
   inspect: (token: string) => request<Snapshot>("sources/inspect", token),
   current: () => request<{ snapshot: Snapshot | null }>("sources/current"),

@@ -10,6 +10,10 @@ from .security import Settings
 
 
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "team":
+        from .team_cli import main as team_main
+        team_main(sys.argv[2:])
+        return
     if len(sys.argv) > 1 and sys.argv[1] in {"init", "doctor"}:
         import json
         from .setup import doctor, initialize
@@ -55,7 +59,7 @@ def main():
             file_parser.error(str(error))
         return
     parser = argparse.ArgumentParser(description="Relay local API explorer. Targets are approved explicitly at startup.",
-                                     epilog="Commands: init [--project <directory>] [--apply], doctor [--target <origin>] [--json], open <report.relay>, associate.")
+                                     epilog="Commands: team {init,add-member,serve}, init [--project <directory>] [--apply], doctor [--target <origin>] [--json], open <report.relay>, associate.")
     from . import __version__
     parser.add_argument("--version", action="version", version=__version__)
     parser.add_argument("--target", default="http://127.0.0.1:8000")

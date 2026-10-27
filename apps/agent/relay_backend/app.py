@@ -39,6 +39,11 @@ class EndpointUpdate(BaseModel):
     expected_revision: int | None = Field(default=None, ge=0, strict=True)
 
 
+class MigrationApply(BaseModel):
+    plan_id: str = Field(pattern=r"^[a-f0-9]{64}$")
+    selected: list[str] = Field(min_length=1, max_length=10000)
+
+
 def create_app(settings: Settings | None = None, transport=None, static_dir: Path | None = None, db_path: str | Path = ":memory:", project: Path | None = None, native_host: FastAPI | None = None, sync_status: bool = False, status_mode: str | None = None, realtime: dict | None = None):
     settings = settings or Settings()
     token = secrets.token_urlsafe(32)
@@ -129,7 +134,7 @@ def create_app(settings: Settings | None = None, transport=None, static_dir: Pat
 
     @app.get("/__relay/health")
     def health(request: Request):
-        return {"status": "ok", "mode": "local", "version": "0.0.4", "csrf_token": token,
+        return {"status": "ok", "mode": "local", "version": "0.0.5", "csrf_token": token,
                 "base_url": target_base(request), "spec_url": target_base(request) + (native_host.openapi_url or "") if native_host else settings.target(settings.spec_path)}
 
     @app.post("/__relay/sources/inspect")
@@ -183,6 +188,17 @@ def create_app(settings: Settings | None = None, transport=None, static_dir: Pat
             else:
                 worker.request_sync()
         return read_workspace()
+
+    @app.get("/__relay/statuses/migration")
+    async def preview_migration():
+        from .migration import preview
+        return await preview(app.state.workspace, app.state.status_sync if team else None, project)
+
+    @app.post("/__relay/statuses/migration")
+    async def apply_migration(payload: MigrationApply):
+        from .migration import apply
+        return await apply(app.state.workspace, app.state.status_sync if team else None,
+                           project, payload.plan_id, payload.selected)
 
     @app.get("/__relay/sources/current")
     def current():
@@ -254,7 +270,7 @@ def create_app(settings: Settings | None = None, transport=None, static_dir: Pat
             if native_host:
                 html = html.replace("<title>Relay</title>", f"<title>Relay - {escape(native_host.title)}</title>")
             # Version every non-hashed favicon URL so upgrades refresh it on every device.
-            html = html.replace("relay-mark.svg?v=2", "relay-mark.svg?v=0.0.4")
+            html = html.replace("relay-mark.svg?v=2", "relay-mark.svg?v=0.0.5")
             html = html.replace("<head>", f'<head><base href="{escape(base + "/", quote=True)}">', 1)
             return HTMLResponse(html)
         if not native_host:

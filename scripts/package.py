@@ -15,6 +15,14 @@ if destination.exists():
         raise RuntimeError("Refusing to replace an unexpected static directory")
     shutil.rmtree(destination)
 shutil.copytree(ROOT / "apps/web/dist", destination, dirs_exist_ok=True)
+# Bundle the optional service from its canonical source into the same distribution.
+team_destination = ROOT / "apps/agent/relay_team"
+if team_destination.exists():
+    if team_destination.resolve() != team_destination.absolute() or not team_destination.resolve().is_relative_to(ROOT):
+        raise RuntimeError("Refusing to replace an unexpected service directory")
+    shutil.rmtree(team_destination)
+shutil.copytree(ROOT / "apps/team-service/relay_team", team_destination,
+                ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
 build_directory = ROOT / "apps/agent/build"
 if build_directory.exists():
     if build_directory.resolve() != (ROOT / "apps/agent/build").absolute() or not build_directory.resolve().is_relative_to(ROOT):

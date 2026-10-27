@@ -1,6 +1,6 @@
 # Releasing Relay
 
-**0.0.4** is published on [PyPI](https://pypi.org/project/relay-backend/0.0.4/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.4). Trusted Python publication and a fresh unpinned public installation passed. The verified Node 0.0.4 tarball is attached to GitHub; its npm upload is awaiting account authentication after the publishing job returned `ENEEDAUTH`. See [VERIFICATION.md](VERIFICATION.md) for actual results.
+**0.0.5** is published on [PyPI](https://pypi.org/project/relay-backend/0.0.5/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.5). Trusted Python publication and a fresh unpinned public installation passed. The verified Node 0.0.5 tarball is attached to GitHub; its npm upload is awaiting account authentication after the publishing job returned `ENEEDAUTH`. See [VERIFICATION.md](VERIFICATION.md) for actual results.
 
 v0.0.3 is published on [PyPI](https://pypi.org/project/relay-backend/0.0.3/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.3). Trusted Publishing succeeded and a fresh unpinned PyPI installation passed the consumer checks. Follow every gate below for subsequent releases. See [the changelog](../CHANGELOG.md) for release contents.
 
@@ -8,9 +8,11 @@ Apache-2.0 distribution: `relay-backend`, import `relay_backend`, with legacy ro
 
 ## Artifacts and checks
 
-Build `dist/relay_backend-0.0.4-py3-none-any.whl` and `dist/relay_backend-0.0.4.tar.gz` using [contributor commands](CONTRIBUTING.md). Verify UI/Python tests, wheel assets/execution, clean customer installation and twine metadata validation. The clean-install gate copies the runnable example into a fresh environment outside the checkout and exercises authenticated handlers, query arrays, nested/optional bodies, validation and empty responses.
+For 0.0.5, also run `python scripts/verify_upgrades.py` and the installed-wheel `scripts/verify_realtime_integrations.py --require-installed` gate. The backend wheel bundles `relay_team` from its canonical service source; the same `[realtime]` installation must run both the bridge and shared service without a second package. Check browser migration selection/conflicts, all themes, mobile widths and both exports before publishing.
 
-CI covers Python 3.11/3.12/3.13; inspect actual results before declaring these combinations validated. The release workflow reruns checks before its isolated upload job. It is triggered by publishing the GitHub release/tag `v0.0.4`.
+Build `dist/relay_backend-0.0.5-py3-none-any.whl` and `dist/relay_backend-0.0.5.tar.gz` using [contributor commands](CONTRIBUTING.md). Verify UI/Python tests, wheel assets/execution, clean customer installation and twine metadata validation. The clean-install gate copies the runnable example into a fresh environment outside the checkout and exercises authenticated handlers, query arrays, nested/optional bodies, validation and empty responses.
+
+CI covers Python 3.11/3.12/3.13; inspect actual results before declaring these combinations validated. The release workflow reruns checks before its isolated upload job. It is triggered by publishing the GitHub release/tag `v0.0.5`.
 
 ## Trusted Publisher
 
@@ -43,7 +45,7 @@ A pending publisher creates the project on first successful upload; it does not 
 1. Review the release diff and artifact checks.
 2. Confirm the existing Trusted Publisher still matches the workflow and repository.
 3. Commit/push release source; build outputs stay ignored because CI rebuilds them.
-4. Publish GitHub release `v0.0.4` with CHANGELOG.md notes.
+4. Publish GitHub release `v0.0.5` with CHANGELOG.md notes.
 5. Confirm workflow success and the actual PyPI project/version.
 6. Run `python scripts/verify_clean_install.py --public-index` to verify the actual published version in a fresh environment; only then record publication success.
 
@@ -68,10 +70,10 @@ node scripts/verify_node_package.cjs
 
 `node.yml` runs these checks on Node 22.13, 24 and 26. The tarball includes only the native implementation, type declarations, built UI, package README and licenses. Consumers never build it.
 
-The initial npm publication requires an authenticated maintainer account with two-factor authentication enabled. Run `npm login` yourself. In npm account settings, enable 2FA using a security key/Windows Hello and save recovery codes privately; follow the [official 2FA guide](https://docs.npmjs.com/configuring-two-factor-authentication/). Then publish the verified tarball using `npm publish ./dist/relay-backend-0.0.4.tgz --access public`. The `./` is required so npm treats it as a local file. Complete browser approval yourself; never share tokens or recovery codes in issues or chat. First confirm all public CI checks pass. After upload run `node scripts/verify_node_package.cjs --public-index` to test an unpinned fresh registry install.
+The initial npm publication requires an authenticated maintainer account with two-factor authentication enabled. Run `npm login` yourself. In npm account settings, enable 2FA using a security key/Windows Hello and save recovery codes privately; follow the [official 2FA guide](https://docs.npmjs.com/configuring-two-factor-authentication/). Then publish the verified tarball using `npm publish ./dist/relay-backend-0.0.5.tgz --access public`. The `./` is required so npm treats it as a local file. Complete browser approval yourself; never share tokens or recovery codes in issues or chat. First confirm all public CI checks pass. After upload run `node scripts/verify_node_package.cjs --public-index` to test an unpinned fresh registry install.
 
 After the package exists, configure its npm Trusted Publisher using owner `nibir-ai`, repository `relay`, workflow `publish-node.yml` and environment `npm`, allowing direct publishing. Future `npm-v*` tags run the verification job before OIDC publication. The GitHub-hosted publishing job uses npm 11 and Node 24. See [npm's trusted publishing guide](https://docs.npmjs.com/trusted-publishers/).
 
 ## Python compatibility fix included in 0.0.4
 
-The source restores `python -m relay_agent.files` for Windows associations registered before the import rename and updates new associations to `relay_backend.files`. The 0.0.4 artifacts include this fix; the published PyPI 0.0.3 artifacts remain unchanged.
+The source restores `python -m relay_agent.files` for Windows associations registered before the import rename and updates new associations to `relay_backend.files`. The 0.0.4 and later artifacts include this fix; the published PyPI 0.0.3 artifacts remain unchanged.

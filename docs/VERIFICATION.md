@@ -2,6 +2,16 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## 0.0.5 migration and upgrade candidate — 27 October 2026
+
+Local validation passed 132 Python tests, 56 frontend tests, the strict production build and TypeScript consumer checks. Native Node coverage includes reviewed create-only import and retained Git metadata. Independent wheel/tarball consumers passed native discovery, execution, assets and status persistence; Python clean consumers passed with both current and minimum supported dependencies. Twine validated wheel/source metadata. The backend wheel bundles the optional service from its canonical source, verified byte-for-byte; consumers install only `relay-backend[realtime]` to run the service and bridge.
+
+The upgrade gate installed the actual public Python 0.0.4 and npm 0.0.3 packages in fresh environments, saved notes/statuses, upgraded those same installations to the candidate and verified retained metadata, unchanged native mount calls, legacy Python root-import compatibility, discovery, separate user/admin auth, execution and branding. The installed cross-runtime check verified preview-first Git import, stale-preview rejection, authenticated attribution, bidirectional delivery, conflict handling, private notes, offline API execution, cached backend restarts and service recovery. Existing Git files were preserved.
+
+Browser checks against installed candidate artifacts verified explicit migration selection and acknowledgement, exclusion of existing team statuses, peer delivery, endpoint auth, captured responses and both JSON/`.relay` downloads. Everblush, One Dark, Gruvbox, Nord and Paper were inspected. The import dialog and tester had no document-level horizontal overflow at 390 and 320 CSS pixels; no browser console errors were recorded. This is a single-browser smoke/visual check, not a cross-browser benchmark.
+
+The npm publisher for `nibir-ai/relay`, `publish-node.yml`, environment `npm` is configured. Publication and fresh public-registry checks remain pending until compatibility CI completes. No 0.0.5 publication is claimed by these candidate checks.
+
 ## 0.0.5 native realtime integrations — 27 October 2026
 
 Local checks passed: 129 Python tests, 54 frontend tests, 18 Node tests, the strict production build and TypeScript consumer checks. The Python and Node source integrations now connect to the optional service through backend environment configuration, with explicit local/Git/realtime authority selection. A cross-runtime consumer installed the built Python wheel with its realtime extra and the Node tarball outside the checkout, then verified bidirectional status delivery, matching contract fingerprints, server-attributed updater names, stale revision rejection, private local notes, offline API execution and local note saving, cached backend restart and service reconnect recovery. Metadata caches and exports were checked for developer credential leakage; realtime mode created no Git status file.

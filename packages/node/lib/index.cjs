@@ -8,7 +8,7 @@ const { request, execute } = require('./runner.cjs');
 const { findProject, GitStatuses, StatusSync } = require('./git.cjs');
 const { Workspace } = require('./workspace.cjs');
 const {configuration:teamConfiguration,RealtimeSync,sourceKey} = require('./realtime.cjs');
-const VERSION = '0.0.4';
+const VERSION = '0.0.5';
 const STATIC = path.resolve(__dirname,'../static');
 const escape = text => String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -92,6 +92,12 @@ function relay(options = {}) {
         await readBody(req,supplied ?? req.body);
         if (sync) {if(team) await sync.request_sync();else void sync.sync();}
         return json(state());
+      }
+      if (route==='/__relay/statuses/migration' && ['GET','POST'].includes(req.method)) {
+        const migration=require('./migration.cjs');
+        if (req.method==='GET') return json(await migration.preview(workspace,team?sync:null,project));
+        const payload=await readBody(req,supplied ?? req.body);
+        return json(await migration.apply(workspace,team?sync:null,project,payload.plan_id,payload.selected));
       }
       if (req.method==='POST' && route==='/__relay/sources/inspect') {
         await readBody(req,supplied ?? req.body);
