@@ -1,8 +1,6 @@
 # Releasing Relay
 
-**0.0.5** is published on [PyPI](https://pypi.org/project/relay-backend/0.0.5/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.5). Trusted Python publication and a fresh unpinned public installation passed. The verified Node 0.0.5 tarball is attached to GitHub; its npm upload is awaiting account authentication after the publishing job returned `ENEEDAUTH`. See [VERIFICATION.md](VERIFICATION.md) for actual results.
-
-v0.0.3 is published on [PyPI](https://pypi.org/project/relay-backend/0.0.3/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.3). Trusted Publishing succeeded and a fresh unpinned PyPI installation passed the consumer checks. Follow every gate below for subsequent releases. See [the changelog](../CHANGELOG.md) for release contents.
+Current release: **0.0.5**, published through the existing PyPI and npm Trusted Publishers. Fresh public registry installations and the shared native realtime workflow are recorded in [verification notes](VERIFICATION.md). The [GitHub release](https://github.com/nibir-ai/relay/releases/tag/v0.0.5) includes the CI-built wheel, source archive, npm tarball and checksums. Follow every gate below for subsequent releases.
 
 Apache-2.0 distribution: `relay-backend`, import `relay_backend`, with legacy root-import compatibility. Includes native FastAPI testing, auth, statuses, optional automatic Git status sync, source attribution, response inspection, themes, branding, exports and local CLI. The Python package needs no Node runtime; a separate native npm package supports Node backends. Multipart, OAuth browser flows, public hosting, YAML/external refs and macOS/Linux desktop associations remain out of scope.
 
@@ -53,7 +51,7 @@ Published artifact versions are immutable. Inspect actual files before retrying 
 
 ## npm releases
 
-Published: [relay-backend 0.0.3 on npm](https://www.npmjs.com/package/relay-backend/v/0.0.3). A fresh unpinned registry installation passed the consumer checks.
+Published: [relay-backend 0.0.5 on npm](https://www.npmjs.com/package/relay-backend/v/0.0.5). A fresh unpinned registry installation passed the consumer checks. The configured Trusted Publisher uses `nibir-ai/relay`, `publish-node.yml`, environment `npm`, with direct publication enabled.
 
 The npm 0.0.3 package was bootstrapped with a verified local upload and browser 2FA approval. Future automated Node releases use `npm-v<version>` tags. Do not reuse the published Python `v0.0.3` tag or replace its artifacts.
 

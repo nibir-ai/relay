@@ -62,3 +62,9 @@ Git detection searches upward from process cwd. Local writes are atomic and lock
 ## Planned alternative
 
 The next-release proposal is an authenticated shared status service with realtime updates, without a Git status branch. See the [team sync design](REALTIME.md). It is not part of 0.0.3; Git synchronization in this release remains opt-in.
+
+## Optional realtime statuses (0.0.5)
+
+Existing native integrations remain valid after upgrading. Configure `RELAY_TEAM_URL`, `RELAY_TEAM_PROJECT` and your private `RELAY_TEAM_TOKEN` to use the optional shared service; Python installs `relay-backend[realtime]`. Disable the old Git sync option before selecting realtime. The `/relay/` import preview can move matching Git statuses without overwriting existing team records or changing Git files. API testing remains local and works during collaboration outages.
+
+See [team setup, reviewed migration, upgrades and rollback](REALTIME.md).

@@ -69,3 +69,9 @@ If Node says it cannot find `relay-backend`, run `npm install relay-backend` in 
 ## Verification
 
 The test suite exercises actual Express and Fastify servers, schema discovery, existing authentication hooks, request body/query handling, response limits, redirects, CSRF, persistent statuses and independent Git peers. Release checks also install the packed tarball outside the repository and test both JavaScript module formats and TypeScript consumers.
+
+## Optional realtime statuses (0.0.5)
+
+Existing native integrations remain valid after upgrading. Configure `RELAY_TEAM_URL`, `RELAY_TEAM_PROJECT` and your private `RELAY_TEAM_TOKEN` to use the optional shared service; Python installs `relay-backend[realtime]`. Disable the old Git sync option before selecting realtime. The `/relay/` import preview can move matching Git statuses without overwriting existing team records or changing Git files. API testing remains local and works during collaboration outages.
+
+See [team setup, reviewed migration, upgrades and rollback](REALTIME.md).

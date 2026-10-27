@@ -120,3 +120,9 @@ python -m pip install /path/to/relay_backend-0.0.3-py3-none-any.whl
 ```
 
 `relay-agent` on PyPI is an unrelated project; the distribution to use is `relay-backend`.
+
+## Optional realtime statuses (0.0.5)
+
+Existing native integrations remain valid after upgrading. Configure `RELAY_TEAM_URL`, `RELAY_TEAM_PROJECT` and your private `RELAY_TEAM_TOKEN` to use the optional shared service; Python installs `relay-backend[realtime]`. Disable the old Git sync option before selecting realtime. The `/relay/` import preview can move matching Git statuses without overwriting existing team records or changing Git files. API testing remains local and works during collaboration outages.
+
+See [team setup, reviewed migration, upgrades and rollback](REALTIME.md).

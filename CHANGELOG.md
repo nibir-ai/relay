@@ -2,6 +2,8 @@
 
 ## 0.0.5 — 27 October 2026
 
+Published on [PyPI](https://pypi.org/project/relay-backend/0.0.5/), [npm](https://www.npmjs.com/package/relay-backend/v/0.0.5) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.5). Fresh unpinned registry installations and the public cross-runtime realtime workflow passed verification.
+
 - Optional authenticated realtime team statuses for native Python and Node integrations, configured through three backend environment variables.
 - One shared service bundled with `relay-backend[realtime]`; `relay team init`, `add-member` and `serve` support setup without cloning or building.
 - Verified updater identities, reader/writer membership, explicit acknowledgements, stale-write rejection, durable status caches and snapshot recovery after reconnect.
@@ -23,7 +25,7 @@
 - Bounded local activity history, additive workspace migration and protection against Node status-save/schema-refresh races.
 - Windows report compatibility: restore the legacy module entry point and use the canonical module for new associations.
 
-Realtime collaboration, multipart uploads and optional request history/assertion/export-review features remain deferred. Published on [PyPI](https://pypi.org/project/relay-backend/0.0.4/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.4). The verified Node 0.0.4 tarball is attached to the GitHub release; npm publication is awaiting account authentication.
+Realtime collaboration, multipart uploads and optional request history/assertion/export-review features remain deferred. Published on [PyPI](https://pypi.org/project/relay-backend/0.0.4/) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.4). The verified Node 0.0.4 tarball is attached to the GitHub release; npm 0.0.4 was not published; 0.0.5 supersedes that pending upload.
 
 ## Node 0.0.3 - 9 October 2026
 

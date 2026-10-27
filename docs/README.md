@@ -2,7 +2,7 @@
 
 [API testing workflow](API-TESTING.md) covers discovery, authorization, requests, responses and exports.
 
-Relay ships as **relay-backend**, importing **relay_backend**. Python v0.0.4 is published on PyPI and its distributions are attached to the GitHub release. The Node v0.0.4 tarball is attached there too; npm remains at 0.0.3 while account authentication for the upload is pending. The complete UI is bundled; consumers do not clone or build this repository.
+Relay ships as **relay-backend**, importing **relay_backend** in Python. Version **0.0.5 is published on PyPI and npm**, with verified distributions and checksums attached to the [GitHub release](https://github.com/nibir-ai/relay/releases/tag/v0.0.5). The complete UI is bundled; consumers do not clone or build this repository. Optional realtime team collaboration and its shared service use `relay-backend[realtime]`; see [team setup and migration](REALTIME.md).
 
 ![Three steps: install the package, add the import and mount call, then open /relay on your backend.](assets/fastapi-quickstart.png)
 

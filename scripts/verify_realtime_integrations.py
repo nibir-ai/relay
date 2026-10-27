@@ -43,7 +43,7 @@ def wait(check, timeout=20):
     raise AssertionError("Realtime integration did not reach its expected state.")
 
 
-def main(require_installed=False):
+def main(require_installed=False, public_index=False):
     if require_installed:
         import relay_backend
         import relay_team
@@ -86,7 +86,7 @@ def main(require_installed=False):
         team_port, python_port, node_port = sorted(ports)
         team_base, python_base, node_base = [f"http://127.0.0.1:{value}" for value in (team_port, python_port, node_port)]
         team_environment = {**environment, "RELAY_TEAM_CONFIG": str(configuration), "RELAY_TEAM_DB": str(folder / "team.sqlite3")}
-        team_command = [sys.executable, "-m", "uvicorn", "relay_team.app:create_app", "--factory", "--host", "127.0.0.1", "--port", str(team_port), "--timeout-graceful-shutdown", "2"]
+        team_command = [sys.executable, "-m", "relay_backend", "team", "serve", "--config", str(configuration), "--database", str(folder / "team.sqlite3"), "--port", str(team_port)]
         python_environment = {**environment, "RELAY_TEAM_URL": team_base, "RELAY_TEAM_PROJECT": "example", "RELAY_TEAM_TOKEN": "python-developer-secret"}
         node_environment = {**python_environment, "RELAY_TEAM_TOKEN": "node-developer-secret", "RELAY_TEST_PORT": str(node_port)}
         (folder / "backend.py").write_text('''from pathlib import Path
@@ -116,8 +116,11 @@ process.on('SIGTERM',async()=>{await middleware.close();server.close();});
         (folder / "package.json").write_text('{"name":"relay-team-consumer","private":true}')
         npm_cli = Path(subprocess.check_output([node, "-p", "require('node:path').join(require('node:path').dirname(process.execPath),'node_modules/npm/bin/npm-cli.js')"], text=True).strip())
         npm = [node, str(npm_cli)] if npm_cli.exists() else [shutil.which("npm")]
+        package = "relay-backend" if public_index else str(ROOT / "dist" / f"relay-backend-{version}.tgz")
         subprocess.run([*npm, "install", "--ignore-scripts", "--no-audit", "--no-fund",
-                        str(ROOT / "dist" / f"relay-backend-{version}.tgz")], cwd=folder, check=True)
+                        "--registry=https://registry.npmjs.org", "--prefer-online", "--cache", str(folder / "npm-cache"),
+                        package], cwd=folder, check=True)
+        assert json.loads((folder / "node_modules/relay-backend/package.json").read_text())["version"] == version
         try:
             team = start(team_command, team_environment)
             wait(lambda: request(team_base, "GET", "/health")[0] == 200)
@@ -209,4 +212,6 @@ process.on('SIGTERM',async()=>{await middleware.close();server.close();});
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--require-installed", action="store_true")
-    main(parser.parse_args().require_installed)
+    parser.add_argument("--public-index", action="store_true")
+    args = parser.parse_args()
+    main(args.require_installed, args.public_index)
