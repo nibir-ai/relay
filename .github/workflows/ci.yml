@@ -26,6 +26,13 @@ jobs:
       - run: pnpm --dir apps/web test
       - run: python scripts/package.py
       - run: python -m pytest apps/agent/tests -q
+      - run: python -m pip install -e "./apps/team-service[test]"
+      - run: python -m pytest apps/team-service/tests -q
+      - run: python -m build apps/team-service --outdir dist/team-service
+      - run: python -m twine check dist/team-service/*
+      - run: python -m venv .team-consumer
+      - run: .team-consumer/bin/python -m pip install dist/team-service/*.whl
+      - run: .team-consumer/bin/python scripts/verify_team_service.py
       - run: python scripts/verify_package.py
       - run: python scripts/verify_clean_install.py
       - run: python scripts/verify_clean_install.py --minimum-dependencies

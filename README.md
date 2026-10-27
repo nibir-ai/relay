@@ -138,9 +138,11 @@ Python 0.0.4 is published on PyPI, with wheel, source and Node 0.0.4 tarball ass
 
 Target: launch in **November 2026**, following the 0.0.4 release. Two developers using separate local backends should see each other's manual endpoint statuses and verified updater identity without a Git status branch.
 
-- [ ] Provide an optional shared status service with a documented self-hosted setup.
-- [ ] Authenticate developers and enforce project membership/read-write permissions.
-- [ ] Persist status, contract fingerprint, updater and timestamp across service restarts.
+- [x] Provide an optional shared status service with a documented self-hosted setup.
+- [x] Authenticate developers and enforce project membership/read-write permissions.
+- [x] Persist status, contract fingerprint, updater and timestamp across service restarts.
+The [service foundation](apps/team-service/README.md) provides authenticated HTTP snapshots and durable revision-checked writes. It is development work for 0.0.5; the published packages do not connect to it yet.
+
 - [ ] Deliver live updates to both Python and Node integrations with explicit acknowledgements.
 - [ ] Reject stale revisions, resolve concurrent edits clearly and recover missed updates after reconnect.
 - [ ] Show connection/offline/conflict states and keep local API testing usable during service outages.
