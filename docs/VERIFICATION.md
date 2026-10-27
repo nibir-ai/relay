@@ -2,6 +2,12 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## 0.0.5 service foundation — 27 October 2026
+
+The standalone team-service development package passed 16 focused tests covering authentication, project isolation, read/write roles, server-assigned attribution, restart durability and revocation, concurrent and stale updates, independent endpoint edits, strict mutation fields and environment-based startup. A wheel and source archive built successfully and passed Twine metadata checks. A fresh isolated environment installed the wheel with current dependencies (FastAPI 0.162.0, Uvicorn 0.54.0 and Pydantic 2.14.1); the installed service started outside the checkout and passed real HTTP authentication, writes, conflict acknowledgement and restart persistence checks. The public Python matrix runs the same service suite and installed-wheel smoke check.
+
+This verifies the service foundation only. Socket delivery, Python/Node bridges, collaboration UI, reconnect/conflict UX, migration and complete 0.0.5 release gates remain pending. No 0.0.5 package or release has been published. The existing npm 0.0.4 authentication blocker is unchanged.
+
 ## Published Python 0.0.4 — 12 October 2026
 
 Python 0.0.4 is published on PyPI and GitHub. Node 0.0.4 passed the publishing workflow verification job, and its CI-built tarball is attached to GitHub; the npm upload returned `ENEEDAUTH` and is awaiting account authentication. Local validation passed on Windows with Python 3.12 and Node 26.3: 103 Python tests, 16 Node tests, 51 frontend tests (including endpoint export status), strict frontend production build, Node consumer type checks, Twine metadata checks, and clean isolated Python wheel and Node tarball consumers. Python wheel consumers passed with current dependencies (FastAPI 0.143.0, Uvicorn 0.54.0, HTTPX 0.28.1) and minimum supported dependencies (FastAPI 0.115.0, Uvicorn 0.30.0, HTTPX 0.28.0). The clean consumers verified setup preview/apply and diagnostics as well as their existing integration checks.

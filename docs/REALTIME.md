@@ -1,6 +1,6 @@
-# Shared team statuses: v0.0.5 proposal
+# Shared team statuses: v0.0.5 development
 
-This is a design proposal. It is not shipped in Relay 0.0.3.
+The optional [shared service foundation](../apps/team-service/README.md) now implements authenticated HTTP snapshots, writer/reader membership, durable SQLite records and revision-checked updates. It is not part of the published 0.0.4 packages; live delivery and local integration bridges remain under development.
 
 Target launch: **November 2026**, after v0.0.4. The [README roadmap](../README.md#release-roadmap) defines weekly milestones and launch gates. The [v0.0.4 plan](RELEASE-0.0.4.md) keeps setup and local handoff improvements independent of this service.
 
