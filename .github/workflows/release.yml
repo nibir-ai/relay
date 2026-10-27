@@ -1,4 +1,4 @@
-name: Publish v0.0.4
+name: Publish v0.0.5
 on:
   release:
     types: [published]
@@ -6,7 +6,7 @@ permissions:
   contents: read
 jobs:
   build:
-    if: github.event.release.tag_name == 'v0.0.4'
+    if: github.event.release.tag_name == 'v0.0.5'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,17 +20,27 @@ jobs:
         with:
           version: 11.25.0
       - run: pnpm install --frozen-lockfile
-      - run: python -m pip install build twine -e "./apps/agent[test]"
+      - run: python -m pip install build twine -e "./apps/agent[realtime,test]" -e "./apps/team-service[test]"
       - run: pnpm --dir apps/web test
       - run: python scripts/package.py
       - run: python -m pytest apps/agent/tests -q
+      - run: python -m pytest apps/team-service/tests -q
+      - run: node scripts/package_node.cjs
+      - run: pnpm --dir packages/node test
+      - run: pnpm --dir packages/node check:types
+      - run: node scripts/verify_node_package.cjs
+      - run: python scripts/verify_upgrades.py
+      - run: python -m venv .realtime-consumer
+      - run: .realtime-consumer/bin/python -m pip install "dist/relay_backend-0.0.5-py3-none-any.whl[realtime]"
+      - run: .realtime-consumer/bin/python scripts/verify_realtime_integrations.py --require-installed
       - run: python scripts/verify_package.py
       - run: python scripts/verify_clean_install.py
-      - run: python -m twine check dist/relay_backend-0.0.4*
+      - run: python scripts/verify_clean_install.py --minimum-dependencies
+      - run: python -m twine check dist/relay_backend-0.0.5*
       - uses: actions/upload-artifact@v4
         with:
           name: python-distributions
-          path: dist/relay_backend-0.0.4*
+          path: dist/relay_backend-0.0.5*
   publish:
     needs: build
     runs-on: ubuntu-latest

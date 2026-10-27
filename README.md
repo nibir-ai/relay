@@ -1,9 +1,10 @@
 <picture>
 
-[API testing workflow](docs/API-TESTING.md) covers discovery, authorization, requests, responses and exports.
   <source media="(prefers-color-scheme: dark)" srcset="apps/web/public/brand/relay-logo.svg" />
   <img src="apps/web/public/brand/relay-logo-light.svg" width="240" height="59" alt="Relay" />
 </picture>
+
+[API testing workflow](docs/API-TESTING.md) covers discovery, authorization, requests, responses and exports.
 
 Test your API where it runs. Relay adds a testing workspace at **`/relay`** on your backend: generated endpoints, explicit authorization, readable responses and one status control beside each API.
 
@@ -69,7 +70,7 @@ Use your development setting to control installation:
 install_relay(app, enabled=settings.DEBUG)
 ```
 
-Install before wrapping FastAPI with Socket.IO. Application factories, custom OpenAPI generators, lifespan and proxy prefixes are covered in the [FastAPI integration guide](docs/FASTAPI.md). Alternatively, install the wheel attached to the [v0.0.4 release](https://github.com/nibir-ai/relay/releases/tag/v0.0.4).
+Install before wrapping FastAPI with Socket.IO. Application factories, custom OpenAPI generators, lifespan and proxy prefixes are covered in the [FastAPI integration guide](docs/FASTAPI.md). Alternatively, install the wheel attached to the [v0.0.5 release](https://github.com/nibir-ai/relay/releases/tag/v0.0.5).
 
 The distribution name is **relay-backend**. The import is **relay_backend** and the CLI is **relay**. Existing `from relay_agent import install_relay` integrations remain compatible. The `relay-agent` project on PyPI is unrelated.
 
@@ -101,6 +102,12 @@ Restart the backend and open `/relay` on its existing port. CommonJS, ES modules
 
 [Full Node setup](docs/NODE.md) covers schema generators, development flags, lifecycle and Node HTTP. For a separate tester, use `npx relay-backend --target http://127.0.0.1:3000`.
 
+## Realtime team statuses
+
+Keep the existing integration. Python users add `python -m pip install --upgrade "relay-backend[realtime]"`; Node users run `npm install relay-backend@latest`. Set `RELAY_TEAM_URL`, `RELAY_TEAM_PROJECT` and your private `RELAY_TEAM_TOKEN`, then restart the backend. Statuses and verified updater names appear in the same `/relay/` page. API testing stays local and works during a service outage.
+
+One administrator runs the optional shared service using the same Python package. Existing Git statuses have a reviewed, create-only import in `/relay/`. See the [illustrated team setup and upgrade guide](docs/REALTIME.md).
+
 ## What Relay includes
 
 - Inline APIs grouped by OpenAPI tags, method colors, search and editable request inputs. Endpoint definitions remain code-generated.
@@ -111,7 +118,7 @@ Restart the backend and open `/relay` on its existing port. CommonJS, ES modules
 - Per-endpoint `.relay` browser reports and structured JSON exports, plus a local report opener and Windows file association.
 - A standalone CLI for loopback OpenAPI backends.
 
-Relay is an alpha for local development. Multipart uploads, OAuth browser flows, YAML/external references and public hosting are outside its scope. A successful request does not automatically change status. Optional automatic team status sync uses your existing Git remote; see the [team setup guide](docs/GIT.md).
+Relay is an alpha for local development. Multipart uploads, OAuth browser flows, YAML/external references and public hosting are outside its scope. A successful request does not automatically change status. Optional realtime team statuses use one shared service and three backend environment variables. Existing Git sharing remains supported. See [team setup and upgrades](docs/REALTIME.md).
 
 Tokens and drafts stay in browser session memory. Explicit exports include request bodies, parameters and captured responses, which may contain secrets; inspect them before sharing. See the [export format and handling guide](docs/EXPORTS.md).
 
@@ -149,17 +156,10 @@ The [service foundation](apps/team-service/README.md) provides authenticated HTT
 - [x] Deliver live updates to both Python and Node integrations with explicit acknowledgements.
 - [x] Reject stale revisions, resolve concurrent edits clearly and recover missed updates after reconnect.
 - [x] Show connection/offline/conflict states and keep local API testing usable during service outages.
-- [ ] Make local, Git and realtime modes explicit; provide a reviewed migration path for existing Git statuses.
-- [ ] Verify two independent developer environments, unauthorized access, project isolation, restart recovery and clean package upgrades.
+- [x] Make local, Git and realtime modes explicit; provide a reviewed migration path for existing Git statuses.
+- [x] Verify two independent developer environments, unauthorized access, project isolation, restart recovery and clean package upgrades.
 
-| November milestone | Expected result |
-| --- | --- |
-| **Week 1 · Nov 1–7** | Settle service hosting, identity/permissions and the Python/Node event protocol; publish the setup design. |
-| **Week 2 · Nov 8–14** | Build the authenticated service, durable storage and revision/conflict handling. |
-| **Week 3 · Nov 15–21** | Connect both integrations; complete reconnect recovery, offline UX and Git migration tests. |
-| **Week 4 · Nov 22–30** | Dogfood with two developers, freeze features, verify artifacts and launch 0.0.5 when release gates pass. |
-
-Only status metadata goes to the shared service. API requests, credentials, local notes, drafts and captured responses stay local. Realtime is opt-in; existing local and Git workflows remain available. November is the launch target, subject to the authentication, durability and recovery gates above. See the [team sync design](docs/REALTIME.md).
+Only status metadata goes to the shared service. API requests, credentials, local notes, drafts and captured responses stay local. Realtime is opt-in; existing local and Git workflows remain available. See [team setup, migration and upgrades](docs/REALTIME.md).
 
 ### Later candidates — not committed to 0.0.5
 

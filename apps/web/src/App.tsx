@@ -11,6 +11,7 @@ import { api } from "./api";
 import Operations from "./Operations";
 import Playground from "./Playground";
 import AuthPanel from "./AuthPanel";
+import MigrationPanel from "./MigrationPanel";
 import type { NoteDraft } from "./Handoff";
 import type {
   Endpoint,
@@ -38,6 +39,7 @@ export default function App() {
   const [theme, setTheme] = useState<Theme>(savedTheme);
   const [auth, setAuth] = useState<SessionAuth>({ token: "", enabled: false });
   const [authOpen, setAuthOpen] = useState(false);
+  const [migrationOpen, setMigrationOpen] = useState(false);
   const [authEndpoint, setAuthEndpoint] = useState<Endpoint | null>(null);
   const [credentials, setCredentials] = useState<Record<string, EndpointAuth>>({});
   const [authFocus, setAuthFocus] = useState({ id: "", revision: 0 });
@@ -319,6 +321,7 @@ export default function App() {
           <span>Schema: {schemaState}{schemaChanges && ` · ${schemaChanges}`}</span>
           <span>Team statuses{workspace.status_sync?.mode && workspace.status_sync.mode !== "local" ? ` (${workspace.status_sync.mode})` : ""}: {workspaceError ? "Unavailable" : workspace.status_sync?.enabled ? workspace.status_sync.state : "Automatic sync disabled"}
             {workspace.status_sync?.last_synced_at && ` · Last synced ${new Date(workspace.status_sync.last_synced_at).toLocaleTimeString()}`}</span>
+          {workspace.status_sync?.mode === "realtime" && workspace.status_sync.can_write === true && <button className="text-button" disabled={loading || saving} onClick={()=>setMigrationOpen(true)}>Import Git statuses</button>}
           {workspace.status_sync?.can_write === false && <span>Read-only project access</span>}
           {(workspaceError || workspace.status_sync?.error) && <p className="auth-error">{workspaceError || workspace.status_sync?.error}</p>}
           {(schemaState === "Error" || workspaceError || workspace.status_sync?.error) && <button className="text-button" disabled={loading || saving} onClick={() => void sync()}>Retry refresh</button>}
@@ -370,7 +373,7 @@ export default function App() {
                 changeCredentials={(value) => saveCredentials(endpoint, value)}
                 quickAuthorize={() => openEndpointAuth(endpoint)}
                 inline
-                keyboardEnabled={!authOpen}
+                keyboardEnabled={!authOpen && !migrationOpen}
               />
             )
           }
@@ -392,6 +395,7 @@ export default function App() {
           <pre>python -m relay_backend --target http://127.0.0.1:9000</pre>
         </details>
       </main>
+      {migrationOpen && health && <MigrationPanel token={health.csrf_token} close={()=>setMigrationOpen(false)} changed={async()=>{statusRevision.current++;setWorkspace(await api.workspace());}} />}
       {authOpen && <AuthPanel
         auth={authEndpoint ? {token: endpointCredentials(authEndpoint).authType === "Bearer token" ? endpointCredentials(authEndpoint).secret : "", enabled:true} : auth}
         endpoint={authEndpoint ?? undefined}

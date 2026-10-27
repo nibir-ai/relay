@@ -13,3 +13,5 @@ apps/agent/build/
 .relay/status.lock
 .relay/status-*.tmp
 packages/node/static/
+
+apps/agent/relay_team/

@@ -71,6 +71,7 @@ def main(require_installed=False):
             with socket.socket() as candidate:
                 candidate.bind(("127.0.0.1", 0))
                 return candidate.getsockname()[1]
+        subprocess.run(["git", "init", "-q", str(folder)], check=True)
         environment = dict(os.environ)
         for key in ("PYTHONPATH", "RELAY_TEAM_URL", "RELAY_TEAM_PROJECT", "RELAY_TEAM_TOKEN"):
             environment.pop(key, None)
@@ -144,18 +145,36 @@ process.on('SIGTERM',async()=>{await middleware.close();server.close();});
                 return request(base, "POST", "/relay/__relay/endpoints/update", payload, csrf)
             def row(base):
                 return request(base, "GET", "/relay/__relay/workspace")[1]["endpoints"]["GET /api/me"]
-            assert update(python_base, "in_progress", "Private Python note", 0)[0] == 200
+            status_file = folder / ".relay" / "status.json"
+            status_file.parent.mkdir()
+            original = json.dumps({"version": 1, "endpoints": {"GET /api/me": {
+                "fingerprint": clients[python_base][1], "progress": "done",
+                "updated_by": {"name": "Old Git author", "email": "private@example.test"},
+                "updated_at": "2026-10-01T00:00:00Z", "note": "Private Git note"}}})
+            status_file.write_text(original)
+            previews = {base: request(base, "GET", "/relay/__relay/statuses/migration")[1] for base in clients}
+            assert all(p["entries"][0]["eligible"] for p in previews.values())
+            assert "private@example.test" not in json.dumps(previews) and "Private Git note" not in json.dumps(previews)
+            imported = request(python_base, "POST", "/relay/__relay/statuses/migration",
+                {"plan_id": previews[python_base]["plan_id"], "selected": ["GET /api/me"]}, clients[python_base][0])
+            assert imported[0] == 200 and imported[1]["imported"] == ["GET /api/me"]
             wait(lambda: row(node_base).get("team_revision") == 1)
+            stale = request(node_base, "POST", "/relay/__relay/statuses/migration",
+                {"plan_id": previews[node_base]["plan_id"], "selected": ["GET /api/me"]}, clients[node_base][0])
+            assert stale[0] == 409 and row(node_base)["updated_by"]["name"] == "Python"
+            assert status_file.read_text() == original
+            assert update(python_base, "in_progress", "Private Python note", 1)[0] == 200
+            wait(lambda: row(node_base).get("team_revision") == 2)
             assert row(node_base)["progress"] == "in_progress" and row(node_base)["updated_by"]["name"] == "Python"
             assert row(node_base)["note"] == ""
             assert update(node_base, "done", revision=0)[0] == 409
-            assert update(node_base, "needs_fixing", revision=1)[0] == 200
-            wait(lambda: row(python_base).get("team_revision") == 2)
+            assert update(node_base, "needs_fixing", revision=2)[0] == 200
+            wait(lambda: row(python_base).get("team_revision") == 3)
             assert row(python_base)["updated_by"]["name"] == "Node"
             stop(team)
             for base in (python_base, node_base):
                 wait(lambda base=base: request(base, "GET", "/relay/__relay/workspace")[1]["status_sync"]["state"] == "offline")
-                assert update(base, "done", revision=2)[0] == 503
+                assert update(base, "done", revision=3)[0] == 503
                 assert update(base, note="Local note during outage")[0] == 200
                 response = request(base, "POST", "/relay/__relay/execute",
                     {"method":"GET", "path":"/api/me", "headers":{"Authorization":"Bearer local-api-secret"}}, clients[base][0])
@@ -169,19 +188,19 @@ process.on('SIGTERM',async()=>{await middleware.close();server.close();});
             new_csrf = request(node_base, "GET", "/relay/__relay/health")[1]["csrf_token"]
             assert request(node_base, "POST", "/relay/__relay/sources/inspect", {}, new_csrf)[0] == 200
             for base in (python_base, node_base):
-                wait(lambda base=base: row(base).get("team_revision") == 2)
+                wait(lambda base=base: row(base).get("team_revision") == 3)
                 assert row(base)["progress"] == "needs_fixing"
             start(team_command, team_environment)
             for base in (python_base, node_base):
                 wait(lambda base=base: request(base, "GET", "/relay/__relay/workspace")[1]["status_sync"]["state"] == "synced")
-                assert row(base)["team_revision"] == 2
+                assert row(base)["team_revision"] == 3
             for filename in ("team.sqlite3", "workspace.sqlite3"):
                 content = (folder / filename).read_bytes()
                 assert b"local-api-secret" not in content and b"developer-secret" not in content
             for filename in (folder / "node-data").glob("*.json"):
                 assert "developer-secret" not in filename.read_text() and "local-api-secret" not in filename.read_text()
-            assert not list(folder.glob("**/.relay/status.json")), "Realtime mode must not create Git status metadata."
-            print("Native Python/Node realtime: acknowledgement, attribution, conflict, private notes, offline API testing, cached restart and reconnect passed.")
+            assert list(folder.glob("**/.relay/status.json")) == [status_file] and status_file.read_text() == original, "Realtime mode must preserve Git files."
+            print("Native Python/Node realtime: reviewed create-only Git migration, acknowledgement, attribution, conflict, private notes, offline API testing, cached restart and reconnect passed.")
         finally:
             for process in reversed(processes):
                 stop(process)

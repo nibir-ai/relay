@@ -1,18 +1,22 @@
 # Relay team status service
 
-Development foundation for **0.0.5**, not a published package yet. The source Python/Node integrations and local Relay UI now connect to it. This optional service stores manual endpoint statuses for independent developer environments. Local API testing continues through the existing Python and Node packages.
+The service is bundled in **relay-backend 0.0.5** with the optional `[realtime]` extra. Python/Node integrations and the local Relay UI connect to it. This optional service stores manual endpoint statuses for independent developer environments. Local API testing continues through the existing Python and Node packages.
 
-The service provides authenticated snapshots, revision-checked writes and project-scoped Socket.IO delivery. Native bridges keep collaboration credentials on the backend and show connection/offline/conflict states locally. Reviewed migration and complete upgrade/release verification remain pending. It does not create a Git branch.
+The service provides authenticated snapshots, revision-checked writes and project-scoped Socket.IO delivery. Native bridges keep collaboration credentials on the backend and show connection/offline/conflict states locally. A reviewed Git-status import is available in the local UI. It does not create a Git branch.
 
 ## Run one shared instance
 
-Use Python 3.11 or newer. From the repository root, create an isolated environment and install the service:
+Install and run without cloning the repository:
 
 ```sh
-python -m venv .venv-team
-# Activate .venv-team using your shell's activation command.
-python -m pip install ./apps/team-service
+python -m pip install --upgrade "relay-backend[realtime]"
+relay team init --config ./members.json --project example --name Alice
+relay team serve --config ./members.json --database ./team.sqlite3
 ```
+
+The setup command prints a private developer token once and stores only its hash. Add teammates with `relay team add-member --config ./members.json --project example --name Bob`; use `--role reader` for read-only members. Restart after membership edits. See [team setup and migration](../../docs/REALTIME.md).
+
+The remaining configuration and protocol sections document manual administration and deployment.
 
 An administrator provisions each developer independently. Generate a random developer token and its hash privately:
 
@@ -94,7 +98,7 @@ A stale mutation returns `{ok:false, status:409, code:"revision_conflict", curre
 
 On every connection or reconnection, request a full snapshot. Buffer events while that request is pending, then apply only revisions newer than the snapshot; fetch another snapshot if a gap appears. A timeout is an unknown outcome, not proof that a write failed: inspect current state before deliberately resolving or resubmitting a change. Events are live notifications rather than a durable message queue. Database snapshots recover updates missed during disconnects and process restarts.
 
-Run one process/worker for this initial service; multiple worker processes need shared delivery coordination that is not implemented yet. The example uses a bounded graceful-shutdown timeout because outstanding polling requests can otherwise keep a shutting-down worker alive. Clients must reconnect and recover a snapshot after service restarts. The service transport is tested directly from Python and Node clients; the published Relay integrations do not connect to it yet; the source bridges are described in the [native integration setup](../../docs/REALTIME.md#native-integrations-005-development).
+Run one process/worker for this initial service; multiple worker processes need shared delivery coordination that is not implemented yet. The example uses a bounded graceful-shutdown timeout because outstanding polling requests can otherwise keep a shutting-down worker alive. Clients must reconnect and recover a snapshot after service restarts. The service transport is tested directly from Python and Node clients; the native bridges are described in the [integration setup](../../docs/REALTIME.md#connect-an-existing-backend).
 
 ## Verification
 
@@ -103,4 +107,4 @@ python -m pip install -e "./apps/team-service[test]"
 python -m pytest apps/team-service/tests -q
 ```
 
-The suite covers project isolation, reader/writer permissions, authenticated attribution, restart durability and revocation, stale revisions, concurrent developer edits, independent endpoint edits and rejection of unsupported fields. Real Python Socket.IO clients additionally cover authenticated subscription, live delivery, cross-project isolation, reader rejection, stale acknowledgements, HTTP-to-socket notifications and polling reconnect recovery. `scripts/verify_team_events.cjs` exercises an installed wheel with independent Node clients and a separate Python HTTP writer. Full Relay integration and package-upgrade verification remain release gates for 0.0.5.
+The suite covers project isolation, reader/writer permissions, authenticated attribution, restart durability and revocation, stale revisions, concurrent developer edits, independent endpoint edits and rejection of unsupported fields. Real Python Socket.IO clients additionally cover authenticated subscription, live delivery, cross-project isolation, reader rejection, stale acknowledgements, HTTP-to-socket notifications and polling reconnect recovery. `scripts/verify_team_events.cjs` exercises an installed wheel with independent Node clients and a separate Python HTTP writer. `scripts/verify_realtime_integrations.py` checks both installed native integrations and reviewed migration. `scripts/verify_upgrades.py` checks in-place upgrades from the previous public packages.

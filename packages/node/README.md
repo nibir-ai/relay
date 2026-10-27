@@ -79,3 +79,9 @@ Endpoints start as Done. Status changes are manual. Set `syncStatus: true` to sh
 Relay accepts loopback hosts and clients only and requires same-origin CSRF protection for tester actions. API execution runs real backend handlers. Multipart uploads, external/YAML references, browser OAuth and public hosting are outside this version's scope.
 
 Detailed configuration: [Node integration guide](https://github.com/nibir-ai/relay/blob/main/docs/NODE.md). Apache-2.0; bundled third-party licenses are included.
+
+## Realtime team statuses in 0.0.5
+
+Keep your native integration. Set `RELAY_TEAM_URL`, `RELAY_TEAM_PROJECT` and your private `RELAY_TEAM_TOKEN` on the backend, then restart. Python uses `pip install --upgrade "relay-backend[realtime]"`; Node includes its realtime client. A team administrator runs the optional shared service once using the same Python package. Existing Git statuses can be reviewed and imported from `/relay/` without modifying Git files. Local API testing remains usable during service outages.
+
+[Team setup, upgrades and migration](https://github.com/nibir-ai/relay/blob/main/docs/REALTIME.md)

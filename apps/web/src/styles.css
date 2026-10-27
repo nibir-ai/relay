@@ -1634,3 +1634,11 @@ kbd {
 .example-controls { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
 .example-controls label { display: grid; gap: 6px; }
 [aria-invalid="true"] { border-color: var(--error); }
+
+.migration-panel { width: min(680px, calc(100vw - 32px)); }
+.migration-entries { max-height: 45vh; overflow-y: auto; margin: 18px 0; border-block: 1px solid var(--border); }
+.auth-panel .migration-entry { display: flex; align-items: start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.migration-entry:last-child { border-bottom: 0; }
+.migration-entry input { flex: 0 0 auto; margin-top: 4px; }
+.migration-entry > span { min-width: 0; display: grid; gap: 5px; overflow-wrap: anywhere; }
+.migration-entry span > span { color: var(--muted); font-size: 12px; }

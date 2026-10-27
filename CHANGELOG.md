@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.0.5 — 27 October 2026
+
+- Optional authenticated realtime team statuses for native Python and Node integrations, configured through three backend environment variables.
+- One shared service bundled with `relay-backend[realtime]`; `relay team init`, `add-member` and `serve` support setup without cloning or building.
+- Verified updater identities, reader/writer membership, explicit acknowledgements, stale-write rejection, durable status caches and snapshot recovery after reconnect.
+- API execution and local notes remain usable during collaboration outages; credentials and API traffic remain local.
+- Explicit local, Git and realtime authorities plus a reviewed, create-only Git-status import in `/relay/` that preserves Git files and existing team statuses.
+- Public API-testing workflow documentation and native package discovery metadata.
+- In-place upgrade verification from published Python 0.0.4 and npm 0.0.3, alongside fresh package consumers and cross-runtime sync checks.
+
+
 ## 0.0.4 — 12 October 2026
 
 - Guided `init` commands for Python and Node: bounded framework detection, preview-first FastAPI/Express integration edits and manual guidance for ambiguous layouts.

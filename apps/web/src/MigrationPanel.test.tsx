@@ -1,0 +1,33 @@
+import {cleanup,fireEvent,render,screen,waitFor} from "@testing-library/react";
+import {afterEach,beforeAll,expect,it,vi} from "vitest";
+import MigrationPanel from "./MigrationPanel";
+import {api} from "./api";
+vi.mock("./api",()=>({api:{migrationPreview:vi.fn(),migrationApply:vi.fn()}}));
+beforeAll(()=>{HTMLDialogElement.prototype.showModal=function(){this.setAttribute("open","");};HTMLDialogElement.prototype.close=function(){this.removeAttribute("open");};});
+afterEach(()=>{cleanup();vi.resetAllMocks();});
+const preview={plan_id:"reviewed-plan",entries:[{endpoint_id:"GET /new",fingerprint:"a",progress:"done" as const,previous_author:"Git author",eligible:true,reason:null},{endpoint_id:"GET /existing",fingerprint:"b",progress:"done" as const,previous_author:"Other author",eligible:false,reason:"Already has a team status"}]};
+it("requires explicit selection, submits only reviewed rows and refreshes after acknowledgement",async()=>{
+ vi.mocked(api.migrationPreview).mockResolvedValue(preview);
+ vi.mocked(api.migrationApply).mockResolvedValue({imported:["GET /new"],stopped:false,message:"Selected Git statuses imported."});
+ const changed=vi.fn().mockResolvedValue(undefined);
+ render(<MigrationPanel token="csrf" close={vi.fn()} changed={changed}/>);
+ await screen.findByText("GET /new");
+ expect(screen.getByRole("button",{name:"Import selected (0)"})).toBeDisabled();
+ expect(screen.getAllByRole("checkbox")[1]).toBeDisabled();
+ fireEvent.click(screen.getAllByRole("checkbox")[0]);
+ fireEvent.click(screen.getByRole("button",{name:"Import selected (1)"}));
+ await screen.findByText(/1 imported/);
+ expect(api.migrationApply).toHaveBeenCalledWith("csrf","reviewed-plan",["GET /new"]);
+ expect(changed).toHaveBeenCalledTimes(1);
+ expect(screen.getByRole("button",{name:"Import selected (0)"})).toBeDisabled();
+});
+it("invalidates the plan after a conflict without automatic resubmission",async()=>{
+ vi.mocked(api.migrationPreview).mockResolvedValue(preview);
+ vi.mocked(api.migrationApply).mockRejectedValue(new Error("Import preview changed. Review again."));
+ render(<MigrationPanel token="csrf" close={vi.fn()} changed={vi.fn()}/>);
+ await screen.findByText("GET /new");fireEvent.click(screen.getAllByRole("checkbox")[0]);
+ fireEvent.click(screen.getByRole("button",{name:"Import selected (1)"}));
+ await screen.findByRole("alert");
+ await waitFor(()=>expect(screen.getByRole("button",{name:"Import selected (0)"})).toBeDisabled());
+ expect(api.migrationApply).toHaveBeenCalledTimes(1);
+});
