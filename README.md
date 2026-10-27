@@ -128,7 +128,20 @@ Tokens and drafts stay in browser session memory. Explicit exports include reque
 | --- | --- | --- |
 | **0.0.3** | Published on PyPI and npm | Native backend testing, auth, reports and opt-in Git status sharing. |
 | **0.0.4** | Published on PyPI and GitHub · 12 October 2026 | Guided setup, diagnostics, local handoff notes, contract-change explanations and reliable refresh. |
-| **0.0.5** | Planned launch · **November 2026** | Authenticated realtime team statuses through an optional shared service. |
+| **0.0.5** | Published on PyPI and npm · 27 October 2026 | Authenticated realtime team statuses through an optional shared service. |
+| **0.0.6** | Planned; no fixed release date | Repeatable API testing, response checks and reviewed exports. |
+
+### 0.0.6: repeatable API testing and safer handoffs
+
+Planned scope; implementation has not started. Keep testing at the center: restore a recent request, see whether its response meets expectations, and review exactly what an export contains. Existing integrations stay unchanged. No launch date until the release gates pass.
+
+- [ ] Add bounded, session-only request history with explicit restore and clear actions; never replay automatically or persist credentials.
+- [ ] Add lightweight response checks for expected HTTP status, JSON field existence/equality and optional response-time limits; keep results separate from manual endpoint status.
+- [ ] Preview both export formats and support reviewed redaction of credentials and selected request/response fields.
+- [ ] Extend Python/Node diagnostics for realtime configuration, project access and connectivity without exposing tokens or changing setup.
+- [ ] Verify upgrades from public 0.0.5, native FastAPI/Express/Fastify/Node HTTP consumers, auth isolation, both exports, offline testing, themes and narrow layouts before publication.
+
+See the [0.0.6 implementation order, acceptance criteria and release gates](docs/RELEASE-0.0.6.md). Check off each item only after its verification passes. Reproduce and fix any blocking regression before advancing feature work.
 
 ### 0.0.4 — easier setup and clearer handoffs
 
@@ -145,12 +158,12 @@ Python 0.0.4 is published on PyPI, with wheel, source and Node 0.0.4 tarball ass
 
 ### 0.0.5 — realtime team statuses
 
-Target: launch in **November 2026**, following the 0.0.4 release. Two developers using separate local backends should see each other's manual endpoint statuses and verified updater identity without a Git status branch.
+Published on **27 October 2026**. Developers using separate local backends see manual endpoint statuses and verified updater identity without a Git status branch.
 
 - [x] Provide an optional shared status service with a documented self-hosted setup.
 - [x] Authenticate developers and enforce project membership/read-write permissions.
 - [x] Persist status, contract fingerprint, updater and timestamp across service restarts.
-The [service foundation](apps/team-service/README.md) provides authenticated HTTP snapshots, durable revision-checked writes and project-scoped Socket.IO notifications, verified with Python and Node transport clients. The source integrations now connect with three backend environment variables; this is development work for 0.0.5 and is not in the published packages yet.
+The [bundled shared service](apps/team-service/README.md) provides authenticated snapshots, durable revision-checked writes and project-scoped Socket.IO notifications. Published Python and Node integrations connect with three backend environment variables.
 
 - [x] Verify authenticated Socket.IO transport with independent Python and Node clients.
 - [x] Deliver live updates to both Python and Node integrations with explicit acknowledgements.
@@ -161,9 +174,9 @@ The [service foundation](apps/team-service/README.md) provides authenticated HTT
 
 Only status metadata goes to the shared service. API requests, credentials, local notes, drafts and captured responses stay local. Realtime is opt-in; existing local and Git workflows remain available. See [team setup, migration and upgrades](docs/REALTIME.md).
 
-### Later candidates — not committed to 0.0.5
+### Later candidates: outside 0.0.6
 
-Bounded session request history, simple response checks, reviewed export redaction, multipart uploads and richer schema inputs will be prioritized after team-sync dogfooding. OAuth browser flows, remote API execution and AI features are outside the next release's scope.
+Multipart/file uploads, richer schema inputs, named user/admin auth profiles, persistent opt-in history, collections and CI collection runs need separate scope and verification. Hosted collaboration, repository-provider sign-in and additional service deployment models remain future work. They are not requirements for shipping 0.0.6.
 
 <details>
 <summary>Completed release milestones</summary>
