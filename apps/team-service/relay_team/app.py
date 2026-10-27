@@ -211,7 +211,7 @@ def create_app(*, config: dict | None = None, db_path: str | Path | None = None)
     async def socket_snapshot(sid):
         session = await events.get_session(sid)
         result = await run_in_threadpool(read_snapshot, session["project"])
-        return {"ok": True, **result}
+        return {"ok": True, **result, "can_write": session["member"].role == "writer"}
 
     @events.on("status:update")
     async def socket_update(sid, data=None):

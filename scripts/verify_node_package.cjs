@@ -23,7 +23,7 @@ async function main() {
   run(npmBinary,[...npmPrefix,'install','--ignore-scripts','--no-audit','--no-fund','--registry=https://registry.npmjs.org',publicIndex?'relay-backend':archive,'express@5','typescript@5','@types/node@22','@types/express@5']);
   assert.ok(!fs.existsSync(path.join(directory,'node_modules/fastify')),'Express consumer must not require Fastify.');
   const installed=JSON.parse(fs.readFileSync(path.join(directory,'node_modules/relay-backend/package.json'),'utf8'));
-  assert.equal(installed.version,version); assert.equal(Object.keys(installed.dependencies||{}).length,0);
+  assert.equal(installed.version,version); assert.deepEqual(Object.keys(installed.dependencies||{}),['socket.io-client']);
   const packageDirectory=path.join(directory,'node_modules/relay-backend');
   for(const asset of ['relay-mark.svg','brand/relay-symbol.svg','brand/relay-wordmark.svg']) {
     assert.equal(fs.readFileSync(path.join(packageDirectory,'static',asset),'utf8').replaceAll('\r\n','\n'),fs.readFileSync(path.join(root,'apps/web/public',asset),'utf8').replaceAll('\r\n','\n'));

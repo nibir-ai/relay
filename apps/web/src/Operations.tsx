@@ -224,7 +224,8 @@ export default function Operations({
                         <select
                           aria-label={`Status for ${endpoint.method} ${endpoint.path}`}
                           value={status}
-                          disabled={busy}
+                          disabled={busy || workspace.status_sync?.can_write === false}
+                          title={workspace.status_sync?.can_write === false ? "Read-only project access" : undefined}
                           onChange={(e) =>
                             update(endpoint, e.target.value as Progress)
                           }

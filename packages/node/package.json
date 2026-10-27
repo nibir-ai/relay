@@ -42,11 +42,25 @@
     "prepack": "node scripts/check-assets.cjs"
   },
   "devDependencies": {
-    "express": "^5.1.0",
-    "fastify": "^5.6.0",
     "@fastify/swagger": "^9.5.0",
     "@types/express": "^5.0.3",
     "@types/node": "^22.0.0",
+    "express": "^5.1.0",
+    "fastify": "^5.6.0",
     "typescript": "^5.9.3"
-  }
+  },
+  "dependencies": {
+    "socket.io-client": "4.8.4"
+  },
+  "keywords": [
+    "api-testing",
+    "backend-testing",
+    "openapi",
+    "rest-api",
+    "express",
+    "fastify",
+    "typescript",
+    "swagger-ui-alternative",
+    "developer-tools"
+  ]
 }

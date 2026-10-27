@@ -70,6 +70,14 @@ class Workspace:
         self.db.execute("INSERT INTO activity (endpoint_id, kind, value, created_at) VALUES (?, ?, ?, ?)", (endpoint_id, kind, value, now))
         self.db.execute("DELETE FROM activity WHERE id NOT IN (SELECT id FROM activity ORDER BY id DESC LIMIT 100)")
 
+    def validate(self, endpoint_id, fingerprint):
+        with self.lock:
+            row = self.db.execute("SELECT * FROM endpoints WHERE endpoint_id=? AND active=1", (endpoint_id,)).fetchone()
+            if not row:
+                raise HTTPException(404, "Endpoint is no longer active. Sync the contract and try again.")
+            if row["fingerprint"] != fingerprint:
+                raise HTTPException(409, "The contract changed. Sync before updating progress.")
+
     def update(self, endpoint_id: str, fingerprint: str, progress: str | None, note: str | None):
         if note is not None and (not isinstance(note, str) or len(note) > 4000):
             raise HTTPException(422, "Endpoint notes must be at most 4000 characters.")

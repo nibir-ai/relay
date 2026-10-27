@@ -1,8 +1,8 @@
 # Relay team status service
 
-Development foundation for **0.0.5**, not a published package or a connected Relay UI feature yet. This optional service stores manual endpoint statuses for independent developer environments. Local API testing continues through the existing Python and Node packages.
+Development foundation for **0.0.5**, not a published package yet. The source Python/Node integrations and local Relay UI now connect to it. This optional service stores manual endpoint statuses for independent developer environments. Local API testing continues through the existing Python and Node packages.
 
-The service provides authenticated snapshots, revision-checked writes and project-scoped Socket.IO delivery. Backend bridges, collaboration sign-in in the UI, migration and offline/conflict UX are still pending. It does not create a Git branch.
+The service provides authenticated snapshots, revision-checked writes and project-scoped Socket.IO delivery. Native bridges keep collaboration credentials on the backend and show connection/offline/conflict states locally. Reviewed migration and complete upgrade/release verification remain pending. It does not create a Git branch.
 
 ## Run one shared instance
 
@@ -49,7 +49,7 @@ python -m uvicorn relay_team.app:create_app --factory --host 127.0.0.1 --port 44
 
 `GET /health` reports protocol version 1 without exposing membership or configuration. Start a single service instance with a local persistent disk; do not share the SQLite file over a network filesystem. Back up the database and membership configuration together. Restart after membership edits or credential revocation. Removing a member denies subsequent access after restart without deleting their historical attribution.
 
-For access from other machines, put the service behind an HTTPS reverse proxy with request-size limits (16 KiB is sufficient for a status mutation) and rate limits. Keep the application bound to loopback behind that proxy. Tokens are developer credentials: use HTTPS, keep them out of URLs, logs, commits and exported API reports, and rotate them by replacing the configured hash and restarting. Browser CORS access is intentionally not enabled; future local backend bridges will handle collaboration separately from API-testing auth.
+For access from other machines, put the service behind an HTTPS reverse proxy with request-size limits (16 KiB is sufficient for a status mutation) and rate limits. Keep the application bound to loopback behind that proxy. Tokens are developer credentials: use HTTPS, keep them out of URLs, logs, commits and exported API reports, and rotate them by replacing the configured hash and restarting. Browser CORS access is intentionally not enabled; the local backend bridges handle collaboration separately from API-testing auth.
 
 ## Protocol 1
 
@@ -86,7 +86,7 @@ Use Socket.IO client protocol 4.x (JavaScript) or python-socketio 5.x with the d
 
 | Event | Direction | Contract |
 | --- | --- | --- |
-| `snapshot:get` | Client request with acknowledgement | No arguments. Returns `{ok:true, protocol:1, revision, statuses}`. |
+| `snapshot:get` | Client request with acknowledgement | No arguments. Returns `{ok:true, protocol:1, revision, statuses, can_write}`. The authenticated membership determines `can_write`. |
 | `status:update` | Client request with acknowledgement | The same strict mutation fields as HTTP PUT. Returns `{ok:true, protocol:1, status}` after commit, or an explicit error acknowledgement. |
 | `status:updated` | Server notification to project members | `{protocol:1, status}` with the accepted server-attributed record. Includes the writer. |
 
@@ -94,7 +94,7 @@ A stale mutation returns `{ok:false, status:409, code:"revision_conflict", curre
 
 On every connection or reconnection, request a full snapshot. Buffer events while that request is pending, then apply only revisions newer than the snapshot; fetch another snapshot if a gap appears. A timeout is an unknown outcome, not proof that a write failed: inspect current state before deliberately resolving or resubmitting a change. Events are live notifications rather than a durable message queue. Database snapshots recover updates missed during disconnects and process restarts.
 
-Run one process/worker for this initial service; multiple worker processes need shared delivery coordination that is not implemented yet. The example uses a bounded graceful-shutdown timeout because outstanding polling requests can otherwise keep a shutting-down worker alive. Clients must reconnect and recover a snapshot after service restarts. The service transport is tested directly from Python and Node clients; the published Relay integrations do not connect to it yet.
+Run one process/worker for this initial service; multiple worker processes need shared delivery coordination that is not implemented yet. The example uses a bounded graceful-shutdown timeout because outstanding polling requests can otherwise keep a shutting-down worker alive. Clients must reconnect and recover a snapshot after service restarts. The service transport is tested directly from Python and Node clients; the published Relay integrations do not connect to it yet; the source bridges are described in the [native integration setup](../../docs/REALTIME.md#native-integrations-005-development).
 
 ## Verification
 

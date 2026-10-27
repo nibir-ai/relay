@@ -101,6 +101,7 @@ export type EndpointMeta = {
   active: number;
   updated_at: string;
   updated_by?: { name: string; email: string };
+  team_revision?: number;
   contract_changed?: boolean;
   changed_sections?: string[];
   source?: {
@@ -125,7 +126,7 @@ export type ActivityEvent = {
 export type Workspace = {
   endpoints: Record<string, EndpointMeta>;
   activity: ActivityEvent[];
-  status_sync?: { enabled: boolean; state: string; error?: string | null; last_synced_at?: string | null };
+  status_sync?: { enabled: boolean; mode?: "local" | "git" | "realtime"; state: string; error?: string | null; last_synced_at?: string | null; can_write?: boolean | null };
 };
 export type SessionAuth = { token: string; enabled: boolean };
 export type EndpointAuth = { authType: string; secret: string; keyName: string };

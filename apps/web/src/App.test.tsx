@@ -145,3 +145,42 @@ it("includes the current workspace status in endpoint exports", async () => {
   expect(vi.mocked(downloadExport).mock.calls[0][1].endpoint.progress).toBe("needs_fixing");
   expect(api.execute).not.toHaveBeenCalled();
 });
+
+it("sends the displayed team revision when changing a realtime status", async () => {
+  setup();
+  await screen.findByRole("button", {name:"GET /admin"});
+  const current = {endpoints:{"GET /admin":{endpoint_id:"GET /admin",fingerprint:"/admin",progress:"done" as const,note:"",active:1,updated_at:"2026-10-27T00:00:00Z",team_revision:7}},activity:[],status_sync:{enabled:true,mode:"realtime" as const,state:"synced"}};
+  vi.mocked(api.workspace).mockResolvedValue(current);
+  vi.mocked(api.update).mockResolvedValue(current);
+  fireEvent.click(screen.getByRole("button", {name:"Sync"}));
+  await screen.findByText("Team statuses (realtime): synced");
+  fireEvent.change(screen.getByRole("combobox",{name:"Status for GET /admin"}),{target:{value:"in_progress"}});
+  await waitFor(()=>expect(api.update).toHaveBeenCalledWith("csrf","GET /admin","/admin","in_progress",undefined,7));
+  expect(api.execute).not.toHaveBeenCalled();
+});
+
+it("shows the accepted peer status after a rejected stale edit without retrying it", async () => {
+  setup();
+  await screen.findByRole("button", {name:"GET /admin"});
+  const peer = {endpoints:{"GET /admin":{endpoint_id:"GET /admin",fingerprint:"/admin",progress:"needs_fixing" as const,note:"",active:1,updated_at:"2026-10-27T00:00:00Z",team_revision:8}},activity:[]};
+  vi.mocked(api.workspace).mockResolvedValue(peer);
+  vi.mocked(api.update).mockRejectedValueOnce(new Error("A teammate changed this endpoint. Review its latest status before retrying."));
+  fireEvent.change(screen.getByRole("combobox",{name:"Status for GET /admin"}),{target:{value:"in_progress"}});
+  await screen.findByText("A teammate changed this endpoint. Review its latest status before retrying.");
+  expect(screen.getByRole("combobox",{name:"Status for GET /admin"})).toHaveValue("needs_fixing");
+  expect(api.update).toHaveBeenCalledTimes(1);
+});
+
+it("keeps API testing available for read-only team members", async () => {
+  setup();
+  await screen.findByRole("button",{name:"GET /admin"});
+  vi.mocked(api.workspace).mockResolvedValue({endpoints:{},activity:[],status_sync:{enabled:true,mode:"realtime",state:"synced",can_write:false}});
+  fireEvent.click(screen.getByRole("button",{name:"Sync"}));
+  await screen.findByText("Read-only project access");
+  expect(screen.getByRole("combobox",{name:"Status for GET /admin"})).toBeDisabled();
+  fireEvent.click(screen.getByRole("button",{name:"GET /admin"}));
+  expect(screen.getByRole("button",{name:"Execute request"})).toBeEnabled();
+  fireEvent.click(screen.getByRole("button",{name:"Execute request"}));
+  await screen.findByText("200 OK");
+  expect(api.update).not.toHaveBeenCalled();
+});

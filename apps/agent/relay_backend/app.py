@@ -36,21 +36,37 @@ class EndpointUpdate(BaseModel):
     fingerprint: str = Field(min_length=64, max_length=64)
     progress: Literal["not_started", "in_progress", "done", "needs_fixing"] | None = None
     note: str | None = Field(default=None, max_length=4000)
+    expected_revision: int | None = Field(default=None, ge=0, strict=True)
 
 
-def create_app(settings: Settings | None = None, transport=None, static_dir: Path | None = None, db_path: str | Path = ":memory:", project: Path | None = None, native_host: FastAPI | None = None, sync_status: bool = False):
+def create_app(settings: Settings | None = None, transport=None, static_dir: Path | None = None, db_path: str | Path = ":memory:", project: Path | None = None, native_host: FastAPI | None = None, sync_status: bool = False, status_mode: str | None = None, realtime: dict | None = None):
     settings = settings or Settings()
     token = secrets.token_urlsafe(32)
+    from .realtime import configuration
+    if status_mode not in {None, "local", "git", "realtime"}:
+        raise ValueError("Relay status mode must be local, git or realtime.")
+    if status_mode == "local" and sync_status or status_mode in {"local", "git"} and realtime is not None:
+        raise ValueError("Choose one Relay status authority: local, git or realtime.")
+    team = configuration(realtime) if status_mode not in {"local", "git"} else None
+    if status_mode == "realtime" and team is None:
+        raise ValueError("Set RELAY_TEAM_URL, RELAY_TEAM_PROJECT and RELAY_TEAM_TOKEN together.")
+    if team and sync_status:
+        raise ValueError("Choose realtime or Git status sync; do not enable both.")
+    git_sync = sync_status or status_mode == "git"
 
     @asynccontextmanager
     async def lifespan(app):
-        workspace = Workspace(db_path, project=project)
+        workspace = Workspace(db_path, project=None if team or status_mode == "local" else project)
         app.state.workspace = workspace
-        app.state.git_source = GitSource(workspace.shared.root if workspace.shared else None)
+        app.state.git_source = GitSource(Path(project) if project else None)
         app.state.snapshot = None
         app.state.raw_spec = None
         status_sync = None
-        if sync_status and workspace.shared:
+        if team:
+            from .realtime import RealtimeSync
+            status_sync = RealtimeSync(workspace, team)
+            status_sync.start()
+        elif git_sync and workspace.shared:
             from .status_sync import StatusSync
             status_sync = StatusSync(workspace.shared)
             status_sync.start()
@@ -61,7 +77,10 @@ def create_app(settings: Settings | None = None, transport=None, static_dir: Pat
                 yield
         finally:
             if status_sync:
-                await asyncio.to_thread(status_sync.close)
+                if team:
+                    await status_sync.close()
+                else:
+                    await asyncio.to_thread(status_sync.close)
             workspace.close()
 
     app = FastAPI(title="Relay Local Companion", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
@@ -140,19 +159,29 @@ def create_app(settings: Settings | None = None, transport=None, static_dir: Pat
     def read_workspace():
         value = app.state.workspace.read()
         worker = app.state.status_sync
-        value["status_sync"] = worker.info() if worker else {"enabled": False, "state": "local", "error": "No Git repository detected." if sync_status else None}
+        if team and worker:
+            value = worker.overlay(value)
+        value["status_sync"] = worker.info() if worker else {"enabled": False, "mode": "local", "state": "local", "error": "No Git repository detected." if git_sync else None}
+        if worker and not team:
+            value["status_sync"]["mode"] = "git"
         return value
 
     @app.post("/__relay/endpoints/update")
-    def update_endpoint(payload: EndpointUpdate):
+    async def update_endpoint(payload: EndpointUpdate):
+        if team and payload.progress is not None:
+            app.state.workspace.validate(payload.endpoint_id, payload.fingerprint)
+            await app.state.status_sync.update(payload.endpoint_id, payload.fingerprint, payload.progress, payload.expected_revision)
         app.state.workspace.update(payload.endpoint_id, payload.fingerprint, payload.progress, payload.note)
         return read_workspace()
 
     @app.post("/__relay/statuses/retry")
-    def retry_statuses():
+    async def retry_statuses():
         worker = app.state.status_sync
         if worker:
-            worker.request_sync()
+            if team:
+                await worker.request_sync()
+            else:
+                worker.request_sync()
         return read_workspace()
 
     @app.get("/__relay/sources/current")

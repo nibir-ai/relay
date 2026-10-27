@@ -10,7 +10,7 @@ readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 authors = [{name = "Relay contributors"}]
-keywords = ["fastapi", "openapi", "api-testing", "swagger", "developer-tools"]
+keywords = ["fastapi", "openapi", "api-testing", "backend-testing", "rest-api", "api-client", "swagger-ui-alternative", "developer-tools"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Framework :: FastAPI",
@@ -31,6 +31,7 @@ Changelog = "https://github.com/nibir-ai/relay/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 test = ["pytest>=8,<10", "python-socketio>=5.12,<6"]
+realtime = ["python-socketio[asyncio-client]>=5.17,<6", "aiohttp>=3.10,<4"]
 
 [project.scripts]
 relay = "relay_backend.cli:main"

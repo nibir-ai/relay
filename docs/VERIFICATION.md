@@ -2,11 +2,19 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## 0.0.5 native realtime integrations — 27 October 2026
+
+Local checks passed: 129 Python tests, 54 frontend tests, 18 Node tests, the strict production build and TypeScript consumer checks. The Python and Node source integrations now connect to the optional service through backend environment configuration, with explicit local/Git/realtime authority selection. A cross-runtime consumer installed the built Python wheel with its realtime extra and the Node tarball outside the checkout, then verified bidirectional status delivery, matching contract fingerprints, server-attributed updater names, stale revision rejection, private local notes, offline API execution and local note saving, cached backend restart and service reconnect recovery. Metadata caches and exports were checked for developer credential leakage; realtime mode created no Git status file.
+
+Browser testing against those installed artifacts verified both directions of status changes with updater attribution, preservation of an expanded operation and captured response, separate endpoint API auth, JSON and `.relay` exports with the current team status, and the realtime connection label. The 390-pixel layout had no document-level horizontal overflow or console errors. Frontend regression coverage checks displayed-revision submission, accepted-peer refresh after conflicts and API testing for read-only membership. Package keywords and the public API-testing workflow guide describe the supported testing capabilities.
+
+The source remains unreleased. Reviewed Git migration and complete upgrade/release verification are still pending; registry versions have not changed. The npm authentication blocker is unchanged.
+
 ## 0.0.5 live service transport — 27 October 2026
 
 The team service now broadcasts committed status records through authenticated project-scoped Socket.IO connections. All 19 service tests passed, including real Python WebSocket clients, reader rejection, project isolation, explicit stale-write acknowledgements, HTTP-to-socket delivery and full-snapshot recovery after polling reconnect. An installed service wheel passed the Node consumer check with independent Socket.IO clients and a separate Python HTTP writer; accepted revisions arrived in order, credentials remained project-scoped, and missed state recovered after reconnect. Service startup/shutdown and the existing HTTP/restart smoke check remain covered. CI runs the Node transport consumer against a fresh service wheel on every Python compatibility-matrix entry.
 
-This completes service transport verification, not native Relay integration. Python/Node bridges, collaboration UI, gap/conflict UX and migration remain pending. No package release was published; the npm 0.0.4 authentication blocker is unchanged.
+At this transport milestone, Python/Node bridges, collaboration UI, gap/conflict UX and migration remained pending; the native-integration follow-up above records subsequent progress. No package release was published; the npm 0.0.4 authentication blocker is unchanged.
 
 ## 0.0.5 service foundation — 27 October 2026
 

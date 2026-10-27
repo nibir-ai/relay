@@ -13,6 +13,9 @@ export interface RelayOptions {
   /** Git repository, detected upward from cwd by default. false disables Git. */
   project?: string | false;
   syncStatus?: boolean;
+  statusMode?: 'local' | 'git' | 'realtime';
+  /** Optional developer collaboration credentials. Never API-testing bearer tokens. */
+  realtime?: {url: string; project: string; token: string};
   /** Local metadata folder. false keeps local workspace metadata in memory. */
   dataDir?: string | false;
   specPath?: string;

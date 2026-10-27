@@ -1,5 +1,7 @@
 # Relay for Node
 
+[API testing workflow](https://github.com/nibir-ai/relay/blob/main/docs/API-TESTING.md) covers discovery, authorization, requests, responses and exports.
+
 API testing on your backend's existing `/relay` route. The UI, themes and assets are bundled. No Python, repository clone, frontend build or CDN is required.
 
 ```sh
