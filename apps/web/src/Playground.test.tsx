@@ -1,6 +1,7 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import Playground from "./Playground";
+import {SessionHistory,historyCapture} from "./history";
 import { api } from "./api";
 import type { Endpoint, Health, Snapshot, PlaygroundDraft } from "./types";
 
@@ -148,4 +149,37 @@ it("isolates endpoint credentials from shared auth and restores them after switc
   expect(screen.getByLabelText("Authentication")).toHaveValue("Bearer token");
   expect(screen.getByLabelText("Endpoint bearer token")).toHaveValue("Bearer admin-token");
   expect(shared).toEqual({ token: "user-token", enabled: true });
+});
+
+it("restores reviewed history inputs without executing or replacing current auth and response", async()=>{
+ const history=new SessionHistory();
+ vi.mocked(api.execute).mockResolvedValue({status:200,reason:"OK",body:'{"captured":true}',headers:{},duration_ms:2,bytes:17,truncated:false,content_type:"application/json",url:"http://127.0.0.1:8000/login",method:"POST"});
+ const {rerender}=render(<Playground endpoint={endpoint} health={health} snapshot={snapshot} history={history} auth={{token:"old-token",enabled:true}}/>);
+ const original=(screen.getByLabelText("Request body") as HTMLTextAreaElement).value;
+ fireEvent.click(screen.getByRole("button",{name:"Execute request"}));
+ await waitFor(()=>expect(history.snapshot()).toHaveLength(1));
+ rerender(<Playground endpoint={endpoint} health={health} snapshot={snapshot} history={history} auth={{token:"current-admin",enabled:true}}/>);
+ fireEvent.change(screen.getByLabelText("Request body"),{target:{value:'{"email":"new@example.test"}'}});
+ fireEvent.click(screen.getByText("Request history"));
+ fireEvent.click(screen.getByRole("button",{name:"Review request 1"}));
+ expect(screen.getByLabelText("Request body")).toHaveValue('{"email":"new@example.test"}');
+ fireEvent.click(screen.getByRole("button",{name:"Restore inputs"}));
+ expect(screen.getByLabelText("Request body")).toHaveValue(original);
+ expect(api.execute).toHaveBeenCalledTimes(1);
+ expect(screen.getByRole("tabpanel",{name:"Body response"})).toHaveTextContent('"captured"');
+ fireEvent.click(screen.getByRole("button",{name:"Execute request"}));
+ await waitFor(()=>expect(api.execute).toHaveBeenCalledTimes(2));
+ expect(vi.mocked(api.execute).mock.calls[1][1].headers.Authorization).toBe('Bearer current-admin');
+});
+it("requires current-contract review and keeps the current body when restoring an older capture",()=>{
+ const history=new SessionHistory();
+ history.add(endpoint,historyCapture(endpoint,{},'{"email":"old@example.test"}','application/json',{},[]),null);
+ render(<Playground endpoint={{...endpoint,fingerprint:'changed'}} health={health} snapshot={snapshot} history={history}/>);
+ const body=(screen.getByLabelText("Request body") as HTMLTextAreaElement).value;
+ fireEvent.click(screen.getByText("Request history"));fireEvent.click(screen.getByRole("button",{name:"Review request 1"}));
+ expect(screen.getByRole("button",{name:"Restore inputs"})).toBeDisabled();
+ fireEvent.click(screen.getByLabelText("I reviewed the current contract. Restore matching parameters only."));
+ fireEvent.click(screen.getByRole("button",{name:"Restore inputs"}));
+ expect(screen.getByLabelText("Request body")).toHaveValue(body);expect(api.execute).not.toHaveBeenCalled();
+ fireEvent.click(screen.getByText("Request history"));fireEvent.click(screen.getByRole("button",{name:"Clear all history"}));expect(history.snapshot()).toHaveLength(0);
 });

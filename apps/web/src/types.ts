@@ -13,6 +13,7 @@ export type Schema = {
   allOf?: Schema[];
   oneOf?: Schema[];
   readOnly?: boolean;
+  writeOnly?: boolean;
   $ref?: string;
   "x-relay-warning"?: string;
 };

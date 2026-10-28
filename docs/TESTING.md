@@ -63,3 +63,15 @@ Select a named OpenAPI example, then click Use selected example to replace the b
 ## Execution boundaries
 
 Relay enforces loopback Host/client checks, Origin, Fetch Metadata and CSRF. Native ASGI execution does not test network/TLS/DNS or middleware outside the FastAPI host. Standalone mode targets literal loopback HTTP origins, with redirects and ambient proxies disabled.
+
+## Request history: 0.0.6 development
+
+The source tester includes a closed-by-default **Request history** control under endpoint authorization. Each entry shows request time, HTTP status or network failure, and duration. **Review inputs** previews the saved inputs; **Restore inputs** applies them and returns to the request editor. It never sends a request. The current response and authorization settings remain in use until you explicitly execute again.
+
+History is tab-memory only: at most 50 entries across the tab, 10 per endpoint and 5 MiB of retained request-input data. Oldest entries are evicted first with a visible notice. Remove individual entries, clear an endpoint or clear all history. Reloading the page or closing the tab clears it. Opening another endpoint preserves this tab's history.
+
+Authorization headers, cookie inputs and current auth values are excluded. Bodies containing recognized credential fields, write-only/unsupported schemas or current auth values are omitted, as are opaque non-JSON bodies. Omitted bodies keep the current editor body when restored, with an explicit notice; re-enter missing values before executing. This conservative rule is not a guarantee to recognize every private value in an application's custom inputs. Response bodies, headers and error details are not copied into history.
+
+Safe JSON request text is retained exactly; large integers and duplicate keys are not reformatted or rounded. An older-contract entry requires explicit review and restores only parameters still declared by current code, retaining the current body. Current endpoint definitions stay code-generated.
+
+These controls are not in published 0.0.5 yet. Persistent history, collections and response replay are outside this milestone.

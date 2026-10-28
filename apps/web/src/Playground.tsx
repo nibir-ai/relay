@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { api } from "./api";
 import ResponseText from "./ResponseText";
+import RequestHistory from "./RequestHistory";
+import {SessionHistory,historyCapture,restoreHistory,type HistoryEntry} from "./history";
 import { downloadExport, endpointExport, exportFilename } from "./export";
 import { Method } from "./Explorer";
 import {
@@ -58,6 +60,7 @@ export default function Playground({
   changedBy,
   onRun,
   draftCache,
+  history: providedHistory,
   keyboardEnabled = true,
   inline = false,
   focusAuth = 0,
@@ -77,6 +80,7 @@ export default function Playground({
   changedBy?: string;
   onRun?: (summary: RunSummary) => void;
   draftCache?: Map<string, PlaygroundDraft>;
+  history?: SessionHistory;
   keyboardEnabled?: boolean;
   inline?: boolean;
   focusAuth?: number;
@@ -84,6 +88,9 @@ export default function Playground({
   changeCredentials?: (value: EndpointAuth) => void;
   quickAuthorize?: () => void;
 }) {
+  const [localHistory] = useState(()=>new SessionHistory());
+  const history=providedHistory??localHistory;
+  const [historyMessage,setHistoryMessage]=useState("");
   const cacheKey = `${endpoint.id}:${endpoint.fingerprint}`;
   const draft = draftCache?.get(cacheKey);
   const [responseTab, setResponseTab] = useState("Body");
@@ -199,7 +206,7 @@ export default function Playground({
     function keyboard(event: KeyboardEvent) {
       if (
         keyboardRef.current &&
-        !(event.target instanceof Element && event.target.closest('dialog, .handoff')) &&
+        !(event.target instanceof Element && event.target.closest('dialog, .handoff, .request-history')) &&
         (event.ctrlKey || event.metaKey) &&
         event.key === "Enter"
       ) {
@@ -220,10 +227,26 @@ export default function Playground({
       !!schema.oneOf ||
       Object.values(schema.properties ?? {}).some(schemaUnsupported) ||
       schemaUnsupported(schema.items));
+  function recordHistory(capture:ReturnType<typeof historyCapture>,result:LiveResponse|null,at:string) {
+    try {
+      const saved=history.add(endpoint,capture,result,at);
+      setHistoryMessage(!saved.saved?"History entry omitted: input size exceeds the session limit.":saved.evicted?"Oldest history entries removed to keep the session within its limits.":"");
+    } catch {setHistoryMessage("History could not retain this request. Your response is still available.");}
+  }
+  function restore(entry:HistoryEntry,reviewed:boolean) {
+    if(executing.current || entry.fingerprint!==endpoint.fingerprint && !reviewed) return;
+    try {
+      const restored=restoreHistory(entry,endpoint,{values,body,mediaType,headers:parseHeaders(headerText)});
+      setValues(restored.values);setBody(restored.body??body);setMediaType(restored.mediaType);setHeaderText(JSON.stringify(restored.headers,null,2));
+      setInvalidField("");setBodyMessage("");
+      setHistoryMessage("Inputs restored. Review missing values, then execute.");setError("");
+    } catch {setHistoryMessage("Fix the current request headers before restoring inputs.");}
+  }
   async function execute() {
     if (executing.current) return;
     setError("");
     setInvalidField("");
+    let capture:ReturnType<typeof historyCapture>|null=null;
     try {
       const parsed = parseHeaders(headerText);
       const headers = authHeaders(
@@ -234,12 +257,14 @@ export default function Playground({
         auth,
       );
       const payload = makeRequest(endpoint, values, body, mediaType, headers);
+      capture=historyCapture(endpoint,values,body,mediaType,payload.headers,[auth.token,secret]);
       setRunning(true);
       executing.current = true;
       const result = await api.execute(health.csrf_token, payload);
       setResponse(result);
       const at = new Date().toISOString();
       setResponseAt(at);
+      recordHistory(capture,result,at);
       onRun?.({
         endpoint_id: endpoint.id,
         status: result.status,
@@ -250,6 +275,7 @@ export default function Playground({
       setResponseTab("Body");
     } catch (err) {
       if (err instanceof InputError) setInvalidField(err.field);
+      if(executing.current && capture) recordHistory(capture,null,new Date().toISOString());
       if (executing.current)
         onRun?.({
           endpoint_id: endpoint.id,
@@ -491,6 +517,8 @@ export default function Playground({
                   )}
                 </details>
               </section>
+      <RequestHistory history={history} endpoint={endpoint} busy={running} restore={restore}/>
+      {historyMessage && <p className="history-message" role="status">{historyMessage}</p>}
               {endpoint.parameters.length > 0 && (
                 <section className="request-section">
                   <h3>Parameters</h3>

@@ -12,6 +12,7 @@ import Operations from "./Operations";
 import Playground from "./Playground";
 import AuthPanel from "./AuthPanel";
 import MigrationPanel from "./MigrationPanel";
+import {SessionHistory} from "./history";
 import type { NoteDraft } from "./Handoff";
 import type {
   Endpoint,
@@ -57,6 +58,7 @@ export default function App() {
   const snapshotRef = useRef<Snapshot | null>(null);
   snapshotRef.current = snapshot;
   const drafts = useRef(new Map<string, PlaygroundDraft>());
+  const [requestHistory] = useState(()=>new SessionHistory());
   function focusToken() {
     setAuthEndpoint(null);
     setAuthOpen(true);
@@ -368,6 +370,7 @@ export default function App() {
                 authorize={focusToken}
                 useToken={(token) => setAuth({ token, enabled: true })}
                 draftCache={drafts.current}
+                history={requestHistory}
                 focusAuth={focusAuth}
                 credentials={credentials[credentialKey(endpoint)]}
                 changeCredentials={(value) => saveCredentials(endpoint, value)}

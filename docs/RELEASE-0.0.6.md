@@ -1,6 +1,6 @@
 # Relay 0.0.6 roadmap
 
-Status: in progress; realtime diagnostics are implemented and verified in source. Baseline: Python and npm 0.0.5, published 27 October 2026. This document defines the next release scope; it does not claim that its features or checks are complete. There is no fixed release date.
+Status: in progress; realtime diagnostics and session request history are implemented and verified in source. Baseline: Python and npm 0.0.5, published 27 October 2026. This document defines the next release scope; it does not claim that its features or checks are complete. There is no fixed release date.
 
 ## Outcome
 
@@ -22,11 +22,11 @@ Acceptance: good/bad fixtures pass in both runtimes; diagnostics do not execute 
 
 ### 2. Session request history
 
-- [ ] Add a compact history control inside an expanded endpoint, closed by default, with time, HTTP result and duration.
-- [ ] Start with limits of 50 captures per browser tab, at most 10 per endpoint and 5 MiB of captured body data total. Evict oldest captures first and show any omission/truncation explicitly. These are data limits, not a claim about total browser memory usage.
-- [ ] Keep history in memory only; provide clear-one and clear-all actions. Page reload/tab closure clears it. No localStorage, backend persistence, Git or team-service synchronization.
-- [ ] Restore request inputs explicitly, without sending a request. Resolve auth from the current session/endpoint settings; do not copy authorization secrets into history. Explain any omitted sensitive inputs.
-- [ ] Keep current code-defined methods and paths authoritative. If a capture belongs to an older contract, show the mismatch and require review before applying compatible inputs. Do not silently overwrite unsaved inputs.
+- [x] Add a compact history control inside an expanded endpoint, closed by default, with time, HTTP result and duration.
+- [x] Start with limits of 50 captures per browser tab, at most 10 per endpoint and 5 MiB of retained request-input data total. Evict oldest captures first and show any omission/truncation explicitly. These are data limits, not a claim about total browser memory usage.
+- [x] Keep history in memory only; provide clear-one and clear-all actions. Page reload/tab closure clears it. No localStorage, backend persistence, Git or team-service synchronization. Response bodies/headers are not retained; history records outcome, status, timing and whether the original response was truncated.
+- [x] Restore request inputs explicitly, without sending a request. Resolve auth from the current session/endpoint settings; do not copy authorization secrets into history. Explain any omitted sensitive inputs. Bodies containing known credentials, sensitive field names, write-only/unsupported schemas and opaque non-JSON bodies are omitted; restoration keeps the current body when omitted. Safe JSON stays byte-for-byte, including large integers and duplicate keys.
+- [x] Keep current code-defined methods and paths authoritative. If a capture belongs to an older contract, show the mismatch and require review before applying compatible inputs. Do not silently overwrite unsaved inputs.
 
 Acceptance: switching endpoints, failures and peer status updates preserve current request/response state. Restore never executes an API, never resurrects an old token and never mutates the captured response. Large responses respect budgets; failed and non-JSON responses remain understandable. Reload leaves no persisted history or credentials.
 
