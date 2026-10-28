@@ -1642,3 +1642,17 @@ kbd {
 .migration-entry input { flex: 0 0 auto; margin-top: 4px; }
 .migration-entry > span { min-width: 0; display: grid; gap: 5px; overflow-wrap: anywhere; }
 .migration-entry span > span { color: var(--muted); font-size: 12px; }
+
+.request-history { margin: 12px 0 18px; border-block: 1px solid var(--border); }
+.request-history > summary { padding: 10px 0; cursor: pointer; font-weight: 600; }
+.request-history p { max-width: 72ch; line-height: 1.6; }
+.history-actions, .history-list li { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; }
+.history-actions { margin: 12px 0; }
+.history-list { padding: 0; margin: 12px 0; list-style: none; }
+.history-list li { padding: 10px 0; border-top: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.history-list time, .history-list li > span, .history-message { color: var(--muted); }
+.history-preview { border-top: 1px solid var(--border); padding: 14px 0; }
+.history-preview h3 { font-size: var(--type-ui); }
+.history-preview pre { padding: 12px; max-height: 220px; overflow: auto; border: 1px solid var(--border); font-size: var(--type-ui); }
+.history-preview label { display: flex; align-items: start; gap: 8px; margin-block: 12px; }
+.history-preview input { flex: 0 0 auto; margin-top: 3px; }
