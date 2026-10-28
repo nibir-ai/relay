@@ -23,6 +23,8 @@ def main():
         if action == "init":
             setup_parser.add_argument("--apply", action="store_true")
         else:
+            setup_parser.add_argument("--status-mode", choices=("local", "git", "realtime"))
+            setup_parser.add_argument("--sync-status", action="store_true")
             setup_parser.add_argument("--target")
             setup_parser.add_argument("--spec-path", default="/openapi.json")
             setup_parser.add_argument("--json", action="store_true")
@@ -31,7 +33,7 @@ def main():
             if action == "init":
                 initialize(options.project, options.apply)
             else:
-                result = doctor(options.project, options.target, options.spec_path)
+                result = doctor(options.project, options.target, options.spec_path, options.status_mode, options.sync_status)
                 if options.json:
                     print(json.dumps(result, indent=2))
                 else:

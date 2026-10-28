@@ -123,3 +123,15 @@ def test_hosted_factory_uses_environment_configuration(service, monkeypatch, tmp
     monkeypatch.setenv("RELAY_TEAM_DB", str(database))
     hosted = TestClient(create_app())
     assert hosted.put(URL, headers=headers(), json=mutation()).status_code == 200
+
+
+def test_access_diagnostic_reports_only_authenticated_permission_without_mutation(service):
+    client,_,database=service
+    before=client.get(URL,headers=headers()).json()
+    assert client.get("/v1/projects/alpha/access",headers=headers()).json()=={"protocol":1,"can_write":True}
+    assert client.get("/v1/projects/alpha/access",headers=headers("read-token")).json()=={"protocol":1,"can_write":False}
+    for project,token in [("alpha","wrong"),("unknown","alice-token"),("beta","alice-token")]:
+        response=client.get(f"/v1/projects/{project}/access",headers=headers(token))
+        assert response.status_code==401
+        assert response.json()=={"detail":"Developer authentication required."}
+    assert client.get(URL,headers=headers()).json()==before

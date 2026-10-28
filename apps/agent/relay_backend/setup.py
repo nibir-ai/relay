@@ -129,7 +129,7 @@ def git_checks(project: Path):
         return {"name": "git", "state": "info", "message": "Git unavailable or timed out. Install Git for optional status sharing."}
 
 
-def doctor(project: Path, target: str | None = None, spec_path="/openapi.json"):
+def doctor(project: Path, target: str | None = None, spec_path="/openapi.json", status_mode=None, sync_status=False):
     from . import __version__
     checks = [{"name": "runtime", "state": "ok", "message": f"Python {sys.version.split()[0]}; Relay {__version__}"}]
     if not project.is_dir():
@@ -140,6 +140,8 @@ def doctor(project: Path, target: str | None = None, spec_path="/openapi.json"):
         checks.append({"name": "package", "state": "ok", "message": f"relay-backend {installed} installed in this interpreter."})
     except PackageNotFoundError:
         checks.append({"name": "package", "state": "error", "message": "Run python -m pip install relay-backend in the backend interpreter."})
+    from .team_doctor import diagnose
+    checks.extend(diagnose(status_mode, sync_status))
     checks.append(git_checks(project.resolve()))
     if target is None:
         checks.append({"name": "backend", "state": "info", "message": "Supply --target with a loopback IP origin and port to check OpenAPI and the native /relay mount."})

@@ -186,6 +186,10 @@ def create_app(*, config: dict | None = None, db_path: str | Path | None = None)
             await events.emit("status:updated", result, room="project:" + project)
             return result
 
+    @app.get("/v1/projects/{project}/access")
+    def access(project: str, member: Annotated[Member, Depends(membership)]):
+        return {"protocol": 1, "can_write": member.role == "writer"}
+
     @app.get("/v1/projects/{project}/statuses")
     def snapshot(project: str, member: Annotated[Member, Depends(membership)]):
         return read_snapshot(project)
