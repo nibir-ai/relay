@@ -85,11 +85,11 @@ function initialize(project, apply=false, write=console.log) {
   return true;
 }
 
-function readJson(url) {
+function readJson(url,headers={},limit=MAX_RESPONSE) {
   return new Promise((resolve,reject)=> {
-    const req=(url.protocol==='https:'?https:http).get(url,{agent:false},res=> {
+    const req=(url.protocol==='https:'?https:http).get(url,{agent:false,headers},res=> {
       const chunks=[]; let size=0;
-      res.on('data',chunk=> { size+=chunk.length; if (size>MAX_RESPONSE) req.destroy(new Error('oversize')); else chunks.push(chunk); });
+      res.on('data',chunk=> { size+=chunk.length; if (size>limit) req.destroy(new Error('oversize')); else chunks.push(chunk); });
       res.on('error',reject);
       res.on('end',()=> { try { resolve({status:res.statusCode,data:JSON.parse(Buffer.concat(chunks).toString('utf8'))}); } catch { resolve({status:res.statusCode,data:null}); } });
     });
@@ -98,9 +98,10 @@ function readJson(url) {
   });
 }
 
-async function doctor(project, target, specPath='/openapi.json') {
+async function doctor(project, target, specPath='/openapi.json', options={}) {
   const checks=[{name:'runtime',state:'ok',message:`Node ${process.versions.node}; Relay ${require('../package.json').version}`}];
   if (!fs.existsSync(project) || !fs.statSync(project).isDirectory()) { checks.push({name:'project',state:'error',message:'Select an existing backend directory with --project.'}); return {checks}; }
+  checks.push(...await require('./team-doctor.cjs').diagnose(options,readJson));
   const git=(...args)=>spawnSync('git',['-C',path.resolve(project),...args],{encoding:'utf8',timeout:5000,windowsHide:true});
   const repo=git('rev-parse','--is-inside-work-tree');
   const remote=repo.status===0 ? git('config','--get','remote.origin.url') : null;

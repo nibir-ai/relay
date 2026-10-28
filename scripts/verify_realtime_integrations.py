@@ -78,6 +78,7 @@ def main(require_installed=False, public_index=False):
         members = [{"id": identity, "name": identity.title(), "role": "writer",
                     "token_sha256": hashlib.sha256((identity + "-developer-secret").encode()).hexdigest()}
                    for identity in ("python", "node")]
+        members.append({"id":"reader","name":"Reader","role":"reader","token_sha256":hashlib.sha256(b"reader-developer-secret").hexdigest()})
         configuration = folder / "members.json"
         configuration.write_text(json.dumps({"projects": {"example": {"members": members}}}))
         ports = set()
@@ -203,6 +204,20 @@ process.on('SIGTERM',async()=>{await middleware.close();server.close();});
             for filename in (folder / "node-data").glob("*.json"):
                 assert "developer-secret" not in filename.read_text() and "local-api-secret" not in filename.read_text()
             assert list(folder.glob("**/.relay/status.json")) == [status_file] and status_file.read_text() == original, "Realtime mode must preserve Git files."
+            if not public_index:
+                # This diagnostic capability is source development after 0.0.5.
+                before_diagnostics = (folder / "team.sqlite3").read_bytes()
+                commands = [[sys.executable, "-m", "relay_backend", "doctor", "--project", str(folder), "--status-mode", "realtime", "--json"],
+                            [node, str(folder / "node_modules/relay-backend/lib/cli.cjs"), "doctor", "--project", str(folder), "--status-mode", "realtime", "--json"]]
+                for command in commands:
+                    for token, permission in (("python-developer-secret", "Writer"), ("reader-developer-secret", "Read-only")):
+                        checked = subprocess.run(command, cwd=folder, env={**python_environment, "RELAY_TEAM_TOKEN": token},
+                                                 capture_output=True, text=True, check=True)
+                        checks = json.loads(checked.stdout)["checks"]
+                        access = next(check for check in checks if check["name"] == "team_access")
+                        assert permission in access["message"] and access["state"] in {"ok", "info"}
+                        assert "developer-secret" not in checked.stdout and "local-api-secret" not in checked.stdout
+                assert (folder / "team.sqlite3").read_bytes() == before_diagnostics
             print("Native Python/Node realtime: reviewed create-only Git migration, acknowledgement, attribution, conflict, private notes, offline API testing, cached restart and reconnect passed.")
         finally:
             for process in reversed(processes):

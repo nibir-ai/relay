@@ -108,3 +108,7 @@ python -m pytest apps/team-service/tests -q
 ```
 
 The suite covers project isolation, reader/writer permissions, authenticated attribution, restart durability and revocation, stale revisions, concurrent developer edits, independent endpoint edits and rejection of unsupported fields. Real Python Socket.IO clients additionally cover authenticated subscription, live delivery, cross-project isolation, reader rejection, stale acknowledgements, HTTP-to-socket notifications and polling reconnect recovery. `scripts/verify_team_events.cjs` exercises an installed wheel with independent Node clients and a separate Python HTTP writer. `scripts/verify_realtime_integrations.py` checks both installed native integrations and reviewed migration. `scripts/verify_upgrades.py` checks in-place upgrades from the previous public packages.
+
+## Read-only access diagnostics: 0.0.6 development
+
+The source service adds authenticated `GET /v1/projects/{project}/access`, returning only `{"protocol":1,"can_write":true}` for a writer or `false` for a reader. This route does not retrieve endpoint statuses or alter storage. Invalid credentials, unknown projects and cross-project access receive the same generic 401 response. It is intended for the Python/Node `doctor` checks; it is not in the published 0.0.5 service. New doctors treat an older service's 404 as unverified permission and provide upgrade guidance.

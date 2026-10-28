@@ -2,6 +2,12 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## 0.0.6 realtime diagnostics: source milestone, 27 October 2026
+
+The Python and Node doctor commands now accept explicit status-mode/Git flags and diagnose the environment-selected realtime service with bounded read-only health/access requests. The service access route returns authenticated permission only. Old-service 404, generic authentication rejection, reader/writer access, malformed responses, size limits, unavailable transport and conflicting/incomplete configuration have regression coverage. Responses and credentials are excluded from diagnostic output.
+
+Local validation passed 145 Python tests, the Node suite including diagnostic regression tests, TypeScript consumer checks and the strict frontend build. An installed backend wheel and native Node tarball ran the cross-runtime consumer, including both installed doctor CLIs with separate writer and reader credentials. The shared SQLite file remained byte-identical across diagnostic reads; status delivery, migration, offline API execution, cached restart and reconnect recovery still passed. These are development artifacts; registry versions remain 0.0.5. Session history, response checks and reviewed exports remain pending, so no 0.0.6 publication is implied.
+
 ## Published 0.0.5 — 27 October 2026
 
 [Python publication](https://github.com/nibir-ai/relay/actions/runs/40491186153) and [npm publication](https://github.com/nibir-ai/relay/actions/runs/40491187326) succeeded for source commit `c924bca`. The existing PyPI trust and newly configured npm trust both used GitHub OIDC. The [GitHub release](https://github.com/nibir-ai/relay/releases/tag/v0.0.5) includes the CI-built wheel, source archive, npm tarball and SHA-256 checksums.

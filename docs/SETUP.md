@@ -42,3 +42,18 @@ The Git check reports whether an origin remote is configured. It does not connec
 Use `--json` for a shareable diagnostic result. Output omits URLs, Git stderr, schema bodies, request/response traffic and health tokens. Errors return exit code 1; informational optional checks do not.
 
 When Relay is unavailable, check the interpreter/package, backend start command, target port, schema route and native mount. [Troubleshooting](TROUBLESHOOTING.md) covers integration details.
+
+## Realtime diagnostics: 0.0.6 development
+
+These additions are implemented in source and are not part of the published 0.0.5 CLI yet. Use the same private backend environment as your running application; doctor does not import application code or load `.env` files automatically.
+
+```sh
+relay doctor --project ./backend --status-mode realtime --json
+npx relay-backend doctor --project ./backend --status-mode realtime --json
+```
+
+`--status-mode local|git|realtime` and the optional Git `--sync-status` flag reproduce the selected backend authority for diagnosis. Explicit local/Git mode ignores realtime environment settings, matching native integration behavior. Realtime plus Git sync, incomplete credentials, invalid origins and invalid project IDs produce actionable errors without a network request. Without explicit flags, the three realtime environment variables select realtime; otherwise the output describes the doctor's local configuration, not a claim that it inspected the running app's options.
+
+The realtime check makes bounded GET requests to the service health and access routes. It distinguishes reachability/protocol problems, generic rejected project access and verified reader/writer permission. Authentication failures intentionally do not distinguish an unknown project from an invalid credential. An older service without the access route is reported as reachable with access **not verified**, rather than assumed authorized. Upgrade the shared service to enable permission diagnosis.
+
+Output omits tokens, response bodies and credential-bearing URLs, including in JSON. The check does not execute business endpoints, change membership, write statuses or modify Git/source files. `--target` still independently checks the local schema and Relay mount.
