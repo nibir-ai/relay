@@ -2,6 +2,12 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## 0.0.6 response-check engine: source foundation, 29 October 2026
+
+The shared frontend evaluator supports HTTP status, inclusive duration limits, JSON Pointer existence and structural equality. Decimal lexemes are compared without floating-point conversion or exponent expansion; large integers remain distinct. Missing fields differ from null, false, zero and empty strings. Duplicate keys, malformed/empty/non-JSON bodies, truncated responses and complexity limits produce explicit unavailable outcomes. Invalid expectations produce configuration errors. Evaluation reads a captured result only and does not mutate it or execute requests.
+
+All 71 frontend tests and the strict production build passed locally. New coverage includes escaped pointer keys, canonical array indices, own-property lookup, nested structural equality, large/decimal/exponent values, duplicate escaped keys and size/depth/node/precision budgets. UI configuration, display and native browser checks remain pending. No response-check roadmap checkbox or release gate is marked complete; public packages remain 0.0.5.
+
 ## 0.0.6 session history: source milestone, 28 October 2026
 
 The source tester now keeps bounded request history in tab memory, shared across expanded endpoints and retained when an endpoint closes. History records request inputs and response outcome/status/timing only; response bodies/headers and error details are not copied. Retained request-input data is capped at 5 MiB, 50 entries per tab and 10 per endpoint, with oldest-first eviction and visible notices. Safe JSON remains byte-for-byte; recognized credential-bearing/write-only/unsupported bodies are omitted and reported. Restoring an old contract requires explicit review, keeps the current body and applies only currently declared parameters. Restoration does not execute requests or replace current auth/response state.

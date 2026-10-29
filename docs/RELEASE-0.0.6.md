@@ -32,6 +32,8 @@ Acceptance: switching endpoints, failures and peer status updates preserve curre
 
 ### 3. Lightweight response checks
 
+The pure evaluation engine is implemented and tested in source: exact decimal comparison, JSON Pointer traversal, structural equality, status and duration checks. Duplicate keys and incomplete/unsupported JSON return explicit unavailable results. UI controls, session configuration and native browser verification remain pending; this milestone is not complete.
+
 - [ ] Support an expected HTTP status, JSON field existence/equality (for example `/data/role`) and an optional maximum response duration.
 - [ ] Evaluate checks against a captured result and show pass/fail, expected value and observed value beside the response. Configuration and results stay session-local for this release.
 - [ ] Handle missing fields, null, false, zero, arrays, invalid JSON, empty responses and truncated previews explicitly. Preserve accurate large-number comparisons; do not silently round values.
