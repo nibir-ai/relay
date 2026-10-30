@@ -183,3 +183,20 @@ it("requires current-contract review and keeps the current body when restoring a
  expect(screen.getByLabelText("Request body")).toHaveValue(body);expect(api.execute).not.toHaveBeenCalled();
  fireEvent.click(screen.getByText("Request history"));fireEvent.click(screen.getByRole("button",{name:"Clear all history"}));expect(history.snapshot()).toHaveLength(0);
 });
+
+it("keeps response checks session-local across closing an endpoint without executing or changing progress", async()=>{
+ const draftCache=new Map<string,PlaygroundDraft>(); const progress=vi.fn();
+ vi.mocked(api.execute).mockResolvedValue({status:200,reason:"OK",body:'{"role":"user"}',headers:{},duration_ms:2,bytes:15,truncated:false,content_type:"application/json",url:"/login",method:"POST"});
+ const props={endpoint,health,snapshot,draftCache,updateProgress:progress};
+ const view=render(<Playground {...props}/>);
+ fireEvent.click(screen.getByRole("button",{name:"Execute request"}));await waitFor(()=>expect(screen.getByRole("tabpanel",{name:"Body response"})).toHaveTextContent('"role"'));
+ fireEvent.click(screen.getByText("Response checks"));fireEvent.click(screen.getByRole("button",{name:"Add check"}));
+ fireEvent.change(screen.getByLabelText("Expected status"),{target:{value:"201"}});
+ fireEvent.click(screen.getByRole("button",{name:"Check response"}));expect(screen.getByText("Failed")).toBeInTheDocument();
+ fireEvent.keyDown(screen.getByLabelText("Expected status"),{ctrlKey:true,key:"Enter"});
+ expect(api.execute).toHaveBeenCalledTimes(1);expect(progress).not.toHaveBeenCalled();
+ expect(screen.getByRole("tabpanel",{name:"Body response"})).toHaveTextContent('"role"');
+ view.unmount();render(<Playground {...props}/>);fireEvent.click(screen.getByText("Response checks"));
+ expect(screen.getByLabelText("Expected status")).toHaveValue("201");expect(screen.queryByText("Failed")).not.toBeInTheDocument();
+ cleanup();render(<Playground {...props} draftCache={new Map()}/>);fireEvent.click(screen.getByText("Response checks"));expect(screen.queryByLabelText("Expected status")).not.toBeInTheDocument();
+});

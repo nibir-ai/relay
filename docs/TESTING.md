@@ -75,3 +75,13 @@ Authorization headers, cookie inputs and current auth values are excluded. Bodie
 Safe JSON request text is retained exactly; large integers and duplicate keys are not reformatted or rounded. An older-contract entry requires explicit review and restores only parameters still declared by current code, retaining the current body. Current endpoint definitions stay code-generated.
 
 These controls are not in published 0.0.5 yet. Persistent history, collections and response replay are outside this milestone.
+
+## Response checks: 0.0.6 development
+
+Open **Response checks** below a captured response. Add up to ten checks for HTTP status, maximum observed duration, JSON field existence or JSON equality. Use a JSON Pointer such as `/data/role`; leave it empty to check the whole JSON body. Escape `/` as `~1` and `~` as `~0` in field names. Equality expects valid JSON: use `"admin"` for a string, `false` for a boolean, or an object/array for structural equality.
+
+Click **Check response** to evaluate the currently displayed capture. Expected and observed values appear with Passed, Failed, Invalid check or Unavailable. This never executes another request or changes the endpoint's manual status. Editing a check or receiving another response invalidates the displayed results. A timing check describes one observed request, not a performance guarantee.
+
+Large decimal numbers compare exactly. Missing fields differ from null, false, zero and empty strings. Truncated, invalid, duplicate-key or non-JSON bodies cannot produce passing JSON checks; status and duration remain independently usable. JSON checks have explicit size, nesting, node and numeric-precision budgets to keep evaluation bounded.
+
+Configuration stays in tab memory alongside endpoint drafts (up to twenty cached endpoint contracts) and survives closing/reopening a cached endpoint. Results must be evaluated again after reopening. Reloading clears checks; they are not written to the backend, shared service, Git, exports or browser storage. Remove individual checks or use **Clear checks**. These controls are not in published 0.0.5.

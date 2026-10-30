@@ -139,6 +139,7 @@ export type RunSummary = {
   outcome: "response" | "network_error";
 };
 export type PlaygroundDraft = {
+  checks?: { kind: "status" | "duration" | "exists" | "equals"; pointer: string; expected: string }[];
   values: Record<string, string>;
   body: string;
   mediaType: string;

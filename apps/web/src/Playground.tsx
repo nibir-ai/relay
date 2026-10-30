@@ -19,6 +19,7 @@ import {
 import { api } from "./api";
 import ResponseText from "./ResponseText";
 import RequestHistory from "./RequestHistory";
+import ResponseChecks, { type CheckDraft } from "./ResponseCheckPanel";
 import {SessionHistory,historyCapture,restoreHistory,type HistoryEntry} from "./history";
 import { downloadExport, endpointExport, exportFilename } from "./export";
 import { Method } from "./Explorer";
@@ -93,6 +94,7 @@ export default function Playground({
   const [historyMessage,setHistoryMessage]=useState("");
   const cacheKey = `${endpoint.id}:${endpoint.fingerprint}`;
   const draft = draftCache?.get(cacheKey);
+  const [checks, setChecks] = useState<CheckDraft[]>(() => draft?.checks ?? []);
   const [responseTab, setResponseTab] = useState("Body");
   const [responseFocused, setResponseFocused] = useState(false);
   const [wrapResponse, setWrapResponse] = useState(false);
@@ -182,6 +184,7 @@ export default function Playground({
       headerText,
       response,
       responseAt,
+      checks,
     });
     if (draftCache && draftCache.size > 20) {
       const oldest = draftCache.keys().next().value;
@@ -199,6 +202,7 @@ export default function Playground({
     headerText,
     response,
     responseAt,
+    checks,
   ]);
   const keyboardRef = useRef(keyboardEnabled);
   keyboardRef.current = keyboardEnabled;
@@ -206,7 +210,7 @@ export default function Playground({
     function keyboard(event: KeyboardEvent) {
       if (
         keyboardRef.current &&
-        !(event.target instanceof Element && event.target.closest('dialog, .handoff, .request-history')) &&
+        !(event.target instanceof Element && event.target.closest('dialog, .handoff, .request-history, .response-checks')) &&
         (event.ctrlKey || event.metaKey) &&
         event.key === "Enter"
       ) {
@@ -903,6 +907,7 @@ export default function Playground({
               </div>
             )}
           </section>
+          <ResponseChecks response={response} value={checks} onChange={setChecks} busy={running}/>
         </div>
       </div>
     </>
