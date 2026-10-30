@@ -2,6 +2,14 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## 0.0.6 response checks: source milestone, 30 October 2026
+
+Response checks now sit below the response, closed by default. The developer explicitly evaluates up to ten HTTP status, duration, JSON Pointer existence/equality checks against the current capture. Expected and observed values stay visible; editing configuration or receiving a new response invalidates old results. Evaluation never executes a request, changes manual progress or replaces the response. Configuration survives endpoint closure through the existing bounded tab draft cache and clears on reload; reopening requires evaluating results again.
+
+All 75 frontend tests and the strict production build passed locally. Component/integration coverage includes explicit evaluation, invalidation, missing/unavailable values, configuration limits, focus after removal, cached drafts, fresh-session clearing and Ctrl/Cmd+Enter suppression inside checks. Installed FastAPI wheel and fresh native Node tarball browser checks both rejected 9007199254740992 and accepted 9007199254740993 against a captured id of 9007199254740993 without another execution. Browser checks also confirmed retained configuration after closing/reopening, response preservation, unchanged Done status, reload clearing, all five themes, 320/390-pixel layouts without document overflow and no console errors. The installed wheel verifier and clean CJS/ESM/TypeScript/npm consumer checks passed.
+
+This source milestone does not publish 0.0.6. Reviewed exports and the full compatibility, upgrade and release sweep remain pending. Registry packages stay at 0.0.5.
+
 ## 0.0.6 response-check engine: source foundation, 29 October 2026
 
 The shared frontend evaluator supports HTTP status, inclusive duration limits, JSON Pointer existence and structural equality. Decimal lexemes are compared without floating-point conversion or exponent expansion; large integers remain distinct. Missing fields differ from null, false, zero and empty strings. Duplicate keys, malformed/empty/non-JSON bodies, truncated responses and complexity limits produce explicit unavailable outcomes. Invalid expectations produce configuration errors. Evaluation reads a captured result only and does not mutate it or execute requests.

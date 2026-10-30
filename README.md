@@ -133,10 +133,10 @@ Tokens and drafts stay in browser session memory. Explicit exports include reque
 
 ### 0.0.6: repeatable API testing and safer handoffs
 
-Implementation is in progress; realtime diagnostics and session request history are complete in source. Keep testing at the center: restore a recent request, see whether its response meets expectations, and review exactly what an export contains. Existing integrations stay unchanged. No launch date until the release gates pass.
+Implementation is in progress; realtime diagnostics, session request history and response checks are complete in source. Keep testing at the center: restore a recent request, see whether its response meets expectations, and review exactly what an export contains. Existing integrations stay unchanged. No launch date until the release gates pass.
 
 - [x] Add bounded, session-only request history with explicit restore and clear actions; never replay automatically or persist credentials.
-- [ ] Add lightweight response checks for expected HTTP status, JSON field existence/equality and optional response-time limits; keep results separate from manual endpoint status.
+- [x] Add lightweight response checks for expected HTTP status, JSON field existence/equality and optional response-time limits; keep results separate from manual endpoint status.
 - [ ] Preview both export formats and support reviewed redaction of credentials and selected request/response fields.
 - [x] Extend Python/Node diagnostics for realtime configuration, project access and connectivity without exposing tokens or changing setup.
 - [ ] Verify upgrades from public 0.0.5, native FastAPI/Express/Fastify/Node HTTP consumers, auth isolation, both exports, offline testing, themes and narrow layouts before publication.

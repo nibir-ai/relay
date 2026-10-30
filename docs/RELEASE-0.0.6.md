@@ -1,6 +1,6 @@
 # Relay 0.0.6 roadmap
 
-Status: in progress; realtime diagnostics and session request history are implemented and verified in source. Baseline: Python and npm 0.0.5, published 27 October 2026. This document defines the next release scope; it does not claim that its features or checks are complete. There is no fixed release date.
+Status: in progress; realtime diagnostics, session request history and response checks are implemented and verified in source. Baseline: Python and npm 0.0.5, published 27 October 2026. This document defines the next release scope; it does not claim that its features or checks are complete. There is no fixed release date.
 
 ## Outcome
 
@@ -32,12 +32,12 @@ Acceptance: switching endpoints, failures and peer status updates preserve curre
 
 ### 3. Lightweight response checks
 
-The pure evaluation engine is implemented and tested in source: exact decimal comparison, JSON Pointer traversal, structural equality, status and duration checks. Duplicate keys and incomplete/unsupported JSON return explicit unavailable results. UI controls, session configuration and native browser verification remain pending; this milestone is not complete.
+Response checks are implemented in the source tester below the response, closed by default. Configuration stays in the existing bounded tab draft cache; explicit evaluation never sends a request. Python and Node installed-package browser checks produced matching exact large-number outcomes. Reviewed exports and complete release verification remain pending.
 
-- [ ] Support an expected HTTP status, JSON field existence/equality (for example `/data/role`) and an optional maximum response duration.
-- [ ] Evaluate checks against a captured result and show pass/fail, expected value and observed value beside the response. Configuration and results stay session-local for this release.
-- [ ] Handle missing fields, null, false, zero, arrays, invalid JSON, empty responses and truncated previews explicitly. Preserve accurate large-number comparisons; do not silently round values.
-- [ ] A failed check leaves the response available and does not change the manual Done/In progress/Needs fixing status. HTTP success alone still does not approve an endpoint.
+- [x] Support an expected HTTP status, JSON field existence/equality (for example `/data/role`) and an optional maximum response duration.
+- [x] Evaluate checks against a captured result and show pass/fail, expected value and observed value beside the response. Configuration and results stay session-local for this release.
+- [x] Handle missing fields, null, false, zero, arrays, invalid JSON, empty responses and truncated previews explicitly. Preserve accurate large-number comparisons; do not silently round values.
+- [x] A failed check leaves the response available and does not change the manual Done/In progress/Needs fixing status. HTTP success alone still does not approve an endpoint.
 
 Acceptance: the same inputs/results produce matching check outcomes in Python- and Node-backed testers. Timing checks report one observed request, not a performance guarantee. No arbitrary JavaScript, shell execution, scripting language, collection runner or background business requests.
 

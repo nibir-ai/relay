@@ -29,7 +29,7 @@ The [relay-backend npm package](https://www.npmjs.com/package/relay-backend) is 
 
 ## Next release
 
-[0.0.6 roadmap](RELEASE-0.0.6.md): session request history, lightweight response checks, reviewed exports and realtime diagnostics. Implementation is in progress; realtime diagnostics and session request history are complete in source; response checks, reviewed exports and release gates remain pending.
+[0.0.6 roadmap](RELEASE-0.0.6.md): session request history, lightweight response checks, reviewed exports and realtime diagnostics. Implementation is in progress; realtime diagnostics, session request history and response checks are complete in source; reviewed exports and release gates remain pending.
 
 ## Guides
 
