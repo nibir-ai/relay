@@ -2,6 +2,14 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## 0.0.6 lossless JSON redaction: source foundation, 31 October 2026
+
+The pure redaction utility edits selected source spans rather than serializing parsed numeric values. Untouched text, whitespace, numeric exponents, large integers and duplicate keys remain exact. JSON Pointer selections cover every duplicate occurrence, and parent selections subsume child edits. Common credential-field suggestions are masked by default; configured exact secret values are detected in decoded strings, object keys and primitive lexemes. Suggestion metadata is capped with an explicit truncation flag while all detected fields are still masked. This is a review aid, not a guarantee to recognize every application's private fields or encoded credential representation.
+
+All 85 frontend tests and the strict production build passed locally. Ten new tests cover nested arrays/objects, escaped and duplicate keys, root and overlapping selections, exact numeric preservation, secret-bearing keys, sanitized errors, prototype names and bounded size/depth/node/configuration work. Malformed or oversized JSON returns no partial body and directs the caller to omit or correct it.
+
+This utility is not yet connected to downloads. Export preview, headers/URLs/contract metadata handling, shared reviewed payloads for both formats and native browser acceptance remain pending. No export roadmap checkbox or release gate is marked complete; public packages remain 0.0.5.
+
 ## 0.0.6 response checks: source milestone, 30 October 2026
 
 Response checks now sit below the response, closed by default. The developer explicitly evaluates up to ten HTTP status, duration, JSON Pointer existence/equality checks against the current capture. Expected and observed values stay visible; editing configuration or receiving a new response invalidates old results. Evaluation never executes a request, changes manual progress or replaces the response. Configuration survives endpoint closure through the existing bounded tab draft cache and clears on reload; reopening requires evaluating results again.
