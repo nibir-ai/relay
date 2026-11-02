@@ -220,6 +220,7 @@ Release gate: fresh package installation, endpoint discovery, authentication, ex
 ## Documentation
 
 Start with the [documentation index](docs/README.md).
+The [documentation website](https://relay-backend.pages.dev/) includes local search across guides and reference sections. Search terms stay in your browser.
 
 - [FastAPI setup and configuration](docs/FASTAPI.md)
 - [JavaScript and TypeScript backends](docs/NODE.md)

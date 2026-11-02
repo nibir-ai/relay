@@ -4,7 +4,10 @@ Public documentation: https://relay-backend.pages.dev/
 
 The static website combines focused API testing articles in `website/content`
 with the maintained Markdown references in `docs`. It uses bundled Relay
-branding and no runtime JavaScript or third-party page requests.
+branding and no third-party page requests. Search is a progressive enhancement:
+an optional browser module loads one static section index on the first query.
+Queries stay in the browser and are not recorded or sent to a search service.
+All pages and navigation remain readable without JavaScript.
 
 ## Build and verify
 
@@ -12,12 +15,22 @@ branding and no runtime JavaScript or third-party page requests.
 python -m pip install -r website/requirements.txt
 python scripts/build_docs.py
 python scripts/verify_docs.py
+node --test website/search.test.mjs
 python -m http.server 8765 --bind 127.0.0.1 --directory dist/docs
 ```
 
 The output is `dist/docs`. Verification checks local links and fragments,
 page headings, canonical URLs, descriptions, JSON-LD and exact sitemap coverage.
 The documentation workflow repeats these checks and saves a build artifact.
+Search indexes every public page and rendered heading anchor. Verification
+rejects broken search destinations, missing pages and an oversized index.
+The web test suite also checks search loading/retry, keyboard behavior and
+safe rendering. Browser acceptance covers actual navigation and narrow widths.
+
+Verified on 2 November 2026: 27 indexed pages, 206 section targets, five search
+ranking tests and 106 web tests passed. Browser checks covered a real section
+navigation, ArrowDown focus, Clear, and 320/390-pixel layouts with no horizontal
+page overflow. The documentation search does not change backend release gates.
 
 ## Publish
 

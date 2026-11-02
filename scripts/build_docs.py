@@ -1,6 +1,7 @@
 """Build Relay's static documentation from the repository's Markdown sources."""
 from pathlib import Path
 from html import escape
+from html.parser import HTMLParser
 import json
 import re
 import shutil
@@ -22,6 +23,37 @@ PAGES = {
     'offline-api-testing': ('Offline API Testing Client for FastAPI & Node | Relay', 'Test local APIs with a bundled interface and no CDN. Learn what works offline, how to authorize requests and how to share Relay reports.'),
     'fastapi-api-testing': ('FastAPI API Testing: Your First Request with Relay', 'Install Relay, mount it on FastAPI and test a real endpoint in your browser. A complete Python example with parameters, responses and authentication guidance.'),
 }
+
+
+class SearchSections(HTMLParser):
+    """Index visible section text using the rendered heading anchors."""
+    def __init__(self, title, url):
+        super().__init__()
+        self.title, self.url = title, url
+        self.sections, self.words = [], []
+        self.heading, self.heading_words, self.anchor = '', None, ''
+
+    def flush(self):
+        text = ' '.join(' '.join(self.words).split())
+        if text:
+            self.sections.append({'title': self.title, 'section': self.heading,
+                                  'url': self.url + ('#' + self.anchor if self.anchor else ''), 'text': text})
+        self.words = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag in ('h1', 'h2', 'h3'):
+            self.flush()
+            self.heading_words, self.anchor = [], dict(attrs).get('id', '')
+
+    def handle_data(self, data):
+        self.words.append(data)
+        if self.heading_words is not None:
+            self.heading_words.append(data)
+
+    def handle_endtag(self, tag):
+        if tag in ('h1', 'h2', 'h3') and self.heading_words is not None:
+            self.heading = ' '.join(self.heading_words).strip()
+            self.heading_words = None
 
 
 def route(slug):
@@ -78,10 +110,10 @@ def frame(slug, title, description, body):
 <meta property="og:type" content="website"><meta property="og:title" content="{escape(title, quote=True)}">
 <meta property="og:description" content="{escape(description, quote=True)}"><meta property="og:url" content="{canonical}">
 <meta property="og:image" content="{BASE}/assets/fastapi-quickstart.png"><meta property="og:site_name" content="Relay API Testing">
-<meta name="twitter:card" content="summary_large_image"><script type="application/ld+json">{schema}</script></head>
+<meta name="twitter:card" content="summary_large_image"><script type="application/ld+json">{schema}</script><script type="module" src="/assets/search.mjs"></script></head>
 <body><a class="skip" href="#main">Skip to content</a><header><a class="brand" href="/" aria-label="Relay home"><img src="/assets/relay-logo.svg" alt="Relay" width="180" height="44"></a><nav aria-label="Main navigation"><a href="/guides/">Documentation</a><a href="/swagger-ui-alternative/">Compare</a><a href="{REPO}">GitHub ↗</a></nav></header>
 <div class="layout"><aside><p class="eyebrow">API testing / Open source</p><nav aria-label="Relay topics"><a href="/">Overview & install</a><a href="/swagger-ui-alternative/">Swagger UI alternative</a><a href="/postman-alternative/">Free Postman alternative</a><a href="/offline-api-testing/">Offline API testing</a><a href="/fastapi-api-testing/">FastAPI walkthrough</a><a href="/guides/node/">Express & Fastify</a><a href="/guides/testing/">Authentication & requests</a><a href="/guides/exports/">Reports & exports</a><a href="/guides/">All documentation →</a></nav><div class="package"><span>Install the workspace</span><code>pip install relay-backend</code><code>npm install relay-backend</code></div></aside>
-<main id="main"><p class="eyebrow">Relay / Developer documentation</p>{body}</main></div>
+<main id="main"><search class="doc-search" id="doc-search" hidden><label for="docs-query">Search documentation</label><div class="search-field"><input id="docs-query" type="search" placeholder="Setup, authentication, exports…" maxlength="120" autocomplete="off" spellcheck="false" aria-describedby="search-status" aria-controls="search-results"><button id="search-clear" type="button" hidden>Clear</button></div><p id="search-status" role="status">Search guides and reference sections.</p><button id="search-retry" type="button" hidden>Retry search</button><ol id="search-results" hidden></ol></search><p class="eyebrow">Relay / Developer documentation</p>{body}</main></div>
 <footer><span>Relay · Apache-2.0</span><nav aria-label="Packages"><a href="https://pypi.org/project/relay-backend/">PyPI</a><a href="https://www.npmjs.com/package/relay-backend">npm</a><a href="{REPO}/issues">Issues</a><a href="/sitemap.xml">Sitemap</a></nav></footer></body></html>'''
 
 
@@ -130,6 +162,7 @@ def build():
     for name in ['relay-logo.svg', 'relay-icon.svg']:
         shutil.copy2(ROOT / 'apps/web/public/brand' / name, assets / name)
     shutil.copy2(ROOT / 'website/docs.css', assets / 'docs.css')
+    shutil.copy2(ROOT / 'website/search.mjs', assets / 'search.mjs')
     pages = []
     for slug, (title, description) in PAGES.items():
         source = CONTENT / ((slug or 'index') + '.md')
@@ -147,10 +180,16 @@ def build():
     library = '<h1>Relay documentation</h1><p>Setup, practical API testing and reference guides, built from the maintained repository documentation. Sections labeled 0.0.6 development describe unreleased work.</p><ul class="library">'
     library += ''.join(f'<li><a href="{route(slug)}">{escape(name)}</a></li>' for slug, name in guides) + '</ul>'
     pages.append(('guides', 'Relay Documentation — FastAPI, Node & API Testing', 'Install Relay on FastAPI, Express or Fastify. Browse API testing, authentication, export, troubleshooting and team collaboration guides.', library))
+    search_sections = []
     for slug, title, description, body in pages:
         target = OUT / slug / 'index.html'
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(frame(slug, title, description, body), encoding='utf-8')
+        indexer = SearchSections(title.split(' | ')[0], route(slug))
+        indexer.feed(body)
+        indexer.flush()
+        search_sections.extend(indexer.sections)
+    (assets / 'search-index.json').write_text(json.dumps(search_sections, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
     root = ET.Element('urlset', xmlns='http://www.sitemaps.org/schemas/sitemap/0.9')
     for slug, *_ in pages:
         ET.SubElement(ET.SubElement(root, 'url'), 'loc').text = BASE + route(slug)
