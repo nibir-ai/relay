@@ -95,3 +95,7 @@ it("also removes recognized parameter and URL credentials when echoed in unrelat
  const result=reviewExport(original);expect(result.error).toBeNull();
  for(const secret of ['query-private','url-private','cookie-param-private']) expect(JSON.stringify(result.value)).not.toContain(secret);
 });
+
+it("blocks credential overlap with required field names rather than returning a broken envelope",()=>{
+ const result=reviewExport(value(),{secrets:['current_request']});expect(result.value).toBeNull();expect(result.error).toContain('required export fields');
+});

@@ -115,6 +115,7 @@ export function reviewExport(original: Export, options: ExportReviewOptions = {}
     for (const headers of [source.current_request.headers, source.latest_response?.headers]) for (const name of Object.keys(headers ?? {})) if (sensitive.test(name)) headers![name] = MASK;
     // Do not copy parser error excerpts into an export.
     if (source.current_request.header_error) source.current_request.header_error = "Request headers could not be parsed; omitted from export.";
+    const requiredKeys = new Set([...Object.keys(source), ...Object.keys(source.api), ...Object.keys(source.endpoint), ...Object.keys(source.current_request), ...Object.keys(source.latest_response ?? {})]);
     let nodes = 0;
     function sanitize(value: unknown, depth: number): unknown {
       if (depth > 128 || ++nodes > 100000) throw Error("Export metadata exceeds the review complexity limit.");
@@ -127,6 +128,7 @@ export function reviewExport(original: Export, options: ExportReviewOptions = {}
         for (const [key, child] of Object.entries(value)) {
           let name = key;
           if (containsSecret(key)) {
+            if (requiredKeys.has(key)) throw Error("A configured credential overlaps required export fields. This export cannot be reviewed safely.");
             do { name = `__redacted_field_${++index}__`; } while (Object.hasOwn(value, name) || Object.hasOwn(result, name));
           }
           result[name] = sensitive.test(key) ? MASK : sanitize(child, depth + 1);
