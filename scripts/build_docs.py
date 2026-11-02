@@ -4,6 +4,7 @@ from html import escape
 import json
 import re
 import shutil
+import struct
 from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
 
@@ -39,7 +40,7 @@ def frame(slug, title, description, body):
         graph += [{'@type': 'WebSite', '@id': BASE + '/#website', 'url': BASE + '/', 'name': 'Relay API Testing'},
                   {'@type': 'SoftwareApplication', '@id': BASE + '/#software', 'name': 'Relay',
                    'alternateName': 'relay-backend', 'applicationCategory': 'DeveloperApplication',
-                   'operatingSystem': 'Windows, macOS, Linux', 'url': BASE + '/', 'codeRepository': REPO,
+                   'operatingSystem': 'Windows, macOS, Linux', 'url': BASE + '/', 'sameAs': REPO,
                    'license': REPO + '/blob/main/LICENSE', 'description': description,
                    'offers': {'@type': 'Offer', 'price': '0', 'priceCurrency': 'USD'}}]
     schema = json.dumps({'@context': 'https://schema.org', '@graph': graph}).replace('<', '\\u003c')
@@ -80,7 +81,17 @@ def render(source, source_path, slug):
         if parsed.fragment:
             target += '#' + parsed.fragment
         return f'{attr}="{escape(target, quote=True)}"'
-    return re.sub(r'(href|src)="([^"]+)"', rewrite, body)
+    body = re.sub(r'(href|src)="([^"]+)"', rewrite, body)
+    def dimensions(match):
+        image = match.group(0)
+        src = re.search(r'src="([^"]+)"', image).group(1)
+        if src.startswith(('/assets/', 'assets/')) and src.endswith('.png'):
+            file = ROOT / 'docs' / 'assets' / Path(src).name
+            if file.is_file():
+                width, height = struct.unpack('>II', file.read_bytes()[16:24])
+                return image.replace('<img ', f'<img width="{width}" height="{height}" ')
+        return image
+    return re.sub(r'<img\b[^>]+>', dimensions, body)
 
 
 def build():
