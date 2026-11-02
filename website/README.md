@@ -59,6 +59,12 @@ The sitemap and robots file support Google discovery. Google URL Inspection
 requests and Search Console sitemap submissions require an authorized property;
 HTTP crawl checks alone do not establish actual indexing or crawler identity.
 
+Keep the Google-supplied HTML ownership file in ignored local
+`.wrangler/google-verification/`. The build validates and copies it unchanged
+to the site root on every deployment. The verifier checks its exact contents
+separately from article HTML. Preserve this directory to retain ownership;
+do not commit account-specific verification files to the repository.
+
 IndexNow supports participating search engines separately from Google. Initialize
 verification once with `python scripts/indexnow.py --init`, then build, check and
 deploy the site. The build copies the verification file from ignored local

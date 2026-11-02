@@ -48,6 +48,9 @@ titles = set()
 for file in ROOT.rglob('*.html'):
     doc = Document()
     source = file.read_text(encoding='utf-8')
+    if file.parent == ROOT and re.fullmatch(r'google[a-f0-9]{16}\.html', file.name):
+        assert source.strip() == f'google-site-verification: {file.name}', 'Incorrect Google ownership file'
+        continue
     doc.feed(source)
     assert doc.h1 == 1, (file, 'Expected exactly one H1', doc.h1)
     assert len(doc.canonicals) == 1 and doc.canonicals[0].startswith(BASE + '/'), file
