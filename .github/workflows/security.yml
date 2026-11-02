@@ -87,4 +87,3 @@ jobs:
           name: security-python
           path: security-reports/
           retention-days: 14
-
