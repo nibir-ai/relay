@@ -43,7 +43,7 @@ Acceptance: the same inputs/results produce matching check outcomes in Python- a
 
 ### 4. Reviewed exports
 
-The lossless JSON redaction foundation is implemented and tested in source. It edits source spans, preserves untouched numeric lexemes/duplicate keys, selects every duplicate occurrence and fails without a partial body on unsupported input. Preview UI, whole-export credential handling, both download formats and native browser acceptance remain pending; this milestone is not complete.
+Reviewed export source implementation now includes a captured-copy preview, JSON Pointer redaction, credential/header/URL handling, explicit body omissions and shared download serialization for both formats. Unit and strict build checks pass. Native browser interaction, download/report opening, visual/theme/mobile acceptance and final release verification remain pending; this milestone is not complete.
 
 - [ ] Add a preview showing endpoint details, current request and captured response before downloading `.relay` or JSON.
 - [ ] Omit configured auth secrets and mask sensitive headers by default. Let the developer review and redact selected request/response fields, with common token/password field suggestions.

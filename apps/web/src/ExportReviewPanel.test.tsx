@@ -1,0 +1,41 @@
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeAll, expect, it, vi } from "vitest";
+import ExportReviewPanel, { type ExportCapture } from "./ExportReviewPanel";
+import { downloadExport, endpointExport } from "./export";
+import type { Endpoint, Snapshot } from "./types";
+vi.mock("./export",async importOriginal=>({...await importOriginal<typeof import("./export")>(),downloadExport:vi.fn()}));
+beforeAll(()=>{HTMLDialogElement.prototype.showModal=function(){this.setAttribute("open","");};HTMLDialogElement.prototype.close=function(){this.removeAttribute("open");};});
+afterEach(()=>{cleanup();vi.clearAllMocks();});
+const endpoint: Endpoint={id:"POST /item",method:"POST",path:"/item",summary:"Item",description:"",tags:[],parameters:[],responses:{},security:[],deprecated:false,fingerprint:"v1",requestBody:{content:{"application/json":{schema:{type:"object"}}}}};
+const snapshot: Snapshot={title:"Example",version:"v1",hash:"v1",endpoints:[endpoint],securitySchemes:{}};
+const capture:ExportCapture={format:"relay",secrets:['shared-token','other-admin-token'],value:endpointExport({endpoint,snapshot,baseUrl:"http://localhost:8000",values:{},body:'{"private":"hidden","id":9007199254740993,"password":"shared-token"}',mediaType:"application/json",headerText:"X-Trace: safe",progress:"done",responseAt:null,response:{status:200,reason:"OK",body:'{"custom":"other-admin-token","data":{"email":"private@example.test"}}',headers:{},duration_ms:2,bytes:60,truncated:false,method:"POST",url:"http://localhost:8000/item",content_type:"application/json"}})};
+it("previews a masked copy and downloads both formats from the same reviewed value only after explicit action",()=>{
+ const before=JSON.stringify(capture);render(<ExportReviewPanel capture={capture} close={vi.fn()}/>);
+ expect(screen.getByRole('dialog',{name:'Review export'})).toBeInTheDocument();expect(downloadExport).not.toHaveBeenCalled();
+ expect(screen.getByLabelText('Reviewed request body')).toHaveTextContent('9007199254740993');
+ expect(screen.getByLabelText('Reviewed response body')).not.toHaveTextContent('other-admin-token');
+ fireEvent.click(screen.getByText('Redact additional JSON fields'));
+ fireEvent.change(screen.getByLabelText('Request redaction paths'),{target:{value:'/private'}});
+ fireEvent.change(screen.getByLabelText('Response redaction paths'),{target:{value:'/data/email'}});
+ fireEvent.click(screen.getByRole('button',{name:'Download .relay'}));
+ fireEvent.change(screen.getByLabelText('File format'),{target:{value:'json'}});
+ fireEvent.click(screen.getByRole('button',{name:'Download JSON'}));
+ const calls=vi.mocked(downloadExport).mock.calls;expect(calls).toHaveLength(2);expect(calls[0][1]).toBe(calls[1][1]);
+ expect(calls[0][1].current_request.body).not.toContain('hidden');expect(calls[0][1].latest_response?.body).not.toContain('private@example.test');
+ expect(JSON.stringify(capture)).toBe(before);
+});
+it("blocks invalid pointers, permits cancellation and starts a reopened review clean",()=>{
+ const close=vi.fn();const view=render(<ExportReviewPanel capture={capture} close={close}/>);
+ fireEvent.click(screen.getByText('Redact additional JSON fields'));
+ fireEvent.change(screen.getByLabelText('Request redaction paths'),{target:{value:'invalid'}});
+ expect(screen.getByRole('button',{name:'Download .relay'})).toBeDisabled();expect(screen.getByRole('alert')).toBeInTheDocument();
+ fireEvent.click(screen.getByRole('button',{name:'Cancel'}));expect(close).toHaveBeenCalledOnce();expect(downloadExport).not.toHaveBeenCalled();
+ view.unmount();render(<ExportReviewPanel capture={capture} close={close}/>);fireEvent.click(screen.getByText('Redact additional JSON fields'));
+ expect(screen.getByLabelText('Request redaction paths')).toHaveValue('');
+});
+it("surfaces omitted bodies and download failure without exposing the original private value",()=>{
+ render(<ExportReviewPanel capture={{...capture,value:{...capture.value,latest_response:{...capture.value.latest_response!,truncated:true}}}} close={vi.fn()}/>);
+ expect(screen.getByText(/response body omitted: capture is truncated/,{selector:"li"})).toBeInTheDocument();
+ vi.mocked(downloadExport).mockImplementationOnce(()=>{throw Error('private exception');});
+ fireEvent.click(screen.getByRole('button',{name:'Download .relay'}));expect(screen.getByRole('alert')).toHaveTextContent('Download failed');expect(screen.getByRole('alert')).not.toHaveTextContent('private exception');
+});

@@ -21,7 +21,9 @@ import ResponseText from "./ResponseText";
 import RequestHistory from "./RequestHistory";
 import ResponseChecks, { type CheckDraft } from "./ResponseCheckPanel";
 import {SessionHistory,historyCapture,restoreHistory,type HistoryEntry} from "./history";
-import { downloadExport, endpointExport, exportFilename } from "./export";
+import { endpointExport } from "./export";
+import { requestHeaderSecrets } from "./exportReview";
+import ExportReviewPanel, { type ExportCapture } from "./ExportReviewPanel";
 import { Method } from "./Explorer";
 import {
   bodyExample,
@@ -68,6 +70,7 @@ export default function Playground({
   credentials,
   changeCredentials,
   quickAuthorize,
+  exportSecrets = [],
 }: {
   endpoint: Endpoint;
   health: Health;
@@ -88,6 +91,7 @@ export default function Playground({
   credentials?: EndpointAuth;
   changeCredentials?: (value: EndpointAuth) => void;
   quickAuthorize?: () => void;
+  exportSecrets?: string[];
 }) {
   const [localHistory] = useState(()=>new SessionHistory());
   const history=providedHistory??localHistory;
@@ -164,6 +168,7 @@ export default function Playground({
   const [copied, setCopied] = useState("");
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const exportMenu = useRef<HTMLDetailsElement>(null);
+  const [exportCapture,setExportCapture] = useState<ExportCapture | null>(null);
   useEffect(
     () => () => {
       if (copyTimer.current) clearTimeout(copyTimer.current);
@@ -431,7 +436,7 @@ export default function Playground({
           <summary className="secondary-button"><Download size={15} /> Export <ChevronDown size={13} /></summary>
           <div className="export-options">
             {(["relay", "json"] as const).map((format) => <button key={format} onClick={() => {
-              try { downloadExport(exportFilename(endpoint, format), endpointExport({ endpoint, snapshot, baseUrl: health.base_url, values, body, mediaType, headerText, progress, response, responseAt }), format); }
+              try { setExportCapture({value:structuredClone(endpointExport({ endpoint, snapshot, baseUrl: health.base_url, values, body, mediaType, headerText, progress, response, responseAt })),secrets:[...new Set([auth.token,secret,...exportSecrets,...requestHeaderSecrets(headerText)])],format}); }
               catch (err) { setError(err instanceof Error ? err.message : "Export failed. Please try again."); }
               if (exportMenu.current) exportMenu.current.open = false;
               exportMenu.current?.querySelector("summary")?.focus();
@@ -443,6 +448,7 @@ export default function Playground({
           {running ? "Executing…" : "Execute request"}
         </button>
       </div>
+      {exportCapture && <ExportReviewPanel capture={exportCapture} close={() => { setExportCapture(null); exportMenu.current?.querySelector("summary")?.focus(); }}/>}
       <div className={`tester-grid${responseFocused ? " response-focused" : ""}`}>
         <div className="request-column" hidden={responseFocused}>
           <div className="pane-label">

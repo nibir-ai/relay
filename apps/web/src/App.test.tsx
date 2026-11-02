@@ -141,6 +141,8 @@ it("includes the current workspace status in endpoint exports", async () => {
   fireEvent.click(endpoint);
   fireEvent.click(screen.getByText("Export"));
   fireEvent.click(screen.getByRole("button", {name:/JSON/}));
+  expect(downloadExport).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button",{name:"Download JSON"}));
   await waitFor(() => expect(downloadExport).toHaveBeenCalled());
   expect(vi.mocked(downloadExport).mock.calls[0][1].endpoint.progress).toBe("needs_fixing");
   expect(api.execute).not.toHaveBeenCalled();
