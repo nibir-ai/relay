@@ -195,6 +195,12 @@ def build():
         ET.SubElement(ET.SubElement(root, 'url'), 'loc').text = BASE + route(slug)
     ET.ElementTree(root).write(OUT / 'sitemap.xml', encoding='utf-8', xml_declaration=True)
     (OUT / 'robots.txt').write_text(f'User-agent: *\nAllow: /\nSitemap: {BASE}/sitemap.xml\n', encoding='utf-8')
+    verification = ROOT / '.wrangler' / 'indexnow.json'
+    if verification.exists():
+        config = json.loads(verification.read_text(encoding='utf-8'))
+        assert config['host'] == urlsplit(BASE).netloc
+        assert re.fullmatch(r'[a-f0-9]{32}', config['key']), 'Invalid IndexNow verification token'
+        (OUT / (config['key'] + '.txt')).write_text(config['key'], encoding='utf-8')
     (OUT / '404.html').write_text(frame('404', 'Page not found | Relay', 'Find Relay API testing documentation.', '<h1>Page not found</h1><p><a href="/guides/">Find a guide</a> or <a href="/">start with Relay</a>.</p>').replace('index,follow,max-image-preview:large', 'noindex,follow'), encoding='utf-8')
     (OUT / '.nojekyll').touch()
     headers = '/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n'

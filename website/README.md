@@ -53,6 +53,30 @@ Its two routes do not cover the domain's homepage. Test changes with
 
 ## Content maintenance
 
+### Search engine notifications
+
+The sitemap and robots file support Google discovery. Google URL Inspection
+requests and Search Console sitemap submissions require an authorized property;
+HTTP crawl checks alone do not establish actual indexing or crawler identity.
+
+IndexNow supports participating search engines separately from Google. Initialize
+verification once with `python scripts/indexnow.py --init`, then build, check and
+deploy the site. The build copies the verification file from ignored local
+`.wrangler/indexnow.json` into the site root. Preserve this local configuration
+between deployments. Do not commit its token or submission state.
+
+After production deployment, run `python scripts/indexnow.py --dry-run`, then
+`python scripts/indexnow.py`. It verifies ownership over HTTPS, sends only URLs
+with changed content or removed URLs, and records accepted notifications locally.
+An unchanged build sends nothing. HTTP 200 confirms receipt; HTTP 202 means
+verification is pending. Neither confirms indexing, ranking or AI citation.
+
+Google AI search uses the same index eligibility foundations as Google Search.
+Keep important content in HTML and allow search crawlers. There is no separate
+Google AI submission file or markup requirement. See the official
+[Google AI search guidance](https://developers.google.com/search/docs/appearance/ai-features)
+and [IndexNow protocol](https://www.indexnow.org/documentation).
+
 Keep comparison claims scoped to verified features and link to competitor
 documentation. Label unreleased functionality accurately. Add each new article
 to `PAGES` in `scripts/build_docs.py` with its own title and description and
