@@ -22,6 +22,10 @@ class Document(HTMLParser):
             self.ids.add(a['id'])
         if tag == 'h1':
             self.h1 += 1
+        if tag == 'img':
+            for dimension in ['width', 'height']:
+                if dimension in a:
+                    assert 0 < int(a[dimension]) <= 20000, ('Invalid image dimension', a)
         if tag in ('a', 'img', 'link'):
             self.links.append(a.get('href', a.get('src', '')))
         if tag == 'link' and a.get('rel') == 'canonical':

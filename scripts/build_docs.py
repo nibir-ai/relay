@@ -28,6 +28,32 @@ def route(slug):
     return '/' + slug.strip('/') + '/' if slug else '/'
 
 
+def image_dimensions(data):
+    if data.startswith(b'\x89PNG\r\n\x1a\n'):
+        return struct.unpack('>II', data[16:24])
+    if data.startswith(b'\xff\xd8'):
+        position = 2
+        while position < len(data):
+            if data[position] != 0xff:
+                break
+            while position < len(data) and data[position] == 0xff:
+                position += 1
+            marker = data[position]
+            position += 1
+            if marker in {0x01, 0xd8, *range(0xd0, 0xd8)}:
+                continue
+            if marker in {0xd9, 0xda}:
+                break
+            length = int.from_bytes(data[position:position + 2], 'big')
+            if length < 2:
+                break
+            if marker in {0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf}:
+                height, width = struct.unpack('>HH', data[position + 3:position + 7])
+                return width, height
+            position += length
+    raise ValueError('Unsupported or malformed documentation image')
+
+
 def frame(slug, title, description, body):
     canonical = BASE + ('/404.html' if slug == '404' else route(slug))
     crumbs = [{'@type': 'ListItem', 'position': 1, 'name': 'Relay', 'item': BASE + '/'}]
@@ -88,7 +114,7 @@ def render(source, source_path, slug):
         if src.startswith(('/assets/', 'assets/')) and src.endswith('.png'):
             file = ROOT / 'docs' / 'assets' / Path(src).name
             if file.is_file():
-                width, height = struct.unpack('>II', file.read_bytes()[16:24])
+                width, height = image_dimensions(file.read_bytes())
                 return image.replace('<img ', f'<img width="{width}" height="{height}" ')
         return image
     return re.sub(r'<img\b[^>]+>', dimensions, body)
@@ -132,7 +158,11 @@ def build():
     (OUT / 'robots.txt').write_text(f'User-agent: *\nAllow: /\nSitemap: {BASE}/sitemap.xml\n', encoding='utf-8')
     (OUT / '404.html').write_text(frame('404', 'Page not found | Relay', 'Find Relay API testing documentation.', '<h1>Page not found</h1><p><a href="/guides/">Find a guide</a> or <a href="/">start with Relay</a>.</p>').replace('index,follow,max-image-preview:large', 'noindex,follow'), encoding='utf-8')
     (OUT / '.nojekyll').touch()
-    (OUT / '_headers').write_text('/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n', encoding='utf-8')
+    headers = '/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n'
+    for image in assets.glob('*.png'):
+        if image.read_bytes().startswith(b'\xff\xd8'):
+            headers += f'/assets/{image.name}\n  Content-Type: image/jpeg\n'
+    (OUT / '_headers').write_text(headers, encoding='utf-8')
     print(f'Built {len(pages)} indexable pages in dist/docs')
 
 
