@@ -26,7 +26,7 @@ class Document(HTMLParser):
             for dimension in ['width', 'height']:
                 if dimension in a:
                     assert 0 < int(a[dimension]) <= 20000, ('Invalid image dimension', a)
-        if tag in ('a', 'img', 'link'):
+        if tag in ('a', 'img', 'link', 'script'):
             self.links.append(a.get('href', a.get('src', '')))
         if tag == 'link' and a.get('rel') == 'canonical':
             self.canonicals.append(a['href'])
@@ -76,4 +76,22 @@ urls = [el.text for el in tree.iter('{http://www.sitemaps.org/schemas/sitemap/0.
 expected = {d.canonicals[0] for f, d in documents.items() if f.name != '404.html'}
 assert set(urls) == expected and len(urls) == len(expected), 'Sitemap must cover exactly the indexable pages'
 assert 'Sitemap: ' + BASE + '/sitemap.xml' in (ROOT / 'robots.txt').read_text()
+sections = json.loads((ROOT / 'assets/search-index.json').read_text(encoding='utf-8'))
+assert 0 < len(sections) <= 5000
+assert (ROOT / 'assets/search-index.json').stat().st_size < 1024 * 1024, 'Keep search bounded'
+indexed_pages = set()
+for section in sections:
+    assert set(section) == {'title', 'section', 'url', 'text'}
+    assert all(isinstance(value, str) and value for key, value in section.items() if key != 'section')
+    parsed = urlsplit(section['url'])
+    assert not parsed.scheme and not parsed.netloc and parsed.path.startswith('/')
+    target = (ROOT / unquote(parsed.path).lstrip('/') / 'index.html').resolve()
+    assert target in documents, ('Invalid search target', section['url'])
+    if parsed.fragment:
+        assert unquote(parsed.fragment) in documents[target].ids, ('Invalid search section', section['url'])
+    indexed_pages.add(documents[target].canonicals[0])
+assert indexed_pages == expected, 'Search must cover every public page and exclude the 404'
+for file, doc in documents.items():
+    assert {'doc-search', 'docs-query', 'search-status', 'search-results', 'search-clear', 'search-retry'} <= doc.ids
 print(f'Checked {len(documents)} HTML files: headings, canonicals, descriptions, JSON-LD, local links/fragments and sitemap passed.')
+print(f'Checked {len(sections)} searchable sections, target anchors and complete page coverage.')

@@ -22,6 +22,7 @@ jobs:
         with:
           node-version: '24'
       - run: node --test website/redirect/worker.test.mjs
+      - run: node --test website/search.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: relay-documentation
