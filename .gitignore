@@ -11,6 +11,7 @@ apps/web/dist/
 apps/agent/relay_backend/static/
 dist/
 apps/agent/build/
+apps/team-service/build/
 .relay/status.lock
 .relay/status-*.tmp
 packages/node/static/

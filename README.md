@@ -228,6 +228,7 @@ The [documentation website](https://relay-backend.pages.dev/) includes local sea
 - [Git status and source attribution](docs/GIT.md)
 - [Exports and opening `.relay` files](docs/EXPORTS.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Security reporting and automated checks](SECURITY.md)
 - [Contributing and verification](docs/CONTRIBUTING.md)
 - [Release and registry publishing](docs/RELEASING.md)
 - [Brand identity](docs/BRAND.md)
