@@ -23,11 +23,16 @@ Electron bundles the runtime in the distributed app. Developers build it here; e
 - [x] Exercise real local handlers for JSON/text, non-2xx and empty bodies, separate bearer values, cancellation, timeout, response limits and input rejection.
 - [x] Build a typed request-above-response interface using Relay themes, visible bearer auth, editable standalone URLs/methods/headers/bodies and in-memory request drafts.
 - [x] Launch the development and packaged Windows app, send real requests and verify response rendering; check user/admin bearer isolation, copying and fresh session state in the development app.
-- [ ] Verify cancellation and renderer isolation interactively through the packaged app.
-- [ ] Verify real HTTPS and certificate failure behavior, connection errors and interrupted response streams.
-- [ ] Produce and launch an unpacked Windows x64 build on this machine; inspect keyboard focus, all themes and display scaling.
+- [x] Verify cancellation through the packaged app and clear stale captures after failed or cancelled attempts.
+- [x] Verify HTML response payloads display as inert text in the packaged app.
+- [ ] Audit renderer isolation, IPC origin/frame rejection, navigation and permission boundaries through the packaged app.
+- [x] Verify real HTTPS and certificate failure behavior, connection errors and interrupted response streams.
+- [x] Produce and launch an unpacked Windows x64 build; verify sending with Ctrl+Enter and cancelling with the visible control.
+- [ ] Inspect keyboard focus across all controls, all five themes and supported Windows display scaling.
 
 Verification on 2026-11-02: eight transport tests and 100 shared web tests passed; TypeScript/Vite built successfully. The native development app returned separate user/admin responses and a real HTTPS response. The unpacked executable loaded its bundled UI and returned a real authenticated local response after a fresh launch. Packaging verification inspects the actual archive for its entry page, referenced assets and license notices; this caught and fixed an omitted entry page before sharing the preview. Windows CI builds and checks the unpacked artifact, but does not claim interactive or clean-machine installer verification.
+
+Request-state verification on 2026-11-02: nine transport tests and 110 web tests passed, including four desktop regressions covering cancellation, connection refusal, certificate rejection and invalid-header attempts after a previous success. TypeScript and the unpacked package checks passed. Native packaged checks returned a real HTTPS 200, rejected a local self-signed certificate, reported connection refusal and interrupted responses, cancelled a delayed request and rendered an HTML/script payload as literal response text. A new request attempt clears the old body/status/copy action; errors appear in the response pane. Unsupported header characters are rejected before transport setup. Renderer isolation and the full focus/theme/scaling matrix remain pending.
 
 M1 keeps requests, tokens and responses in memory only. No persistent collections, credential store, import/export or installer is claimed by this preview.
 
