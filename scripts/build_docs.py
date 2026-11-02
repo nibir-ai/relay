@@ -204,6 +204,11 @@ def build():
     (OUT / '404.html').write_text(frame('404', 'Page not found | Relay', 'Find Relay API testing documentation.', '<h1>Page not found</h1><p><a href="/guides/">Find a guide</a> or <a href="/">start with Relay</a>.</p>').replace('index,follow,max-image-preview:large', 'noindex,follow'), encoding='utf-8')
     (OUT / '.nojekyll').touch()
     headers = '/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n'
+    for file in (ROOT / '.wrangler' / 'google-verification').glob('google*.html'):
+        assert re.fullmatch(r'google[a-f0-9]{16}\.html', file.name), 'Unexpected Google verification filename'
+        assert file.read_text(encoding='utf-8').strip() == f'google-site-verification: {file.name}'
+        shutil.copy2(file, OUT / file.name)
+        headers += f'/{file.name}\n  X-Robots-Tag: noindex\n'
     for image in assets.glob('*.png'):
         if image.read_bytes().startswith(b'\xff\xd8'):
             headers += f'/assets/{image.name}\n  Content-Type: image/jpeg\n'
