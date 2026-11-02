@@ -37,3 +37,11 @@ node scripts/verify_node_package.cjs
 This creates `dist/relay-backend-0.0.4.tgz` with native adapters, declarations and the built UI. The clean consumer check installs outside the checkout with lifecycle scripts disabled and verifies CommonJS, ESM, TypeScript, assets and real API execution. `node scripts/verify_node_package.cjs --public-index` verifies the actual latest npm registry release instead of the local tarball.
 
 Node CI runs on 22.13, 24 and 26. Consumers use the published npm package; contributor commands are not part of their integration.
+
+## Security checks
+
+See the repository [security policy](../SECURITY.md) for scan coverage and triage.
+The Security and dependencies workflow scans source and Python/JavaScript
+dependencies on pull requests, main-branch pushes and daily. Review failed checks
+and their audit artifacts before merging dependency updates; security fixes must
+also pass the applicable native consumer and packaging checks.

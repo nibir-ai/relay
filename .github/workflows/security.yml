@@ -1,0 +1,89 @@
+name: Security and dependencies
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '23 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  codeql:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, python]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}
+
+  node-audit:
+    name: JavaScript dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Audit all workspace dependencies, including development tools
+        run: |
+          mkdir -p security-reports
+          pnpm audit --audit-level high --json > security-reports/node.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-node
+          path: security-reports/
+          retention-days: 14
+
+  python-audit:
+    name: Python dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Resolve backend, realtime, team-service, test and documentation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pip-audit "./apps/agent[realtime,test]" "./apps/team-service[test]" -r website/requirements.txt
+      - name: Audit resolved Python dependencies
+        run: |
+          mkdir -p security-reports
+          python -m pip_audit --local --skip-editable --format json --output security-reports/python.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-python
+          path: security-reports/
+          retention-days: 14
