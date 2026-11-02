@@ -17,6 +17,7 @@ function validate(input) {
   for (const [name,value] of Object.entries(input.headers)) {
     if (!/^[!#$%&'*+.^_`|~0-9a-z-]+$/i.test(name) || /^(?:(?:host|content-length|transfer-encoding|connection|upgrade|expect)$|proxy-|sec-)/i.test(name)) throw Error('A header name is invalid or reserved by the request transport.');
     if (typeof value !== 'string' || /[\r\n\0]/.test(value)) throw Error('Header values must be strings without line breaks.');
+    try { http.validateHeaderValue(name,value); } catch { throw Error('Header values contain unsupported characters.'); }
     bytes += Buffer.byteLength(name + value); if(bytes > 32768) throw Error('Headers exceed 32 KiB.');
     if (Object.hasOwn(headers,name.toLowerCase())) throw Error('Remove duplicate header names.');
     headers[name.toLowerCase()] = value;

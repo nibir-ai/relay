@@ -9,4 +9,9 @@ test('caps response previews and stops reading after the limit',async()=>{await 
 test('rejects invalid protocols, URL credentials, oversized bodies and unsafe headers before sending',()=>{for(const input of [{...base,url:'file:///etc/passwd'},{...base,url:'https://name:password@example.com'},{...base,headers:{'X-Test':'one\r\nInjected: yes'}},{...base,headers:{Host:'elsewhere'}},{...base,headers:{'x-test':'one','X-Test':'two'}},{...base,body:'x'.repeat(LIMIT+1),method:'POST'},{...base,id:'../bad'},{...base,body:'GET body'}])assert.throws(()=>validate(input));});
 test('validates HTTPS URL selection without disabling TLS checks',()=>{const input=validate({...base,url:'https://example.com/path#fragment'});assert.equal(input.url.protocol,'https:');assert.equal(input.url.hash,'');});
 
+test('rejects unsupported header characters before creating a request',()=>{
+  assert.throws(()=>validate({...base,headers:{'X-Test':'\u0100'}}),/unsupported characters/);
+  assert.throws(()=>execute({...base,headers:{'Authorization':'Bearer \u{1f512}'}}),/unsupported characters/);
+});
+
 test('reports connection refusal and interrupted responses without exposing raw network errors',async()=>{const server=http.createServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port;await new Promise(r=>server.close(r));await assert.rejects(execute({...base,url}),/Connection refused/);await fixture((_req,res)=>{res.writeHead(200,{'content-length':'1000'});res.write('partial');setImmediate(()=>res.destroy());},async origin=>{await assert.rejects(execute({...base,url:origin}),/closed|could not be read/);});});
