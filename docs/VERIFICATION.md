@@ -2,6 +2,14 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## 0.0.6 reviewed exports: source implementation, 2 November 2026
+
+Export now captures a separate copy and opens a review before downloading. The preview supports body omission, explicit non-JSON inclusion and additional JSON Pointer selections; both formats use the same reviewed payload. Known workspace/endpoint auth, recognized manual credentials, cookies, sensitive parameters/query values and their recognized encoded forms are masked throughout the copy, including metadata. Common sensitive body fields are masked by default. Unsupported/truncated bodies have explicit omission notes. This remains a review aid rather than a promise to identify every private field or encoded secret.
+
+All 100 frontend tests and the strict production build passed locally. Tests cover unchanged drafts/captures, cross-field secret echoes, combined cookies without cookie-attribute overmasking, duplicate keys, numeric precision, body omissions, exact shared download values, cancellation/reopening, pointer validation, download errors, metadata-key collisions and bounded credential failure. The installed wheel verifier and clean npm CJS/ESM/TypeScript/CLI consumer passed. The version-1 export envelope is retained with additive optional review notes; existing report escaping and exact numeric tests pass.
+
+Native browser interaction, actual downloads/report opening, keyboard focus and desktop/theme/mobile acceptance for the review have not run. The reviewed-export milestone and release gates remain open. No 0.0.6 release or package has been published; complete release verification remains required and registries remain at 0.0.5.
+
 ## 0.0.6 lossless JSON redaction: source foundation, 31 October 2026
 
 The pure redaction utility edits selected source spans rather than serializing parsed numeric values. Untouched text, whitespace, numeric exponents, large integers and duplicate keys remain exact. JSON Pointer selections cover every duplicate occurrence, and parent selections subsume child edits. Common credential-field suggestions are masked by default; configured exact secret values are detected in decoded strings, object keys and primitive lexemes. Suggestion metadata is capped with an explicit truncation flag while all detected fields are still masked. This is a review aid, not a guarantee to recognize every application's private fields or encoded credential representation.

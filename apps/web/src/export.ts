@@ -62,8 +62,12 @@ export function relayReport(value: ReturnType<typeof endpointExport>) {
 </style></head><body><header>${reportLogo}<span class="muted">Endpoint export · ${escaped(value.api.title)}</span></header><main><span class="method">${escaped(endpoint.method)}</span><h1>${escaped(endpoint.path)}</h1><p>${escaped(endpoint.summary)}</p>${endpoint.description ? `<p class="muted">${escaped(endpoint.description)}</p>` : ""}<p class="muted">${escaped(request.url)}</p><div class="meta"><span>Status: ${escaped(endpoint.progress.replaceAll("_", " "))}</span><span class="muted">Exported ${escaped(value.exported_at)}</span></div><div class="layout"><div>${block("Current request body", request.body ?? "No request body")}${block("Request inputs", { parameter_values: request.parameter_values, content_type: request.content_type, headers: request.headers, ...(request.header_error ? { header_error: request.header_error } : {}) })}</div><div class="response"><section><h2>${response ? `<span class="status">${escaped(response.status)} ${escaped(response.reason)}</span> · ${escaped(response.duration_ms)} ms · ${escaped(response.bytes)} bytes` : "Response"}</h2>${response ? `<p class="muted" style="padding:0 20px">Captured ${escaped(response.captured_at)}${response.truncated ? " · Truncated preview" : ""}</p>` : ""}<pre tabindex="0">${escaped(response ? pretty(response.body) : "No request has been executed.")}</pre></section>${response ? block("Response headers", response.headers) : ""}</div></div><details><summary>Endpoint contract</summary><pre tabindex="0">${escaped(pretty(endpoint))}</pre></details><details><summary>Complete export data</summary><pre tabindex="0">${escaped(pretty(value))}</pre></details></main></body></html>`;
 }
 
+export function exportContent(value: ReturnType<typeof endpointExport>, format: "json" | "relay" = "json") {
+  return format === "relay" ? relayReport(value) : JSON.stringify(value, null, 2) + "\n";
+}
+
 export function downloadExport(filename: string, value: ReturnType<typeof endpointExport>, format: "json" | "relay" = "json") {
-  const content = format === "relay" ? relayReport(value) : JSON.stringify(value, null, 2) + "\n";
+  const content = exportContent(value, format);
   const url = URL.createObjectURL(new Blob([content], { type: format === "relay" ? "text/html;charset=utf-8" : "application/json" }));
   const link = document.createElement("a");
   link.href = url;

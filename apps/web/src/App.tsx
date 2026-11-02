@@ -365,6 +365,7 @@ export default function App() {
                 health={health}
                 snapshot={snapshot}
                 auth={auth}
+                exportSecrets={[...Object.values(credentials).map(value => value.secret), ...[...drafts.current.values()].map(value => value.secret)]}
                 progress={workspace.endpoints[endpoint.id]?.progress ?? "done"}
                 changedBy={workspace.endpoints[endpoint.id]?.updated_by?.name}
                 authorize={focusToken}

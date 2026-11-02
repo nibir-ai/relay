@@ -85,3 +85,15 @@ Click **Check response** to evaluate the currently displayed capture. Expected a
 Large decimal numbers compare exactly. Missing fields differ from null, false, zero and empty strings. Truncated, invalid, duplicate-key or non-JSON bodies cannot produce passing JSON checks; status and duration remain independently usable. JSON checks have explicit size, nesting, node and numeric-precision budgets to keep evaluation bounded.
 
 Configuration stays in tab memory alongside endpoint drafts (up to twenty cached endpoint contracts) and survives closing/reopening a cached endpoint. Results must be evaluated again after reopening. Reloading clears checks; they are not written to the backend, shared service, Git, exports or browser storage. Remove individual checks or use **Clear checks**. These controls are not in published 0.0.5.
+
+## Reviewed exports: 0.0.6 development
+
+Choose Export, then Relay or JSON, to open **Review export**. Opening this preview captures the current request, response, contract and status; it sends no API request. The preview and download use a separate copy. Cancel discards review edits, and reopening starts a fresh review.
+
+Configured workspace/endpoint credentials, recognized manual auth/cookie headers, sensitive parameters and URL query values are masked across the copy, including their recognized encoded forms. Sensitive headers remain masked. Common sensitive JSON fields are masked by default; suggestions are a review aid and do not identify every application's private fields. Under **Redact additional JSON fields**, enter one JSON Pointer per line for each body, for example `/data/email`. Parent selections include the whole value, and duplicate keys are all selected. Invalid pointers disable download.
+
+Non-JSON bodies require explicit inclusion after review. Malformed, oversized and truncated JSON bodies are omitted with a visible explanation. Use Omit request/response body to remove either from the file. Empty captured bodies remain empty. Untouched JSON text, numeric lexemes and duplicate keys remain exact. Changing review settings does not modify the live draft, auth, response or endpoint status.
+
+Both file formats serialize the same reviewed payload. JSON keeps the version-1 envelope and adds optional review notes. Relay remains a self-contained offline HTML report with escaped API data. Review the metadata and complete reviewed data as well as body previews. If credentials overlap required metadata or exceed bounded review limits, no export is returned. Credentials and API traffic are not sent to a review service.
+
+Source/component tests pass, but native browser download/report-opening, keyboard, theme and mobile acceptance for this preview are still pending. These controls are not in published 0.0.5.
