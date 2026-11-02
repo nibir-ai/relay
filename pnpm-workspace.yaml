@@ -1,5 +1,7 @@
 packages:
   - apps/web
+  - apps/desktop
   - packages/node
 allowBuilds:
   esbuild: true
+  electron: true

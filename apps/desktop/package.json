@@ -1,0 +1,29 @@
+{
+  "name": "@relay/desktop",
+  "version": "0.1.0-dev.0",
+  "private": true,
+  "description": "Relay desktop API tester",
+  "license": "Apache-2.0",
+  "main": "main.cjs",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "start": "electron .",
+    "test": "node --test test/*.test.cjs",
+    "package:dir": "electron-packager . Relay --platform=win32 --arch=x64 --out=../../dist/desktop --overwrite --ignore=^/src --ignore=^/test --ignore=^/node_modules --ignore=^/tsconfig --ignore=^/vite.config && node ../../scripts/verify_desktop_package.cjs",
+    "runtime:install": "install-electron"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "45.2.1",
+    "@electron/packager": "20.3.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "lucide-react": "^0.468.0",
+    "@fontsource-variable/jetbrains-mono": "5.3.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.9",
+    "@vitejs/plugin-react": "^5.0.4"
+  }
+}

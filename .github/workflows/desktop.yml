@@ -1,0 +1,47 @@
+name: Verify Windows desktop
+on:
+  push:
+    paths:
+      - 'apps/desktop/**'
+      - 'apps/web/src/ResponseText.tsx'
+      - 'apps/web/src/request.ts'
+      - 'apps/web/src/styles.css'
+      - 'apps/web/public/**'
+      - 'scripts/verify_desktop_package.cjs'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/desktop.yml'
+  pull_request:
+    paths:
+      - 'apps/desktop/**'
+      - 'apps/web/src/ResponseText.tsx'
+      - 'apps/web/src/request.ts'
+      - 'apps/web/src/styles.css'
+      - 'apps/web/public/**'
+      - 'scripts/verify_desktop_package.cjs'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/desktop.yml'
+permissions:
+  contents: read
+jobs:
+  desktop:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @relay/desktop test
+      - run: pnpm --filter @relay/desktop build
+      - run: pnpm --filter @relay/desktop package:dir
+      - uses: actions/upload-artifact@v4
+        with:
+          name: relay-windows-preview
+          path: dist/desktop/Relay-win32-x64
+          compression-level: 0
+          retention-days: 5
