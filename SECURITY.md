@@ -15,8 +15,11 @@ The **Security and dependencies** workflow runs on pull requests, pushes to
   High and critical JavaScript advisories fail the check.
 - Freshly resolved Python backend, realtime, team-service, test and documentation
   dependencies with `pip-audit`. Any reported Python vulnerability fails the check.
-- Newly introduced dependencies on pull requests with GitHub dependency review;
-  high and critical findings fail the check.
+
+Direct dependency audits run on pull requests as well as main and scheduled
+builds, covering existing and newly introduced packages without requiring
+GitHub's dependency-graph setting. Dependency-graph/Dependabot alerts, when
+available, provide additional signals rather than replacing these checks.
 
 Dependency reports are retained as workflow artifacts for 14 days, including on
 failed runs. Source findings appear under the repository's code-scanning alerts.

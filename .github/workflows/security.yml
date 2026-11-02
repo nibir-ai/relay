@@ -88,14 +88,3 @@ jobs:
           path: security-reports/
           retention-days: 14
 
-  dependency-review:
-    name: New dependency vulnerabilities
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/dependency-review-action@v4
-        with:
-          fail-on-severity: high
-          license-check: false
