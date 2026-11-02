@@ -10,7 +10,7 @@ readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 authors = [{name = "Relay contributors"}]
-keywords = ["fastapi", "openapi", "api-testing", "backend-testing", "rest-api", "api-client", "swagger-ui-alternative", "developer-tools"]
+keywords = ["fastapi", "openapi", "api-testing", "backend-testing", "rest-api", "api-client", "swagger-ui-alternative", "postman-alternative", "offline-api-client", "developer-tools"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Framework :: FastAPI",
@@ -25,7 +25,7 @@ dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1", "httpx>=0.28,<0.29"]
 
 [project.urls]
 Repository = "https://github.com/nibir-ai/relay"
-Documentation = "https://github.com/nibir-ai/relay/blob/main/docs/README.md"
+Documentation = "https://relay-backend.pages.dev/"
 Issues = "https://github.com/nibir-ai/relay/issues"
 Changelog = "https://github.com/nibir-ai/relay/blob/main/CHANGELOG.md"
 

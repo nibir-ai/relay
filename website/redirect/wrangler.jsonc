@@ -1,0 +1,12 @@
+{
+  "name": "relay-docs-redirect",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-11-02",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    { "pattern": "nibir.online/relay", "zone_name": "nibir.online" },
+    { "pattern": "nibir.online/relay/*", "zone_name": "nibir.online" }
+  ],
+  "observability": { "enabled": true, "head_sampling_rate": 0.1 }
+}

@@ -6,15 +6,17 @@
 
 [API testing workflow](docs/API-TESTING.md) covers discovery, authorization, requests, responses and exports.
 
-Test your API where it runs. Relay adds a testing workspace at **`/relay`** on your backend: generated endpoints, explicit authorization, readable responses and one status control beside each API.
+Relay is a **free, open-source API testing workspace** for FastAPI, Express and Fastify. Test your API where it runs: Relay adds a workspace at **`/relay`** on your backend, with generated OpenAPI endpoints, explicit authorization, readable responses and manual endpoint statuses.
+
+Looking for a [Swagger UI alternative](https://relay-backend.pages.dev/swagger-ui-alternative/) or a [free Postman alternative for local APIs](https://relay-backend.pages.dev/postman-alternative/)? Compare the supported workflows and limits, or follow the [FastAPI API testing walkthrough](https://relay-backend.pages.dev/fastapi-api-testing/).
 
 [![npm](https://img.shields.io/npm/v/relay-backend?label=npm&color=67b0e8)](https://www.npmjs.com/package/relay-backend)
 [![PyPI](https://img.shields.io/pypi/v/relay-backend?label=PyPI&color=8ccf7e)](https://pypi.org/project/relay-backend/)
 [![Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-e5c76b)](LICENSE)
 
-[**Documentation ↗**](https://nibir.online/relay/) · [Repository docs](docs/README.md) · [FastAPI](#add-relay-to-fastapi) · [Node](#add-relay-to-node) · [Roadmap](#release-roadmap)
+[**Documentation ↗**](https://relay-backend.pages.dev/) · [Repository docs](docs/README.md) · [FastAPI](#add-relay-to-fastapi) · [Node](#add-relay-to-node) · [Roadmap](#release-roadmap)
 
-[![Open the Relay documentation — integration guides, API testing, and team workflows at nibir.online/relay](docs/assets/relay-documentation.svg)](https://nibir.online/relay/)
+[![Open the Relay documentation — integration guides, API testing, and team workflows](docs/assets/relay-documentation.svg)](https://relay-backend.pages.dev/)
 
 ## Choose your backend
 

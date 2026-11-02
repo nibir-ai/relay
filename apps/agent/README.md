@@ -4,6 +4,8 @@
 
 An offline API testing interface for your FastAPI application. Install one Python package, mount it once, and open `/relay` on your backend's existing port.
 
+[Documentation](https://relay-backend.pages.dev/) · [Swagger UI alternative](https://relay-backend.pages.dev/swagger-ui-alternative/) · [Free Postman alternative for local APIs](https://relay-backend.pages.dev/postman-alternative/)
+
 ## Install
 
 ![Install Relay, mount it on FastAPI, then open /relay on the backend's existing port.](https://raw.githubusercontent.com/nibir-ai/relay/main/docs/assets/fastapi-quickstart.png)

@@ -32,7 +32,7 @@
     "url": "https://github.com/nibir-ai/relay.git",
     "directory": "packages/node"
   },
-  "homepage": "https://github.com/nibir-ai/relay/blob/main/docs/NODE.md",
+  "homepage": "https://relay-backend.pages.dev/guides/node/",
   "bugs": {
     "url": "https://github.com/nibir-ai/relay/issues"
   },
@@ -61,6 +61,8 @@
     "fastify",
     "typescript",
     "swagger-ui-alternative",
+    "postman-alternative",
+    "offline-api-client",
     "developer-tools"
   ]
 }

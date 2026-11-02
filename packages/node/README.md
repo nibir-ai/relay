@@ -4,6 +4,8 @@
 
 API testing on your backend's existing `/relay` route. The UI, themes and assets are bundled. No Python, repository clone, frontend build or CDN is required.
 
+[Documentation](https://relay-backend.pages.dev/) · [Swagger UI alternative](https://relay-backend.pages.dev/swagger-ui-alternative/) · [Free Postman alternative for local APIs](https://relay-backend.pages.dev/postman-alternative/)
+
 ```sh
 npm install relay-backend
 ```
