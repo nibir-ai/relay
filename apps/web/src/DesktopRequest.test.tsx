@@ -48,3 +48,31 @@ it('clears the old response when invalid headers prevent the next attempt',async
  expect(screen.getByRole('alert').textContent).toContain('valid JSON object');
  expect(screen.getByRole('region',{name:'Response'}).textContent).not.toContain('previous');
 });
+
+it('supports roving response-tab focus without sending another request',async()=>{
+ const execute=vi.fn().mockResolvedValue({response});
+ window.relayDesktop={execute,cancel:vi.fn(),copy:vi.fn()};
+ render(<DesktopApp/>);
+ await act(async()=>{fireEvent.click(screen.getByRole('button',{name:'Send'}));});
+ const body=screen.getByRole('tab',{name:'Body'});
+ const raw=screen.getByRole('tab',{name:'Raw'});
+ const headers=screen.getByRole('tab',{name:'Headers'});
+ expect(body.tabIndex).toBe(0);
+ expect(raw.tabIndex).toBe(-1);
+ body.focus();
+ fireEvent.keyDown(body,{key:'ArrowRight'});
+ expect(document.activeElement).toBe(raw);
+ expect(raw.getAttribute('aria-selected')).toBe('true');
+ expect(raw.tabIndex).toBe(0);
+ expect(body.tabIndex).toBe(-1);
+ expect(raw.getAttribute('aria-controls')).toBe(screen.getByRole('tabpanel',{name:'Raw response'}).id);
+ fireEvent.keyDown(raw,{key:'End'});
+ expect(document.activeElement).toBe(headers);
+ fireEvent.keyDown(headers,{key:'ArrowRight'});
+ expect(document.activeElement).toBe(body);
+ fireEvent.keyDown(body,{key:'ArrowLeft'});
+ expect(document.activeElement).toBe(headers);
+ fireEvent.keyDown(headers,{key:'Home'});
+ expect(document.activeElement).toBe(body);
+ expect(execute).toHaveBeenCalledTimes(1);
+});

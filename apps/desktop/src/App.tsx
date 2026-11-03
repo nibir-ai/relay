@@ -1,4 +1,4 @@
-import {useEffect,useRef,useState} from "react";
+import {useEffect,useId,useRef,useState} from "react";
 import {Plus,Play,Square,Copy,Check,ArrowDown,LockKeyhole,X} from "lucide-react";
 import ResponseText from "../../web/src/ResponseText";
 import {formatted} from "../../web/src/request";
@@ -6,11 +6,13 @@ import type {ResponseData} from "./types";
 type Draft={id:string;method:string;url:string;headers:string;body:string;token:string;response:ResponseData|null;error:string};
 const create=():Draft=>({id:crypto.randomUUID(),method:"GET",url:"",headers:'{\n  "Accept": "application/json"\n}',body:"",token:"",response:null,error:""});
 const themes=[['everblush','Everblush'],['onedark','One Dark'],['gruvbox','Gruvbox'],['nord','Nord'],['light','Paper']];
+const responseTabs=['Body','Raw','Headers'];
 function label(draft:Draft){try{return new URL(draft.url).pathname || '/';}catch{return draft.url || 'Untitled request';}}
 export default function App(){
  const [drafts,setDrafts]=useState<Draft[]>(()=>[create()]);const [selected,setSelected]=useState(drafts[0].id);
  const [tab,setTab]=useState('Body');const [theme,setTheme]=useState('everblush');const [running,setRunning]=useState<string|null>(null);const [copied,setCopied]=useState(false);
  const active=useRef<string|null>(null);const executeRef=useRef<()=>void>(()=>{});const copyTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
+ const responsePanelId=useId();const tabButtons=useRef<Array<HTMLButtonElement|null>>([]);
  const draft=drafts.find(d=>d.id===selected)!;
  const update=(change:Partial<Draft>,id=selected)=>setDrafts(values=>values.map(value=>value.id===id ? {...value,...change}:value));
  useEffect(()=>{document.documentElement.dataset.theme=theme;},[theme]);
@@ -46,7 +48,7 @@ export default function App(){
    <section className="desktop-inputs"><label>Headers <span>JSON object</span><textarea aria-label="Request headers" rows={5} spellCheck={false} value={draft.headers} onChange={e=>update({headers:e.target.value})}/></label><label>Request body <span>{['GET','HEAD'].includes(draft.method)?'Not sent for '+draft.method:'Raw text · set Content-Type in headers'}</span><textarea aria-label="Request body" rows={5} spellCheck={false} disabled={['GET','HEAD'].includes(draft.method)} placeholder="Request body" value={draft.body} onChange={e=>update({body:e.target.value})}/></label></section>
    <section className="desktop-response" aria-label="Response"><div className="desktop-response-heading"><h2><ArrowDown size={16}/>Response</h2><div>{running===draft.id?<span>Request in progress…</span>:response?<><strong className={response.status<400?'status-success':'status-error'}>{response.status} {response.reason}</strong><span>{response.duration_ms} ms</span><span>{(response.captured_bytes/1024).toFixed(2)} KB captured</span></>:<span>{draft.error?'Not completed':'No response captured'}</span>}</div></div>
     {draft.error && <p className="desktop-error" role="alert">{draft.error}</p>}
-    {response?<><div className="desktop-response-tools"><div role="tablist" aria-label="Response views">{['Body','Raw','Headers'].map(name=><button key={name} role="tab" aria-selected={tab===name} onClick={()=>setTab(name)}>{name}</button>)}</div><button className="text-button" onClick={()=>void copy()}>{copied?<Check size={14}/>:<Copy size={14}/>} {copied?'Copied':'Copy'}</button></div>{response.truncated&&<p className="desktop-truncated">Preview limited to 2 MiB. Remaining data was not downloaded.</p>}<pre role="tabpanel" aria-label={`${tab} response`} tabIndex={0}><ResponseText text={responseText || 'Empty response body'}/></pre></>:<div className="desktop-response-empty"><span>{running===draft.id?'Waiting for the server…':draft.error?'No response received':'Send a request to inspect its response.'}</span><p>{running===draft.id?'Cancel stops this request. Requests time out after 30 seconds.':draft.error?'Check the request or server, then send again.':'Status, timing, headers and the response body appear here.'}</p></div>}
+    {response?<><div className="desktop-response-tools"><div role="tablist" aria-label="Response views">{responseTabs.map((name,index)=><button key={name} ref={node=>{tabButtons.current[index]=node;}} role="tab" aria-selected={tab===name} aria-controls={responsePanelId} tabIndex={tab===name?0:-1} onClick={()=>setTab(name)} onKeyDown={event=>{let next:number;if(event.key==='ArrowRight')next=(index+1)%responseTabs.length;else if(event.key==='ArrowLeft')next=(index+responseTabs.length-1)%responseTabs.length;else if(event.key==='Home')next=0;else if(event.key==='End')next=responseTabs.length-1;else return;event.preventDefault();setTab(responseTabs[next]);tabButtons.current[next]?.focus();}}>{name}</button>)}</div><button className="text-button" onClick={()=>void copy()}>{copied?<Check size={14}/>:<Copy size={14}/>} {copied?'Copied':'Copy'}</button></div>{response.truncated&&<p className="desktop-truncated">Preview limited to 2 MiB. Remaining data was not downloaded.</p>}<pre id={responsePanelId} role="tabpanel" aria-label={`${tab} response`} tabIndex={0}><ResponseText text={responseText || 'Empty response body'}/></pre></>:<div className="desktop-response-empty"><span>{running===draft.id?'Waiting for the server…':draft.error?'No response received':'Send a request to inspect its response.'}</span><p>{running===draft.id?'Cancel stops this request. Requests time out after 30 seconds.':draft.error?'Check the request or server, then send again.':'Status, timing, headers and the response body appear here.'}</p></div>}
    </section>
   </main>
  </div>;

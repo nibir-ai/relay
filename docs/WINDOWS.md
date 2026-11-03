@@ -28,6 +28,7 @@ Electron bundles the runtime in the distributed app. Developers build it here; e
 - [ ] Audit renderer isolation, IPC origin/frame rejection, navigation and permission boundaries through the packaged app.
 - [x] Verify real HTTPS and certificate failure behavior, connection errors and interrupted response streams.
 - [x] Produce and launch an unpacked Windows x64 build; verify sending with Ctrl+Enter and cancelling with the visible control.
+- [x] Verify response-tab arrow/Home/End navigation, a single tab stop, keyboard copying and response-pane focus in the unpacked app.
 - [ ] Inspect keyboard focus across all controls, all five themes and supported Windows display scaling.
 
 Verification on 2026-11-02: eight transport tests and 100 shared web tests passed; TypeScript/Vite built successfully. The native development app returned separate user/admin responses and a real HTTPS response. The unpacked executable loaded its bundled UI and returned a real authenticated local response after a fresh launch. Packaging verification inspects the actual archive for its entry page, referenced assets and license notices; this caught and fixed an omitted entry page before sharing the preview. Windows CI builds and checks the unpacked artifact, but does not claim interactive or clean-machine installer verification.
@@ -35,6 +36,8 @@ Verification on 2026-11-02: eight transport tests and 100 shared web tests passe
 Request-state verification on 2026-11-02: nine transport tests and 110 web tests passed, including four desktop regressions covering cancellation, connection refusal, certificate rejection and invalid-header attempts after a previous success. TypeScript and the unpacked package checks passed. Native packaged checks returned a real HTTPS 200, rejected a local self-signed certificate, reported connection refusal and interrupted responses, cancelled a delayed request and rendered an HTML/script payload as literal response text. A new request attempt clears the old body/status/copy action; errors appear in the response pane. Unsupported header characters are rejected before transport setup. Renderer isolation and the full focus/theme/scaling matrix remain pending.
 
 M1 keeps requests, tokens and responses in memory only. No persistent collections, credential store, import/export or installer is claimed by this preview.
+
+Keyboard verification on 2026-11-03: the unpacked app initially left Body selected when Right Arrow was pressed on its response tab. The tabs now use one keyboard tab stop, wrap with Left/Right and support Home/End while moving focus with selection. All 111 shared web tests and nine desktop transport tests passed; TypeScript, Vite and unpacked archive checks passed. A rebuilt executable returned a real HTTP 200, switched through Body/Raw/Headers with the keyboard, copied the response and focused its scrollable body. All five themes were visually inspected at the current desktop display setting. Renderer/IPC boundary verification, the remaining focus controls and the Windows scaling matrix are still open; this does not complete M1 or authorize an installer release.
 
 ### M2: local workspaces and credentials
 
