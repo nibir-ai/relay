@@ -2,6 +2,12 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## Current public upgrade baseline: 3 November 2026
+
+The upgrade verifier now seeds actual public Python and npm 0.0.5 installations by default, then installs the candidate artifacts into the same environments. Previously it still started from Python 0.0.4 and npm 0.0.3. Optional `--python-from` and `--node-from` arguments retain those older upgrade paths. Python replacement is forced while development artifacts retain the published version number; installed module hashes must match the wheel/tarball, rather than relying on a version string alone.
+
+The current-baseline run passed locally: native FastAPI and Node HTTP discovery, separate user/admin authorization outcomes, execution, bundled assets and existing local status/note preservation. This does not complete the full 0.0.6 migration gate: Git/realtime configuration, contract metadata, browser exports and the other release gates remain separately required. No new version was published.
+
 ## Node report input bounds: 3 November 2026
 
 The report opener reads through one file descriptor, verifies a regular file and enforces its 32 MiB bound throughout reading. A pathname replacement does not switch the opened input, and growth beyond the bound is rejected before creating a cached report. File descriptors close on success and read errors. Supported version-1 reports remain portable. This addresses the report-reader file inspection finding; other source-scanning findings remain under separate review.
