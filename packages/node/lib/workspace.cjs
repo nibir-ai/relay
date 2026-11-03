@@ -1,4 +1,5 @@
 const fs = require('node:fs');
+const {readBounded}=require('./file-input.cjs');
 const { RelayError, object } = require('./security.cjs');
 const { PROGRESS, atomic } = require('./git.cjs');
 const { hash } = require('./openapi.cjs');
@@ -10,8 +11,7 @@ class Workspace {
     this.file=file; this.shared=shared; this.rows={}; this.activity=[];
     if (file && fs.existsSync(file)) {
       try {
-        if (fs.statSync(file).size>MAX_WORKSPACE) throw new Error();
-        const data=JSON.parse(fs.readFileSync(file,'utf8'));
+        const data=JSON.parse(readBounded(file,MAX_WORKSPACE));
         if (data.version!==1 || !object(data.endpoints) || !Array.isArray(data.activity)) throw new Error();
         for (const row of Object.values(data.endpoints)) if (!object(row) || !PROGRESS.has(row.progress) || typeof row.fingerprint!=='string') throw new Error();
         this.rows=data.endpoints; this.activity=data.activity.slice(-100);

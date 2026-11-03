@@ -1,4 +1,5 @@
 const fs = require('node:fs');
+const {readBounded}=require('./file-input.cjs');
 const {io} = require('socket.io-client');
 const {hash} = require('./openapi.cjs');
 const {atomic, PROGRESS} = require('./git.cjs');
@@ -27,7 +28,7 @@ class RealtimeSync {
     this.config=config; this.file=file; this.rows=Object.create(null); this.revision=0; this.ready=false; this.closed=false;
     this.state='connecting'; this.error=null; this.last_synced_at=null; this.refreshing=null; this.buffer=[];
     if (file && fs.existsSync(file)) {
-      try { if (fs.statSync(file).size>16*1024*1024) throw new Error(); this.snapshot(JSON.parse(fs.readFileSync(file,'utf8'))); }
+      try { this.snapshot(JSON.parse(readBounded(file,16*1024*1024))); }
       catch { this.rows=Object.create(null); this.revision=0; this.offline(); }
     }
     this.socket=io(config.url,{auth:{project:config.project,token:config.token},autoConnect:false,reconnection:true,reconnectionDelayMax:5000,timeout:3000});
