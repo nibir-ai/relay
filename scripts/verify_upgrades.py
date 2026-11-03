@@ -1,13 +1,17 @@
 """Upgrade real published packages in place and preserve existing native workspaces."""
 import json
+import argparse
+import hashlib
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
 import tempfile
+import tarfile
 import tomllib
 import venv
+import zipfile
 ROOT=Path(__file__).resolve().parents[1]
 VERSION=tomllib.loads((ROOT/"apps/agent/pyproject.toml").read_text())["project"]["version"]
 PYTHON_CONSUMER=r'''import json,sys
@@ -73,7 +77,7 @@ const server=http.createServer((req,res)=>{
 })().catch(error=>{console.error(error);process.exitCode=1;}).finally(async()=>{await middleware.close();server.close();server.closeAllConnections();});
 '''
 
-def main():
+def main(python_from, node_from):
     with tempfile.TemporaryDirectory(prefix="relay-upgrade-") as temporary:
         folder=Path(temporary)
         environment=dict(os.environ)
@@ -81,10 +85,16 @@ def main():
         venv.EnvBuilder(with_pip=True).create(folder/"env")
         python=folder/"env"/("Scripts/python.exe" if os.name=="nt" else "bin/python")
         def run(command): subprocess.run([str(a) for a in command],cwd=folder,env=environment,check=True)
-        run([python,"-m","pip","install","relay-backend==0.0.4","--index-url","https://pypi.org/simple"])
+        run([python,"-m","pip","install",f"relay-backend=={python_from}","--index-url","https://pypi.org/simple"])
         (folder/"consumer.py").write_text(PYTHON_CONSUMER)
-        run([python,"consumer.py","seed","0.0.4"])
-        run([python,"-m","pip","install",str(ROOT/"dist"/f"relay_backend-{VERSION}-py3-none-any.whl")+"[realtime]"])
+        run([python,"consumer.py","seed",python_from])
+        # Development artifacts may still carry the published version number.
+        # Force replacement so this check actually exercises the candidate wheel.
+        run([python,"-m","pip","install","--force-reinstall",str(ROOT/"dist"/f"relay_backend-{VERSION}-py3-none-any.whl")+"[realtime]"])
+        with zipfile.ZipFile(ROOT/"dist"/f"relay_backend-{VERSION}-py3-none-any.whl") as wheel:
+            expected=hashlib.sha256(wheel.read("relay_backend/app.py")).hexdigest()
+        run([python,"-c","import hashlib,relay_backend.app; from pathlib import Path; "
+             "assert hashlib.sha256(Path(relay_backend.app.__file__).read_bytes()).hexdigest()=="+repr(expected)])
         run([python,"consumer.py","verify",VERSION])
         run([python,"-m","relay_backend","team","init","--help"])
         node=shutil.which("node"); assert node
@@ -92,9 +102,19 @@ def main():
         npm=[node,str(npm_cli)] if npm_cli.exists() else [shutil.which("npm")]
         (folder/"package.json").write_text('{"name":"relay-upgrade-consumer","private":true}')
         (folder/"consumer.cjs").write_text(NODE_CONSUMER)
-        run([*npm,"install","relay-backend@0.0.3","--ignore-scripts","--no-audit","--no-fund"])
-        run([node,"consumer.cjs","seed","0.0.3"])
+        run([*npm,"install",f"relay-backend@{node_from}","--ignore-scripts","--no-audit","--no-fund"])
+        run([node,"consumer.cjs","seed",node_from])
         run([*npm,"install",ROOT/"dist"/f"relay-backend-{VERSION}.tgz","--ignore-scripts","--no-audit","--no-fund"])
+        with tarfile.open(ROOT/"dist"/f"relay-backend-{VERSION}.tgz") as tarball:
+            expected=hashlib.sha256(tarball.extractfile("package/lib/reports.cjs").read()).hexdigest()
+        run([node,"-e","const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');"
+             "const file=path.join(path.dirname(require.resolve('relay-backend')),'reports.cjs');"
+             "require('node:assert/strict').equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),"+json.dumps(expected)+");"])
         run([node,"consumer.cjs","verify",VERSION])
-        print("Published Python 0.0.4 and npm 0.0.3 upgraded in place without integration edits or workspace loss.")
-if __name__=="__main__": main()
+        print(f"Published Python {python_from} and npm {node_from} upgraded in place without integration edits or workspace loss.")
+if __name__=="__main__":
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--python-from",default="0.0.5",help="Published Python version to seed (default: 0.0.5).")
+    parser.add_argument("--node-from",default="0.0.5",help="Published npm version to seed (default: 0.0.5).")
+    args=parser.parse_args()
+    main(args.python_from,args.node_from)
