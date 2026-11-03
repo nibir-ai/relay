@@ -62,6 +62,8 @@ Keep the response prominent, Execute easy to reach and Auth visible beside each 
 
 Upgrade verification defaults to published Python/npm 0.0.5. Its installed-artifact identity checks and native local status/note preservation passed on 3 November 2026. The broader upgrade gate below remains open until contract metadata, Git/realtime configuration and the complete consumer flows pass.
 
+The same consumer check now also verifies preserved contract fingerprints/review flags/changed sections and detection of a response-contract edit after upgrade without losing notes or manual progress. Python and Node passed locally; Git/realtime configuration and browser acceptance remain required.
+
 - [ ] Python, Node, frontend and protocol regression suites pass, alongside the strict build and TypeScript consumer checks.
 - [ ] Supported Python/Node compatibility matrices pass; fresh wheel/source/tarball installations need no consumer frontend build or repository checkout.
 - [ ] Upgrade actual public 0.0.5 installations in place, preserving notes, statuses, contract metadata, Git/realtime configuration and existing native integration calls.

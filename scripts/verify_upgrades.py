@@ -38,6 +38,20 @@ with TestClient(app,base_url="http://localhost:9876",client=("127.0.0.1",1234)) 
         assert client.post("/relay/__relay/endpoints/update",headers=h,json={"endpoint_id":endpoint["id"],"fingerprint":endpoint["fingerprint"],"progress":"in_progress","note":"Keep my local note"}).status_code==200
     state=client.get("/relay/__relay/workspace").json()["endpoints"]["GET /me"]
     assert state["progress"]=="in_progress" and state["note"]=="Keep my local note"
+    baseline=Path("python-contract-baseline.json")
+    if sys.argv[1]=="seed":
+        baseline.write_text(json.dumps({"fingerprint":state["fingerprint"],"contract_changed":state["contract_changed"],"changed_sections":state["changed_sections"]}))
+    else:
+        saved=json.loads(baseline.read_text())
+        assert {key:state[key] for key in saved}==saved
+        changed=json.loads(json.dumps(app.openapi()))
+        changed["paths"]["/me"]["get"]["responses"]["418"]={"description":"Changed after upgrade"}
+        app.openapi=lambda: changed
+        assert client.post("/relay/__relay/sources/inspect",headers=h).status_code==200
+        revised=client.get("/relay/__relay/workspace").json()["endpoints"]["GET /me"]
+        assert revised["contract_changed"] is True and "Responses" in revised["changed_sections"]
+        assert revised["fingerprint"]!=saved["fingerprint"]
+        assert revised["note"]=="Keep my local note" and revised["progress"]=="in_progress"
     for path,token,status in [("/me","user-secret",200),("/admin","user-secret",403),("/admin","admin-secret",200)]:
         result=client.post("/relay/__relay/execute",headers=h,json={"method":"GET","path":path,"headers":{"Authorization":"Bearer "+token}})
         assert result.status_code==200 and result.json()["status"]==status
@@ -69,6 +83,19 @@ const server=http.createServer((req,res)=>{
  if(process.argv[2]==='seed') await request('endpoints/update',{endpoint_id:endpoint.id,fingerprint:endpoint.fingerprint,progress:'in_progress',note:'Keep my local note'});
  const row=(await request('workspace')).endpoints['GET /me'];
  assert.equal(row.progress,'in_progress');assert.equal(row.note,'Keep my local note');
+ const fs=require('node:fs'),baseline='node-contract-baseline.json';
+ const metadata=value=>({fingerprint:value.fingerprint,contract_changed:value.contract_changed,changed_sections:value.changed_sections});
+ if(process.argv[2]==='seed') fs.writeFileSync(baseline,JSON.stringify(metadata(row)));
+ else {
+  const saved=JSON.parse(fs.readFileSync(baseline,'utf8'));
+  assert.deepEqual(metadata(row),saved);
+  schema.paths['/me'].get.responses['418']={description:'Changed after upgrade'};
+  await request('sources/inspect',{});
+  const revised=(await request('workspace')).endpoints['GET /me'];
+  assert.equal(revised.contract_changed,true);assert.ok(revised.changed_sections.includes('Responses'));
+  assert.notEqual(revised.fingerprint,saved.fingerprint);
+  assert.equal(revised.progress,'in_progress');assert.equal(revised.note,'Keep my local note');
+ }
  for(const [path,token,status] of [['/me','user-secret',200],['/admin','user-secret',403],['/admin','admin-secret',200]]) assert.equal((await request('execute',{method:'GET',path,headers:{Authorization:'Bearer '+token}})).status,status);
  assert.equal((await fetch(base+'/relay/')).status,200);
  assert.equal((await fetch(base+'/relay/brand/relay-symbol.svg')).status,200);

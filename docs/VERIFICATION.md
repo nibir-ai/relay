@@ -14,6 +14,8 @@ The upgrade verifier now seeds actual public Python and npm 0.0.5 installations 
 
 The current-baseline run passed locally: native FastAPI and Node HTTP discovery, separate user/admin authorization outcomes, execution, bundled assets and existing local status/note preservation. This does not complete the full 0.0.6 migration gate: Git/realtime configuration, contract metadata, browser exports and the other release gates remain separately required. No new version was published.
 
+Additional contract-state coverage now saves each published consumer's fingerprint, review flag and changed-section list before upgrade. Both installed candidate consumers preserve those values with an unchanged contract. A subsequent response-contract edit changes the fingerprint and reports Responses for review while preserving the developer's in-progress status and local note. This current-public-baseline run passed for Python and Node. Git/realtime configuration and browser export acceptance remain open; this does not check off the complete migration gate.
+
 ## Node report input bounds: 3 November 2026
 
 The report opener reads through one file descriptor, verifies a regular file and enforces its 32 MiB bound throughout reading. A pathname replacement does not switch the opened input, and growth beyond the bound is rejected before creating a cached report. File descriptors close on success and read errors. Supported version-1 reports remain portable. This addresses the report-reader file inspection finding; other source-scanning findings remain under separate review.
