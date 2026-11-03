@@ -2,6 +2,10 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## Node report input bounds: 3 November 2026
+
+The report opener reads through one file descriptor, verifies a regular file and enforces its 32 MiB bound throughout reading. A pathname replacement does not switch the opened input, and growth beyond the bound is rejected before creating a cached report. File descriptors close on success and read errors. Supported version-1 reports remain portable. This addresses the report-reader file inspection finding; other source-scanning findings remain under separate review.
+
 ## Node framework test dependencies: 3 November 2026
 
 The locked Fastify test dependency is now 5.12.7, with fast-uri 3.1.9/4.2.3 and qs 6.17.1 in its and Express's development dependency chains. All updates stay within their existing supported major versions. The full workspace audit fell from five low/seven moderate advisories to two moderate advisories in desktop packaging tools; no high or critical dependency advisories were reported. The remaining glob/minimatch entries need a separately verified upstream-compatible packaging update. Dependency audit results do not establish that source-scanning findings are resolved.
