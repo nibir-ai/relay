@@ -1,4 +1,5 @@
 const fs = require('node:fs');
+const {readBounded}=require('./file-input.cjs');
 const path = require('node:path');
 const { execFile } = require('node:child_process');
 const { randomUUID } = require('node:crypto');
@@ -52,8 +53,7 @@ class GitStatuses {
   read() {
     if (!fs.existsSync(this.file)) return {};
     try {
-      if (fs.statSync(this.file).size > MAX_RESPONSE) throw new Error();
-      return validate(JSON.parse(fs.readFileSync(this.file,'utf8')));
+      return validate(JSON.parse(readBounded(this.file,MAX_RESPONSE)));
     } catch { throw new RelayError(409,'Cannot read .relay/status.json. Resolve conflicts before changing status.'); }
   }
   locked(action) {

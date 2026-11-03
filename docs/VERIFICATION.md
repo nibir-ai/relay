@@ -2,6 +2,12 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## Node metadata input bounds: 3 November 2026
+
+Workspace, Git status and realtime-cache reads now enforce their existing byte limits while reading through one inspected file descriptor. Regressions reproduced acceptance of growing, whitespace-padded JSON beyond the workspace and Git bounds. The shared reader rejects growth, preserves the opened file when its pathname is replaced and closes descriptors after read failures. Invalid realtime caches retain the existing offline fallback instead of restoring untrusted revisions. Formats, limits and normal restart behavior remain unchanged.
+
+All 32 Node tests and TypeScript checks passed locally, including four new metadata regressions. This is a source fix for the next package; remaining source-scanning findings and full release gates remain open.
+
 ## Current public upgrade baseline: 3 November 2026
 
 The upgrade verifier now seeds actual public Python and npm 0.0.5 installations by default, then installs the candidate artifacts into the same environments. Previously it still started from Python 0.0.4 and npm 0.0.3. Optional `--python-from` and `--node-from` arguments retain those older upgrade paths. Python replacement is forced while development artifacts retain the published version number; installed module hashes must match the wheel/tarball, rather than relying on a version string alone.
