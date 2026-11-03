@@ -135,3 +135,15 @@ def test_access_diagnostic_reports_only_authenticated_permission_without_mutatio
         assert response.status_code==401
         assert response.json()=={"detail":"Developer authentication required."}
     assert client.get(URL,headers=headers()).json()==before
+
+
+def test_oversized_http_mutation_is_rejected_before_json_parsing(service):
+    client, _, _ = service
+    import json
+    # Whitespace is valid JSON, so schema validation alone cannot bound input.
+    body = b" " * 65536 + json.dumps(mutation()).encode()
+    response = client.put(URL, headers={**headers(), "Content-Type": "application/json"},
+                          content=body)
+    assert response.status_code == 413
+    assert response.headers["cache-control"] == "no-store"
+    assert client.get(URL, headers=headers()).json()["revision"] == 0

@@ -16,6 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic import ValidationError
 from starlette.concurrency import run_in_threadpool
 import socketio
+from .limits import HTTPBodyLimit
 
 
 class Member(BaseModel):
@@ -231,4 +232,5 @@ def create_app(*, config: dict | None = None, db_path: str | Path | None = None)
                 return {"ok": False, "status": 409, **error.detail}
             return {"ok": False, "status": error.status_code, "code": "write_forbidden"}
 
-    return socketio.ASGIApp(events, app)
+    # Socket.IO has its own 16 KiB transport limit. Bound REST input separately.
+    return socketio.ASGIApp(events, HTTPBodyLimit(app))

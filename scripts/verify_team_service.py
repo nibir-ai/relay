@@ -64,6 +64,19 @@ def main():
                 assert request(base, "GET", endpoint)[0] == 401
                 status, snapshot = request(base, "GET", endpoint, "consumer-test-only")
                 assert status == 200
+                oversized = urllib.request.Request(
+                    base + endpoint, method="PUT", data=b" " * 65537,
+                    headers={"Authorization": "Bearer consumer-test-only",
+                             "Content-Type": "application/json"},
+                )
+                try:
+                    urllib.request.urlopen(oversized, timeout=3)
+                except urllib.error.HTTPError as error:
+                    assert error.code == 413
+                    assert error.headers["Cache-Control"] == "no-store"
+                else:
+                    raise AssertionError("Oversized HTTP request was accepted.")
+                assert request(base, "GET", endpoint, "consumer-test-only")[1] == snapshot
                 if run == 0:
                     assert snapshot == {"protocol": 1, "revision": 0, "statuses": []}
                     mutation = {"endpoint_id": "GET /api/me", "fingerprint": "a" * 64,
@@ -82,7 +95,7 @@ def main():
                 except subprocess.TimeoutExpired:
                     process.kill()
                     process.wait(timeout=5)
-    print("Installed team service: native HTTP authentication, writes, conflicts and restart persistence passed.")
+    print("Installed team service: HTTP input limits, authentication, writes, conflicts and restart persistence passed.")
 
 
 if __name__ == "__main__":
