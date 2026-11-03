@@ -2,6 +2,12 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## Node framework test dependencies: 3 November 2026
+
+The locked Fastify test dependency is now 5.12.7, with fast-uri 3.1.9/4.2.3 and qs 6.17.1 in its and Express's development dependency chains. All updates stay within their existing supported major versions. The full workspace audit fell from five low/seven moderate advisories to two moderate advisories in desktop packaging tools; no high or critical dependency advisories were reported. The remaining glob/minimatch entries need a separately verified upstream-compatible packaging update. Dependency audit results do not establish that source-scanning findings are resolved.
+
+All 24 Node integration tests, TypeScript checks and a clean tarball installation passed locally. Installed CommonJS, ES module and TypeScript consumers, CLI commands, bundled assets and request execution passed without consumer build scripts. These framework packages are development dependencies; the distributed Node runtime dependency list is unchanged.
+
 ## Team service HTTP input bounds: source fix, 3 November 2026
 
 A valid status mutation padded beyond 64 KiB previously reached JSON parsing and returned HTTP 200. The REST service now rejects oversized declared or streamed bodies with HTTP 413 before parsing. This also applies when `Content-Length` is absent or underreports the body. Accepted bodies remain intact; client disconnects do not invoke the parser. Socket.IO keeps its independent transport bound.
