@@ -17,6 +17,7 @@ Work through these milestones in order. Reproduce blocking regressions before ad
 - [x] Extend `relay doctor` and `npx relay-backend doctor` to distinguish local, Git and realtime configuration, including competing modes and incomplete environment variables.
 - [x] Use bounded, read-only checks to distinguish unavailable service, rejected credentials, unknown project/access and read-only membership when the protocol provides that evidence. Preserve deliberately generic authentication errors; do not expose membership details or invent a diagnosis.
 - [x] Provide one concrete next step per failure and sanitized JSON output for bug reports. Never print tokens, authorization headers, request bodies or credential-bearing URLs.
+- [x] Reject oversized team-service REST input before JSON parsing, including streamed bodies; retain Socket.IO's independent transport limit.
 
 Acceptance: good/bad fixtures pass in both runtimes; diagnostics do not execute business endpoints, change membership, write statuses, alter Git files or edit application setup. API execution remains usable during service outages. Any reproduced 0.0.5 regression blocks later milestones until fixed.
 

@@ -84,6 +84,8 @@ Stale writes return HTTP 409 with `detail.code` set to `revision_conflict` and `
 
 Send only status metadata. API bearer tokens, request bodies, local notes, drafts and captured responses have no fields in this protocol and must stay local. HTTP snapshot and write responses use `Cache-Control: no-store`.
 
+In the development service, REST request bodies are limited to 64 KiB before JSON parsing, including streamed bodies without `Content-Length`. Oversized requests receive HTTP 413 without changing statuses. Socket.IO retains its separate 16 KiB transport limit. These input bounds do not replace reverse-proxy rate limits or connection timeouts.
+
 ## Socket.IO delivery
 
 Use Socket.IO client protocol 4.x (JavaScript) or python-socketio 5.x with the default `/socket.io` transport path and namespace `/`. Both WebSocket and HTTP polling are supported. Authenticate the namespace connection using `auth: {project, token}`; do not put tokens in query strings. The project is fixed for the lifetime of that authenticated connection. Invalid credentials are rejected before room subscription, and there is no client-controlled room-join operation. See the [Python server reference](https://python-socketio.readthedocs.io/en/stable/server.html) and [JavaScript client API](https://socket.io/docs/v4/client-api/).

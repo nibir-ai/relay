@@ -2,6 +2,12 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## Team service HTTP input bounds: source fix, 3 November 2026
+
+A valid status mutation padded beyond 64 KiB previously reached JSON parsing and returned HTTP 200. The REST service now rejects oversized declared or streamed bodies with HTTP 413 before parsing. This also applies when `Content-Length` is absent or underreports the body. Accepted bodies remain intact; client disconnects do not invoke the parser. Socket.IO keeps its independent transport bound.
+
+All 28 service tests passed locally, including real Socket.IO delivery, HTTP-to-socket updates, reconnect recovery and eight new input-limit regressions. Installed-wheel HTTP verification also checks rejection without a status change. This is a source fix for the next backend release; public 0.0.5 packages have not changed.
+
 ## 0.0.6 reviewed exports: source implementation, 2 November 2026
 
 Export now captures a separate copy and opens a review before downloading. The preview supports body omission, explicit non-JSON inclusion and additional JSON Pointer selections; both formats use the same reviewed payload. Known workspace/endpoint auth, recognized manual credentials, cookies, sensitive parameters/query values and their recognized encoded forms are masked throughout the copy, including metadata. Common sensitive body fields are masked by default. Unsupported/truncated bodies have explicit omission notes. This remains a review aid rather than a promise to identify every private field or encoded secret.

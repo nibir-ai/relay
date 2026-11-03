@@ -141,6 +141,7 @@ Implementation is in progress; realtime diagnostics, session request history and
 - [x] Add lightweight response checks for expected HTTP status, JSON field existence/equality and optional response-time limits; keep results separate from manual endpoint status.
 - [ ] Preview both export formats and support reviewed redaction of credentials and selected request/response fields.
 - [x] Extend Python/Node diagnostics for realtime configuration, project access and connectivity without exposing tokens or changing setup.
+- [x] Bound team-service REST inputs before JSON parsing, with streamed-body rejection and installed-wheel verification.
 - [ ] Verify upgrades from public 0.0.5, native FastAPI/Express/Fastify/Node HTTP consumers, auth isolation, both exports, offline testing, themes and narrow layouts before publication.
 
 See the [0.0.6 implementation order, acceptance criteria and release gates](docs/RELEASE-0.0.6.md). Check off each item only after its verification passes. Reproduce and fix any blocking regression before advancing feature work.
