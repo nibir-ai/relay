@@ -7,3 +7,8 @@ for(const match of html.matchAll(/(?:src|href)="([^"]+)"/g)){const relative=matc
 assert.ok(fs.existsSync(path.join(directory,'Relay.exe')));assert.ok(fs.existsSync(path.join(directory,'LICENSES.chromium.html')));
 assert.ok(![...files].some(file=>file.startsWith('/node_modules/') || file.startsWith('/src/') || file.startsWith('/test/')));
 console.log('Packaged Windows executable, entry page, assets and license notices verified.');
+// Exercise the archived main/preload wiring with an instrumented Electron boundary.
+// This does not replace running the app or checking real Chromium isolation.
+require('node:child_process').execFileSync(process.execPath,
+  ['--test',path.join(desktop,'test/boundaries.test.cjs')],
+  {stdio:'inherit',env:{...process.env,RELAY_DESKTOP_ARCHIVE:archive}});
