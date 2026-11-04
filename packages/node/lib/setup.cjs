@@ -1,4 +1,5 @@
 const fs = require('node:fs');
+const {readBounded}=require('./file-input.cjs');
 const path = require('node:path');
 const http = require('node:http');
 const https = require('node:https');
@@ -16,9 +17,11 @@ function sources(project) {
       const file = path.join(dir,entry.name);
       if (entry.isSymbolicLink()) continue;
       if (entry.isDirectory() && depth < 5 && !SKIP.has(entry.name) && !entry.name.startsWith('.')) walk(file,depth+1);
-      else if (entry.isFile() && /\.[cm]?[jt]s$/.test(entry.name) && fs.statSync(file).size <= 512*1024) {
+      else if (entry.isFile() && /\.[cm]?[jt]s$/.test(entry.name)) {
+        const text=readBounded(file,512*1024,{skipOversized:true});
+        if (text===null) continue;
         if (files.length >= 500) throw new Error('Too many source files. Select a smaller backend project directory.');
-        files.push({file,text:fs.readFileSync(file,'utf8')});
+        files.push({file,text});
       }
     }
   }

@@ -2,6 +2,12 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## Node setup source input: 4 November 2026
+
+Guided setup now uses the bounded descriptor reader for candidate source files. Sources already larger than 512 KiB are still skipped; a file that grows beyond the bound while being read aborts setup before applying edits. The existing CJS/ESM preview and apply behavior remains covered.
+
+All 34 Node tests, TypeScript checks, production build and clean installed CJS/ESM/TypeScript/CLI consumers passed locally. Two new regressions cover source growth without edits and skipping an oversized source beside a valid entrypoint. This is a source fix for the next release; full release gates remain open.
+
 ## Node metadata input bounds: 3 November 2026
 
 Workspace, Git status and realtime-cache reads now enforce their existing byte limits while reading through one inspected file descriptor. Regressions reproduced acceptance of growing, whitespace-padded JSON beyond the workspace and Git bounds. The shared reader rejects growth, preserves the opened file when its pathname is replaced and closes descriptors after read failures. Invalid realtime caches retain the existing offline fallback instead of restoring untrusted revisions. Formats, limits and normal restart behavior remain unchanged.
