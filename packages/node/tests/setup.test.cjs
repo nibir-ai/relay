@@ -7,6 +7,27 @@ const http=require('node:http');
 const {initialize,doctor}=require('../lib/setup.cjs');
 function temp(t) { const dir=fs.mkdtempSync(path.join(os.tmpdir(),'relay-setup-')); t.after(()=>fs.rmSync(dir,{recursive:true,force:true})); return dir; }
 
+test('init rejects source growth beyond its scan limit without applying edits',t=>{
+  const dir=temp(t),file=path.join(dir,'main.cjs');
+  const text="const express = require('express');\nconst app = express();\n";
+  fs.writeFileSync(file,text);
+  const stat=fs.statSync,fstat=fs.fstatSync;let grew=false;
+  function inspect(fn,args){const result=fn(...args);if(!grew && (args[0]===file || typeof args[0]==='number')){grew=true;fs.appendFileSync(file,' '.repeat(512*1024));}return result;}
+  try {
+    fs.statSync=(...args)=>inspect(stat,args);fs.fstatSync=(...args)=>inspect(fstat,args);
+    assert.throws(()=>initialize(dir,true,()=>{}),/limit/);
+    assert.equal(fs.readFileSync(file,'utf8'),text+' '.repeat(512*1024));
+  } finally {fs.statSync=stat;fs.fstatSync=fstat;}
+});
+
+test('init still skips an already oversized source and handles a normal entrypoint',t=>{
+  const dir=temp(t),large=path.join(dir,'large.js'),file=path.join(dir,'main.cjs');
+  fs.writeFileSync(large,' '.repeat(512*1024+1));
+  fs.writeFileSync(file,"const express = require('express');\nconst app = express();\n");
+  assert.equal(initialize(dir,false,()=>{}),true);
+  assert.equal(fs.statSync(large).size,512*1024+1);
+});
+
 for (const esm of [false,true]) test('Express init preview, apply and repeat '+(esm?'ESM':'CJS'),t=> {
   const dir=temp(t),file=path.join(dir,esm?'main.mjs':'main.cjs');
   const text=(esm?"import express from 'express';":"const express = require('express');")+"\r\nconst app = express();\r\napp.use(express.json());\r\n";
