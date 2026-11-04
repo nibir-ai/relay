@@ -37,6 +37,8 @@ jobs:
       - run: .team-consumer/bin/python scripts/verify_realtime_integrations.py --require-installed
       - run: python scripts/verify_upgrades.py
         if: matrix.python == '3.12'
+      - run: python scripts/verify_realtime_integrations.py --upgrade-from-public
+        if: matrix.python == '3.12'
       - run: node scripts/verify_team_events.cjs
         env:
           RELAY_TEAM_PYTHON: ${{ github.workspace }}/.team-consumer/bin/python

@@ -43,7 +43,7 @@ def wait(check, timeout=20):
     raise AssertionError("Realtime integration did not reach its expected state.")
 
 
-def main(require_installed=False, public_index=False):
+def main(require_installed=False, public_index=False, upgrade_from_public=False):
     if require_installed:
         import relay_backend
         import relay_team
@@ -53,6 +53,13 @@ def main(require_installed=False, public_index=False):
     version = tomllib.loads((ROOT / "apps/agent/pyproject.toml").read_text())["project"]["version"]
     with tempfile.TemporaryDirectory(prefix="relay-native-team-") as temporary:
         folder = Path(temporary)
+        consumer_python = sys.executable
+        if upgrade_from_public:
+            import venv
+            venv.EnvBuilder(with_pip=True).create(folder / "consumer-env")
+            consumer_python = str(folder / "consumer-env" / ("Scripts/python.exe" if os.name == "nt" else "bin/python"))
+            subprocess.run([consumer_python, "-m", "pip", "install", "relay-backend[realtime]==0.0.5",
+                            "--index-url", "https://pypi.org/simple"], check=True)
         processes = []
         def start(command, environment):
             process = subprocess.Popen(command, cwd=folder, env=environment,
@@ -87,7 +94,7 @@ def main(require_installed=False, public_index=False):
         team_port, python_port, node_port = sorted(ports)
         team_base, python_base, node_base = [f"http://127.0.0.1:{value}" for value in (team_port, python_port, node_port)]
         team_environment = {**environment, "RELAY_TEAM_CONFIG": str(configuration), "RELAY_TEAM_DB": str(folder / "team.sqlite3")}
-        team_command = [sys.executable, "-m", "relay_backend", "team", "serve", "--config", str(configuration), "--database", str(folder / "team.sqlite3"), "--port", str(team_port)]
+        team_command = [consumer_python, "-m", "relay_backend", "team", "serve", "--config", str(configuration), "--database", str(folder / "team.sqlite3"), "--port", str(team_port)]
         python_environment = {**environment, "RELAY_TEAM_URL": team_base, "RELAY_TEAM_PROJECT": "example", "RELAY_TEAM_TOKEN": "python-developer-secret"}
         node_environment = {**python_environment, "RELAY_TEAM_TOKEN": "node-developer-secret", "RELAY_TEST_PORT": str(node_port)}
         (folder / "backend.py").write_text('''from pathlib import Path
@@ -117,15 +124,15 @@ process.on('SIGTERM',async()=>{await middleware.close();server.close();});
         (folder / "package.json").write_text('{"name":"relay-team-consumer","private":true}')
         npm_cli = Path(subprocess.check_output([node, "-p", "require('node:path').join(require('node:path').dirname(process.execPath),'node_modules/npm/bin/npm-cli.js')"], text=True).strip())
         npm = [node, str(npm_cli)] if npm_cli.exists() else [shutil.which("npm")]
-        package = "relay-backend" if public_index else str(ROOT / "dist" / f"relay-backend-{version}.tgz")
+        package = "relay-backend@0.0.5" if upgrade_from_public else "relay-backend" if public_index else str(ROOT / "dist" / f"relay-backend-{version}.tgz")
         subprocess.run([*npm, "install", "--ignore-scripts", "--no-audit", "--no-fund",
                         "--registry=https://registry.npmjs.org", "--prefer-online", "--cache", str(folder / "npm-cache"),
                         package], cwd=folder, check=True)
-        assert json.loads((folder / "node_modules/relay-backend/package.json").read_text())["version"] == version
+        assert json.loads((folder / "node_modules/relay-backend/package.json").read_text())["version"] == ("0.0.5" if upgrade_from_public else version)
         try:
             team = start(team_command, team_environment)
             wait(lambda: request(team_base, "GET", "/health")[0] == 200)
-            python_command = [sys.executable, "-m", "uvicorn", "backend:app", "--host", "127.0.0.1", "--port", str(python_port), "--timeout-graceful-shutdown", "2"]
+            python_command = [consumer_python, "-m", "uvicorn", "backend:app", "--host", "127.0.0.1", "--port", str(python_port), "--timeout-graceful-shutdown", "2"]
             python = start(python_command, python_environment)
             wait(lambda: request(python_base, "GET", "/relay/__relay/health")[0] == 200)
             schema = request(python_base, "GET", "/openapi.json")[1]
@@ -186,6 +193,16 @@ process.on('SIGTERM',async()=>{await middleware.close();server.close();});
                 assert json.loads(response[1]["body"]) == {"local": True}
             stop(python)
             stop(node_process)
+            if upgrade_from_public:
+                membership_before = configuration.read_bytes()
+                git_before = status_file.read_bytes()
+                subprocess.run([consumer_python, "-m", "pip", "install", "--force-reinstall",
+                                str(ROOT / "dist" / f"relay_backend-{version}-py3-none-any.whl") + "[realtime]"],
+                               cwd=folder, check=True)
+                subprocess.run([*npm, "install", "--ignore-scripts", "--no-audit", "--no-fund",
+                                str(ROOT / "dist" / f"relay-backend-{version}.tgz")], cwd=folder, check=True)
+                assert configuration.read_bytes() == membership_before
+                assert status_file.read_bytes() == git_before
             start(python_command, python_environment)
             start([node, str(folder / "node.cjs")], node_environment)
             wait(lambda: request(node_base, "GET", "/relay/__relay/health")[0] == 200)
@@ -194,10 +211,22 @@ process.on('SIGTERM',async()=>{await middleware.close();server.close();});
             for base in (python_base, node_base):
                 wait(lambda base=base: row(base).get("team_revision") == 3)
                 assert row(base)["progress"] == "needs_fixing"
+                assert row(base)["note"] == "Local note during outage"
+                assert row(base)["fingerprint"] == clients[base][1]
+                assert row(base)["updated_by"]["name"] == "Node"
             start(team_command, team_environment)
             for base in (python_base, node_base):
                 wait(lambda base=base: request(base, "GET", "/relay/__relay/workspace")[1]["status_sync"]["state"] == "synced")
                 assert row(base)["team_revision"] == 3
+            if upgrade_from_public:
+                for base in (python_base, node_base):
+                    csrf = request(base, "GET", "/relay/__relay/health")[1]["csrf_token"]
+                    clients[base] = (csrf, clients[base][1])
+                assert update(python_base, "done", revision=3)[0] == 200
+                wait(lambda: row(node_base).get("team_revision") == 4)
+                assert row(node_base)["progress"] == "done"
+                assert row(node_base)["updated_by"]["name"] == "Python"
+                assert row(node_base)["note"] == "Local note during outage"
             for filename in ("team.sqlite3", "workspace.sqlite3"):
                 content = (folder / filename).read_bytes()
                 assert b"local-api-secret" not in content and b"developer-secret" not in content
@@ -207,7 +236,7 @@ process.on('SIGTERM',async()=>{await middleware.close();server.close();});
             if not public_index:
                 # This diagnostic capability is source development after 0.0.5.
                 before_diagnostics = (folder / "team.sqlite3").read_bytes()
-                commands = [[sys.executable, "-m", "relay_backend", "doctor", "--project", str(folder), "--status-mode", "realtime", "--json"],
+                commands = [[consumer_python, "-m", "relay_backend", "doctor", "--project", str(folder), "--status-mode", "realtime", "--json"],
                             [node, str(folder / "node_modules/relay-backend/lib/cli.cjs"), "doctor", "--project", str(folder), "--status-mode", "realtime", "--json"]]
                 for command in commands:
                     for token, permission in (("python-developer-secret", "Writer"), ("reader-developer-secret", "Read-only")):
@@ -219,6 +248,8 @@ process.on('SIGTERM',async()=>{await middleware.close();server.close();});
                         assert "developer-secret" not in checked.stdout and "local-api-secret" not in checked.stdout
                 assert (folder / "team.sqlite3").read_bytes() == before_diagnostics
             print("Native Python/Node realtime: reviewed create-only Git migration, acknowledgement, attribution, conflict, private notes, offline API testing, cached restart and reconnect passed.")
+            if upgrade_from_public:
+                print("Public 0.0.5 realtime peers upgraded in place; membership configuration, Git status files, local notes, contract metadata, cached attribution and post-upgrade live writes passed.")
         finally:
             for process in reversed(processes):
                 stop(process)
@@ -228,5 +259,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--require-installed", action="store_true")
     parser.add_argument("--public-index", action="store_true")
+    parser.add_argument("--upgrade-from-public", action="store_true", help="Seed public 0.0.5 peers, upgrade in place during an outage, then verify reconnect recovery.")
     args = parser.parse_args()
-    main(args.require_installed, args.public_index)
+    if args.public_index and args.upgrade_from_public:
+        parser.error("Choose public-index verification or an upgrade, not both.")
+    main(args.require_installed, args.public_index, args.upgrade_from_public)

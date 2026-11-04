@@ -2,6 +2,12 @@
 
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
+## Realtime public-package upgrade: 4 November 2026
+
+The native realtime verifier can now seed independent Python/npm 0.0.5 installations with a real shared service, then upgrade both peers and the service to candidate artifacts during an outage. The same workspace databases, caches, membership configuration and Git status file remain in place. This path runs in Python 3.12 CI alongside existing compatibility checks.
+
+The local run passed reviewed Git import, acknowledgements, stale-update rejection, updater attribution, private local notes and offline API execution before upgrade. After installing the candidates, both peers restored the accepted revision/fingerprint/updater and their local notes from disk while the service remained offline. Reconnection and a new cross-runtime status write passed; membership configuration and the Git status file remained unchanged. Writer/read-only doctor checks passed without changing the service database. Browser exports, the remaining interaction gates and a complete release audit remain required; no package was published.
+
 ## Node setup source input: 4 November 2026
 
 Guided setup now uses the bounded descriptor reader for candidate source files. Sources already larger than 512 KiB are still skipped; a file that grows beyond the bound while being read aborts setup before applying edits. The existing CJS/ESM preview and apply behavior remains covered.
