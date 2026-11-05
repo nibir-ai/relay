@@ -1,5 +1,9 @@
 # Release verification
 
+## Team-service body read deadline: 5 November 2026
+
+An incomplete HTTP body previously kept the service reader waiting. REST input now has one 10-second receive deadline in addition to its 64 KiB cap. Stalled and slow-drip input returns a non-cacheable 408 before application parsing; cancellation, disconnects, normal application processing and response delivery retain their behavior. All 33 service tests passed. A fresh installed service wheel returned 408 for a real partial socket request without changing stored statuses, then passed authentication, writes, conflicts and restart persistence. The installed-wheel verifier runs this check in CI. Socket.IO's independent 16 KiB limit is unchanged; release and other security gates remain open.
+
 ## Native tester response-tab keyboard regression: 5 November 2026
 
 The web tester's response tabs initially kept selection and focus on Body after Right Arrow. They now use one tab stop, wrap with Left/Right, support Home/End and link to a uniquely identified response panel. A component regression verifies focus, selection, panel linkage, mouse selection and no additional API execution. All 112 frontend tests passed. This establishes component behavior; installed-browser keyboard, theme/mobile and reviewed-download acceptance remain pending.

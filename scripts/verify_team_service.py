@@ -1,5 +1,6 @@
 """Exercise an installed service wheel outside the repository over real HTTP."""
 import hashlib
+import http.client
 import json
 import os
 from pathlib import Path
@@ -78,6 +79,18 @@ def main():
                     raise AssertionError("Oversized HTTP request was accepted.")
                 assert request(base, "GET", endpoint, "consumer-test-only")[1] == snapshot
                 if run == 0:
+                    # Exercise the production read deadline over a real socket,
+                    # without completing the declared request body.
+                    with socket.create_connection(("127.0.0.1", port), timeout=15) as stalled:
+                        stalled.sendall((f"PUT {endpoint} HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\n"
+                                         "Authorization: Bearer consumer-test-only\r\n"
+                                         "Content-Type: application/json\r\nContent-Length: 20\r\n\r\n{").encode())
+                        response = http.client.HTTPResponse(stalled)
+                        response.begin()
+                        assert response.status == 408
+                        assert response.getheader("Cache-Control") == "no-store"
+                        assert json.loads(response.read()) == {"detail": "HTTP request body timed out."}
+                    assert request(base, "GET", endpoint, "consumer-test-only")[1] == snapshot
                     assert snapshot == {"protocol": 1, "revision": 0, "statuses": []}
                     mutation = {"endpoint_id": "GET /api/me", "fingerprint": "a" * 64,
                                 "progress": "done", "expected_revision": 0}
@@ -95,7 +108,7 @@ def main():
                 except subprocess.TimeoutExpired:
                     process.kill()
                     process.wait(timeout=5)
-    print("Installed team service: HTTP input limits, authentication, writes, conflicts and restart persistence passed.")
+    print("Installed team service: HTTP input limits/deadline, authentication, writes, conflicts and restart persistence passed.")
 
 
 if __name__ == "__main__":
