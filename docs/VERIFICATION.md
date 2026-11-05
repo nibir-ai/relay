@@ -1,5 +1,9 @@
 # Release verification
 
+## Native tester response-tab keyboard regression: 5 November 2026
+
+The web tester's response tabs initially kept selection and focus on Body after Right Arrow. They now use one tab stop, wrap with Left/Right, support Home/End and link to a uniquely identified response panel. A component regression verifies focus, selection, panel linkage, mouse selection and no additional API execution. All 112 frontend tests passed. This establishes component behavior; installed-browser keyboard, theme/mobile and reviewed-download acceptance remain pending.
+
 ## Python Git-status input bounds: 5 November 2026
 
 Python Git-status reads now inspect and read one file descriptor, enforce the 2 MiB limit throughout reading and reject non-regular inputs. Missing files still mean no shared statuses; invalid input retains the existing conflict response. The Python suite passed on Windows with 129 tests and two platform-dependent skips. Regression coverage includes growth after inspection, exact/oversized inputs, descriptor cleanup and pathname replacement where supported. CI also exercises the POSIX named-pipe case. This covers the Git-status reader; other input readers and release acceptance remain separately tracked.

@@ -100,6 +100,9 @@ export default function Playground({
   const draft = draftCache?.get(cacheKey);
   const [checks, setChecks] = useState<CheckDraft[]>(() => draft?.checks ?? []);
   const [responseTab, setResponseTab] = useState("Body");
+  const responseTabs = ["Body", "Raw", "Headers", "Request"];
+  const responseTabButtons = useRef<(HTMLButtonElement | null)[]>([]);
+  const responsePanelId = useId();
   const [responseFocused, setResponseFocused] = useState(false);
   const [wrapResponse, setWrapResponse] = useState(false);
   const [values, setValues] = useState<Record<string, string>>(
@@ -862,12 +865,26 @@ export default function Playground({
                   role="tablist"
                   aria-label="Response views"
                 >
-                  {["Body", "Raw", "Headers", "Request"].map((name) => (
+                  {responseTabs.map((name, index) => (
                     <button
                       key={name}
+                      ref={(node) => { responseTabButtons.current[index] = node; }}
                       role="tab"
                       aria-selected={responseTab === name}
+                      aria-controls={responsePanelId}
+                      tabIndex={responseTab === name ? 0 : -1}
                       onClick={() => setResponseTab(name)}
+                      onKeyDown={(event) => {
+                        let next: number;
+                        if (event.key === "ArrowRight") next = (index + 1) % responseTabs.length;
+                        else if (event.key === "ArrowLeft") next = (index + responseTabs.length - 1) % responseTabs.length;
+                        else if (event.key === "Home") next = 0;
+                        else if (event.key === "End") next = responseTabs.length - 1;
+                        else return;
+                        event.preventDefault();
+                        setResponseTab(responseTabs[next]);
+                        responseTabButtons.current[next]?.focus();
+                      }}
                     >
                       {name}
                     </button>
@@ -880,7 +897,7 @@ export default function Playground({
                     complete body. Copy and export include only this preview.
                   </p>
                 )}
-                <pre className={`response-body${wrapResponse ? " wrap-lines" : ""}`} role="tabpanel" tabIndex={0} aria-label={`${responseTab} response`}>
+                <pre id={responsePanelId} className={`response-body${wrapResponse ? " wrap-lines" : ""}`} role="tabpanel" tabIndex={0} aria-label={`${responseTab} response`}>
                   {!responseText && <span className="muted">Empty response body</span>}
                   <ResponseText text={responseText} />
                 </pre>
