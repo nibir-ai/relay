@@ -66,6 +66,8 @@ The same consumer check now also verifies preserved contract fingerprints/review
 
 On 4 November, the realtime verifier also passed an in-place upgrade of public Python/npm 0.0.5 peers and their shared service during an outage. Membership configuration, the Git status file, cached contract/updater/revision and local notes were preserved; reconnect and a new live write passed. The full gate still includes automatic Git-mode upgrades and complete native browser/export acceptance.
 
+On 5 November, `scripts/verify_upgrades.py --git-mode` passed with public Python/npm 0.0.5 installations upgraded in place. Automatic status sharing retained the existing status file and local note, then published new statuses and Git updater attribution to a local bare remote. Application HEAD, branch, index, uncommitted edits and Git configuration stayed unchanged. CI runs this mode alongside the local upgrade check. Native browser/export acceptance and the final release sweep remain open.
+
 - [ ] Python, Node, frontend and protocol regression suites pass, alongside the strict build and TypeScript consumer checks.
 - [ ] Supported Python/Node compatibility matrices pass; fresh wheel/source/tarball installations need no consumer frontend build or repository checkout.
 - [ ] Upgrade actual public 0.0.5 installations in place, preserving notes, statuses, contract metadata, Git/realtime configuration and existing native integration calls.

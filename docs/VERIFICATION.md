@@ -1,5 +1,9 @@
 # Release verification
 
+## Automatic Git-mode upgrades: 5 November 2026
+
+`python scripts/verify_upgrades.py --git-mode` passed on Windows with fresh public Python and npm 0.0.5 consumers upgraded in place to the candidate archives. Installed-module hashes matched those archives. Both native integrations retained shared status bytes across installation, loaded the existing note, fingerprint and Git updater, and published subsequent status changes to a local bare remote. Notes stayed local. The application commit, branch, index, working edits and Git configuration were unchanged. Python 3.12 CI also runs this check; it does not replace native browser/export acceptance or complete the 0.0.6 release gates.
+
 Every release must pass the Python suite, frontend suite, strict production build, wheel/source metadata checks, independent wheel checks and fresh consumer installations with current and minimum supported dependencies. CI also checks Python 3.11, 3.12 and 3.13. Publication is followed by a fresh unpinned PyPI install; build success alone is insufficient.
 
 ## Realtime public-package upgrade: 4 November 2026
