@@ -55,6 +55,8 @@ python -m uvicorn relay_team.app:create_app --factory --host 127.0.0.1 --port 44
 
 For access from other machines, put the service behind an HTTPS reverse proxy with request-size limits (16 KiB is sufficient for a status mutation) and rate limits. Keep the application bound to loopback behind that proxy. Tokens are developer credentials: use HTTPS, keep them out of URLs, logs, commits and exported API reports, and rotate them by replacing the configured hash and restarting. Browser CORS access is intentionally not enabled; the local backend bridges handle collaboration separately from API-testing auth.
 
+In the 0.0.6 development source, REST request bodies must fit within 64 KiB and finish arriving within 10 seconds. Oversized input returns 413; incomplete or stalled input returns 408, before parsing or status changes. The deadline covers the whole body, rather than restarting for each chunk, and does not limit application processing or response delivery. Socket.IO retains its separate 16 KiB transport limit. Keep proxy connection and rate limits in place.
+
 ## Protocol 1
 
 Every project request requires `Authorization: Bearer <developer-token>`. Unknown projects and invalid credentials return 401; a reader attempting to write receives 403. Authentication errors do not disclose project membership.

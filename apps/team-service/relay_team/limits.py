@@ -1,8 +1,11 @@
 """Bound HTTP input before the application buffers or parses JSON."""
+import asyncio
+
 from starlette.responses import JSONResponse
 
 
 HTTP_BODY_LIMIT = 64 * 1024
+HTTP_BODY_TIMEOUT = 10.0
 
 
 class HTTPBodyLimit:
@@ -27,16 +30,30 @@ class HTTPBodyLimit:
                     return await reject()
 
         body = bytearray()
-        while True:
-            message = await receive()
-            if message["type"] == "http.disconnect":
-                return
-            chunk = message.get("body", b"")
-            if len(body) + len(chunk) > HTTP_BODY_LIMIT:
-                return await reject()
-            body.extend(chunk)
-            if not message.get("more_body", False):
-                break
+        oversized = False
+        try:
+            # One deadline covers the whole body, including clients that keep
+            # sending small chunks without ever completing the request.
+            async with asyncio.timeout(HTTP_BODY_TIMEOUT):
+                while True:
+                    message = await receive()
+                    if message["type"] == "http.disconnect":
+                        return
+                    chunk = message.get("body", b"")
+                    if len(body) + len(chunk) > HTTP_BODY_LIMIT:
+                        oversized = True
+                        break
+                    body.extend(chunk)
+                    if not message.get("more_body", False):
+                        break
+        except TimeoutError:
+            return await JSONResponse(
+                {"detail": "HTTP request body timed out."}, status_code=408,
+                headers={"Cache-Control": "no-store"},
+            )(scope, receive, send)
+
+        if oversized:
+            return await reject()
 
         pending = bytes(body)
 
