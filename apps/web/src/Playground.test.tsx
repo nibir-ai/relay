@@ -10,6 +10,31 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
+it("moves response-tab selection and focus with arrows, Home and End without sending", async () => {
+  vi.mocked(api.execute).mockResolvedValue({status:200,reason:"OK",body:'{"role":"user"}',headers:{"content-type":"application/json"},duration_ms:2,bytes:15,truncated:false,content_type:"application/json",url:"/login",method:"POST"});
+  render(<Playground endpoint={endpoint} health={health} snapshot={snapshot}/>);
+  fireEvent.click(screen.getByRole("button",{name:"Execute request"}));
+  const body=await screen.findByRole("tab",{name:"Body"});
+  const raw=screen.getByRole("tab",{name:"Raw"});
+  const headers=screen.getByRole("tab",{name:"Headers"});
+  const request=screen.getByRole("tab",{name:"Request"});
+  const tabs=[body,raw,headers,request];
+  body.focus();
+  for (const [key,target] of [["ArrowRight",raw],["End",request],["ArrowRight",body],["ArrowLeft",request],["Home",body],["ArrowLeft",request],["ArrowLeft",headers]] as const) {
+    fireEvent.keyDown(document.activeElement!,{key});
+    expect(target).toHaveFocus();
+    for(const tab of tabs) {
+      expect(tab).toHaveAttribute("aria-selected",String(tab===target));
+      expect(tab).toHaveAttribute("tabindex",tab===target?"0":"-1");
+    }
+    const panel=screen.getByRole("tabpanel",{name:`${target.textContent} response`});
+    expect(target).toHaveAttribute("aria-controls",panel.id);
+  }
+  fireEvent.click(raw);
+  expect(raw).toHaveAttribute("tabindex","0");
+  expect(screen.getByRole("button",{name:"Wrap lines"})).not.toHaveAttribute("tabindex","-1");
+  expect(api.execute).toHaveBeenCalledTimes(1);
+});
 const endpoint: Endpoint = {
   id: "POST /login",
   method: "POST",
