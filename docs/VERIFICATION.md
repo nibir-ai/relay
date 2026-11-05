@@ -1,5 +1,9 @@
 # Release verification
 
+## Python Git-status input bounds: 5 November 2026
+
+Python Git-status reads now inspect and read one file descriptor, enforce the 2 MiB limit throughout reading and reject non-regular inputs. Missing files still mean no shared statuses; invalid input retains the existing conflict response. The Python suite passed on Windows with 129 tests and two platform-dependent skips. Regression coverage includes growth after inspection, exact/oversized inputs, descriptor cleanup and pathname replacement where supported. CI also exercises the POSIX named-pipe case. This covers the Git-status reader; other input readers and release acceptance remain separately tracked.
+
 ## Automatic Git-mode upgrades: 5 November 2026
 
 `python scripts/verify_upgrades.py --git-mode` passed on Windows with fresh public Python and npm 0.0.5 consumers upgraded in place to the candidate archives. Installed-module hashes matched those archives. Both native integrations retained shared status bytes across installation, loaded the existing note, fingerprint and Git updater, and published subsequent status changes to a local bare remote. Notes stayed local. The application commit, branch, index, working edits and Git configuration were unchanged. Python 3.12 CI also runs this check; it does not replace native browser/export acceptance or complete the 0.0.6 release gates.

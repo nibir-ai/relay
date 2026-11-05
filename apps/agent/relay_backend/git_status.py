@@ -9,6 +9,8 @@ from pathlib import Path
 
 from fastapi import HTTPException
 
+from .file_input import read_bounded
+
 PROGRESS = {"not_started", "in_progress", "done", "needs_fixing"}
 
 
@@ -25,12 +27,14 @@ class GitStatus:
         return result.stdout.strip()
 
     def read(self):
-        if not self.path.exists():
-            return {}
         try:
-            if self.path.stat().st_size > 2 * 1024 * 1024:
-                raise ValueError("Status file is too large")
-            data = json.loads(self.path.read_text(encoding="utf-8"))
+            content = read_bounded(self.path, 2 * 1024 * 1024)
+        except FileNotFoundError:
+            return {}
+        except (ValueError, OSError) as exc:
+            raise HTTPException(409, "Cannot read .relay/status.json. Resolve Git conflicts or fix the file before changing status.") from exc
+        try:
+            data = json.loads(content.decode("utf-8"))
             return self.validate(data)
         except (ValueError, OSError, AttributeError, TypeError) as exc:
             raise HTTPException(409, "Cannot read .relay/status.json. Resolve Git conflicts or fix the file before changing status.") from exc
