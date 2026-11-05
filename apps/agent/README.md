@@ -8,7 +8,7 @@ An offline API testing interface for your FastAPI application. Install one Pytho
 
 ## Install
 
-![Install Relay, mount it on FastAPI, then open /relay on the backend's existing port.](https://raw.githubusercontent.com/nibir-ai/relay/main/docs/assets/fastapi-quickstart.png)
+![Install Relay, mount it on FastAPI, then open /relay on the backend's existing port.](https://raw.githubusercontent.com/nibir-ai/relay/v0.0.5/docs/assets/fastapi-quickstart.png)
 
 1. Install in your backend's Python environment:
 
