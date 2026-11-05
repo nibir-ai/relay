@@ -3,6 +3,10 @@ import os
 import stat
 
 
+class FileSizeLimitError(ValueError):
+    """The input exceeds its byte budget."""
+
+
 def read_bounded(path, limit):
     flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0)
     descriptor = os.open(path, flags)
@@ -11,13 +15,13 @@ def read_bounded(path, limit):
         if not stat.S_ISREG(info.st_mode):
             raise ValueError("Input must be a regular file.")
         if info.st_size > limit:
-            raise ValueError("Input exceeds its byte limit.")
+            raise FileSizeLimitError("Input exceeds its byte limit.")
         content = bytearray()
         while len(content) <= limit:
             chunk = os.read(descriptor, min(65536, limit + 1 - len(content)))
             if not chunk:
                 return bytes(content)
             content.extend(chunk)
-        raise ValueError("Input exceeds its byte limit.")
+        raise FileSizeLimitError("Input exceeds its byte limit.")
     finally:
         os.close(descriptor)
