@@ -7,8 +7,9 @@ without including sensitive details.
 
 ## Automated checks
 
-The **Security and dependencies** workflow runs on pull requests, pushes to
-`main`, daily and on manual dispatch. It checks:
+The **Security and dependencies** workflow runs daily, on manual dispatch, and
+on pushes and pull requests targeting the release or integration branches.
+It checks:
 
 - Python and JavaScript/TypeScript source with CodeQL's extended security queries.
 - The full pnpm workspace lockfile, including desktop and development dependencies.
@@ -16,7 +17,7 @@ The **Security and dependencies** workflow runs on pull requests, pushes to
 - Freshly resolved Python backend, realtime, team-service, test and documentation
   dependencies with `pip-audit`. Any reported Python vulnerability fails the check.
 
-Direct dependency audits run on pull requests as well as main and scheduled
+Direct dependency audits run on pull requests as well as branch and scheduled
 builds, covering existing and newly introduced packages without requiring
 GitHub's dependency-graph setting. Dependency-graph/Dependabot alerts, when
 available, provide additional signals rather than replacing these checks.
