@@ -1,5 +1,9 @@
 # Release verification
 
+## Python report input bounds
+
+The Python report opener now enforces its 32 MiB limit throughout the read and rejects non-regular inputs. A regression test grows a valid report after inspection and verifies that the opener rejects it before creating a cached copy. The full Python suite passed with 130 tests and two platform-dependent skips on Windows.
+
 ## Team-service body read deadline: 5 November 2026
 
 An incomplete HTTP body previously kept the service reader waiting. REST input now has one 10-second receive deadline in addition to its 64 KiB cap. Stalled and slow-drip input returns a non-cacheable 408 before application parsing; cancellation, disconnects, normal application processing and response delivery retain their behavior. All 33 service tests passed. A fresh installed service wheel returned 408 for a real partial socket request without changing stored statuses, then passed authentication, writes, conflicts and restart persistence. The installed-wheel verifier runs this check in CI. Socket.IO's independent 16 KiB limit is unchanged; release and other security gates remain open.

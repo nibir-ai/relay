@@ -5,6 +5,8 @@ import sys
 import webbrowser
 from pathlib import Path
 
+from .file_input import FileSizeLimitError, read_bounded
+
 REPORT_MARKER = '<meta name="relay-format" content="relay.endpoint.report.v1">'
 PROG_ID = "Relay.EndpointReport"
 
@@ -13,9 +15,10 @@ def prepare_report(path: Path, cache_dir: Path | None = None) -> Path:
     path = path.expanduser().resolve(strict=True)
     if path.suffix.lower() != ".relay":
         raise ValueError("Choose a .relay endpoint report.")
-    if path.stat().st_size > 32 * 1024 * 1024:
-        raise ValueError("Relay report exceeds the 32 MiB limit.")
-    data = path.read_bytes()
+    try:
+        data = read_bounded(path, 32 * 1024 * 1024)
+    except FileSizeLimitError as error:
+        raise ValueError("Relay report exceeds the 32 MiB limit.") from error
     content = data.decode("utf-8-sig")
     if REPORT_MARKER not in content or not content.lstrip().lower().startswith("<!doctype html>"):
         raise ValueError("This is not a supported Relay browser report.")

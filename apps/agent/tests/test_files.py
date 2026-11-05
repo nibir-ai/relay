@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pytest
@@ -32,6 +33,24 @@ def test_rejects_unsupported_files(tmp_path, name, contents):
     path.write_text(contents, encoding="utf-8")
     with pytest.raises(ValueError):
         prepare_report(path, tmp_path / "cache")
+
+
+def test_rejects_report_that_grows_after_inspection(tmp_path, monkeypatch):
+    path = tmp_path / "report.relay"
+    path.write_text("<!doctype html>" + REPORT_MARKER, encoding="utf-8")
+    cache = tmp_path / "cache"
+    original_fstat = os.fstat
+
+    def grow_after_inspection(descriptor):
+        info = original_fstat(descriptor)
+        with path.open("ab") as stream:
+            stream.truncate(32 * 1024 * 1024 + 1)
+        return info
+
+    monkeypatch.setattr(os, "fstat", grow_after_inspection)
+    with pytest.raises(ValueError, match="32 MiB"):
+        prepare_report(path, cache)
+    assert not cache.exists()
 
 
 def test_open_uses_file_uri_and_reports_browser_failure(tmp_path, monkeypatch):
