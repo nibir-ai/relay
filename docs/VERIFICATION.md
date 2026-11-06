@@ -1,5 +1,9 @@
 # Release verification
 
+## Python guided setup input bounds
+
+Guided setup enforces the existing 512 KiB source limit throughout discovery and again before applying an edit. Files already above the limit are skipped during discovery. A regression test confirms that a source file that grows during inspection stops setup before it can edit the file. The full Python suite passed on Windows with 131 tests and two platform-dependent skips.
+
 ## Python report input bounds
 
 The Python report opener now enforces its 32 MiB limit throughout the read and rejects non-regular inputs. A regression test grows a valid report after inspection and verifies that the opener rejects it before creating a cached copy. The full Python suite passed with 130 tests and two platform-dependent skips on Windows.
