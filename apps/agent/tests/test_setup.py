@@ -1,5 +1,6 @@
 import ast
 import json
+import os
 import subprocess
 import sys
 
@@ -31,6 +32,24 @@ def test_init_preview_apply_idempotency_and_no_execution(tmp_path, capsys):
     ast.parse(result)
     assert not initialize(tmp_path, apply=True)
     assert file.read_bytes() == result
+
+
+def test_init_rejects_source_growth_before_editing(tmp_path, monkeypatch):
+    file = tmp_path / "main.py"
+    source = b"from fastapi import FastAPI\napp = FastAPI()\n"
+    file.write_bytes(source)
+    original_fstat = os.fstat
+
+    def grow_after_inspection(descriptor):
+        info = original_fstat(descriptor)
+        with file.open("ab") as stream:
+            stream.truncate(512 * 1024 + 1)
+        return info
+
+    monkeypatch.setattr(os, "fstat", grow_after_inspection)
+    with pytest.raises(ValueError, match="byte limit"):
+        initialize(tmp_path, apply=True)
+    assert file.read_bytes() == source.ljust(512 * 1024 + 1, b"\0")
 
 
 @pytest.mark.parametrize("text", [

@@ -14,10 +14,12 @@ from pathlib import Path
 import httpx
 from fastapi import HTTPException
 
+from .file_input import read_bounded
 from .openapi import normalize
 from .security import MAX_RESPONSE, Settings
 
 SKIP = {".git", ".relay", ".venv", "venv", "node_modules", "dist", "build", "__pycache__"}
+SOURCE_LIMIT = 512 * 1024
 
 
 def sources(project: Path):
@@ -30,19 +32,21 @@ def sources(project: Path):
                          and not (Path(root) / d).is_symlink() and len(Path(root).relative_to(project).parts) < 5)
         for name in sorted(files):
             file = Path(root) / name
-            if file.suffix != ".py" or file.is_symlink() or file.stat().st_size > 512 * 1024:
+            if file.suffix != ".py" or file.is_symlink() or file.stat().st_size > SOURCE_LIMIT:
                 continue
             count += 1
             if count > 500:
                 raise ValueError("Too many source files. Select a smaller backend project directory.")
-            yield file, file.read_text(encoding="utf-8-sig")
+            yield file, read_bounded(file, SOURCE_LIMIT).decode("utf-8-sig")
 
 
 def initialize(project: Path, apply=False):
     candidates = []
     detected = False
     all_calls = 0
-    for file, text in sources(project):
+    for file, source in sources(project):
+        text = source.replace("\r\n", "\n").replace("\r", "\n")
+        newline = "\r\n" if "\r\n" in source else "\n"
         try:
             tree = ast.parse(text)
         except SyntaxError:
@@ -58,7 +62,7 @@ def initialize(project: Path, apply=False):
         for node in tree.body:
             if (isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)
                     and isinstance(node.value, ast.Call) and node.value in calls and len(calls) == 1):
-                candidates.append((file, text, tree, node, node.targets[0].id))
+                candidates.append((file, text, newline, tree, node, node.targets[0].id))
     print("Framework: " + ("FastAPI" if detected else "not detected"))
     print("Install in your backend environment if needed: python -m pip install relay-backend")
     if len(candidates) != 1 or all_calls != 1:
@@ -66,7 +70,7 @@ def initialize(project: Path, apply=False):
         print("After creating the app, before Socket.IO wrapping:\nfrom relay_backend import install_relay\ninstall_relay(app)")
         print("Restart the backend normally, then open /relay on its existing port.")
         return False
-    file, text, tree, node, name = candidates[0]
+    file, text, newline, tree, node, name = candidates[0]
     if any(isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store) and
            (n.id in constructors or (n.id == name and n is not node.targets[0])) for n in ast.walk(tree)):
         print("Application/constructor names are reassigned. Follow manual setup; no source changes.")
@@ -82,7 +86,6 @@ def initialize(project: Path, apply=False):
     if ";" in lines[node.end_lineno - 1] or node.col_offset != 0:
         print("Entry file needs manual integration; no source changes.")
         return False
-    newline = "\r\n" if "\r\n" in file.read_bytes().decode("utf-8-sig") else "\n"
     boundary = node.end_lineno
     if not lines[boundary - 1].endswith("\n"):
         lines[boundary - 1] += newline
@@ -95,7 +98,7 @@ def initialize(project: Path, apply=False):
     print("Entry: " + label)
     print("".join(difflib.unified_diff(text.splitlines(True), edited.splitlines(True), fromfile=label, tofile=label)), end="")
     if apply:
-        original = file.read_bytes()
+        original = read_bounded(file, SOURCE_LIMIT)
         if original.decode("utf-8-sig").replace("\r\n", "\n") != text:
             raise ValueError("Entry file changed during setup. Preview again before applying.")
         # Preserve BOM and permissions. Only the explicitly selected source is written.
