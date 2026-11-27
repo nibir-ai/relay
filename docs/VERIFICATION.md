@@ -1,5 +1,11 @@
 # Release verification
 
+## Desktop archive dependency audit: 27 November 2026
+
+The lockfile now resolves `@electron/asar` 4.3.4 within the existing packager's supported range. Its upstream dependency ranges select patched `glob` 14.0.6 and `minimatch` 11.0.9, addressing GHSA-3g3m-2fjr-6pw4 and GHSA-g3hv-75wg-m249 without overrides. These dependencies belong to desktop packaging and are excluded from the distributed app.
+
+A frozen-lockfile installation and full workspace `pnpm audit` passed with no known advisories. All 13 desktop tests, TypeScript/Vite build, Windows x64 packaging, asset/license inspection and four archive-extracted boundary wiring tests passed. This verifies packaging compatibility; packaged Chromium runtime isolation, full keyboard/scaling acceptance and installer verification remain separate open gates. No backend or desktop version was published.
+
 ## Python guided setup input bounds
 
 Guided setup enforces the existing 512 KiB source limit throughout discovery and again before applying an edit. Files already above the limit are skipped during discovery. A regression test confirms that a source file that grows during inspection stops setup before it can edit the file. The full Python suite passed on Windows with 131 tests and two platform-dependent skips.
