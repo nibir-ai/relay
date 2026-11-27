@@ -20,3 +20,4 @@ apps/agent/relay_team/
 
 apps/desktop/dist/
 apps/desktop/out/
+apps/desktop-native/target/

@@ -131,11 +131,15 @@ Tokens and drafts stay in browser session memory. Explicit exports include reque
 | **0.0.3** | Published on PyPI and npm | Native backend testing, auth, reports and opt-in Git status sharing. |
 | **0.0.4** | Published on PyPI and GitHub · 12 October 2026 | Guided setup, diagnostics, local handoff notes, contract-change explanations and reliable refresh. |
 | **0.0.5** | Published on PyPI and npm · 27 October 2026 | Authenticated realtime team statuses through an optional shared service. |
-| **0.0.6** | Planned; no fixed release date | Repeatable API testing, response checks and reviewed exports. |
+| **0.1.0** | First beta · in development | Native Windows request workspace, repeatable backend testing and reviewed exports. |
 
-### 0.0.6: repeatable API testing and safer handoffs
+### 0.1.0: first beta
 
-Implementation is in progress; realtime diagnostics, session request history and response checks are complete in source. Keep testing at the center: restore a recent request, see whether its response meets expectations, and review exactly what an export contains. Existing integrations stay unchanged. No launch date until the release gates pass.
+Relay moves from the 0.0.x alpha series to 0.1.0 beta. The new Windows workspace uses Rust and [Rune](https://github.com/anomalyco/rune) to send standalone requests without an account or a backend integration. Native FastAPI and Node integrations keep discovering endpoint definitions from backend code.
+
+- [ ] Verify the native workspace, request tabs, method and theme dropdowns, parameters, headers, body, per-tab auth, cancellation and response inspection in the Windows distribution.
+- [ ] Verify Postman v2 collection import. This first importer opens editable method and URL drafts for review. Parameters, headers, bodies, scripts and credentials require separate handling.
+- [ ] Verify clean Windows installation, upgrade and uninstall, keyboard access, display scaling, local storage boundaries and reviewed exports before distributing an installer.
 
 - [x] Add bounded, session-only request history with explicit restore and clear actions; never replay automatically or persist credentials.
 - [x] Add lightweight response checks for expected HTTP status, JSON field existence/equality and optional response-time limits; keep results separate from manual endpoint status.
@@ -145,7 +149,7 @@ Implementation is in progress; realtime diagnostics, session request history and
 - [x] Patch audited Node framework test dependency chains and verify clean installed consumers.
 - [ ] Verify upgrades from public 0.0.5, native FastAPI/Express/Fastify/Node HTTP consumers, auth isolation, both exports, offline testing, themes and narrow layouts before publication.
 
-See the [0.0.6 implementation order, acceptance criteria and release gates](docs/RELEASE-0.0.6.md). Check off each item only after its verification passes. Reproduce and fix any blocking regression before advancing feature work.
+See the [0.1.0 release gates](docs/RELEASE-0.1.0.md) and the [Windows roadmap](docs/WINDOWS.md). The beta absorbs the planned 0.0.6 work. Check off each item after its acceptance checks pass.
 
 ### 0.0.4 — easier setup and clearer handoffs
 
@@ -178,9 +182,9 @@ The [bundled shared service](apps/team-service/README.md) provides authenticated
 
 Only status metadata goes to the shared service. API requests, credentials, local notes, drafts and captured responses stay local. Realtime is opt-in; existing local and Git workflows remain available. See [team setup, migration and upgrades](docs/REALTIME.md).
 
-### Later candidates: outside 0.0.6
+### Later candidates
 
-Multipart/file uploads, richer schema inputs, named user/admin auth profiles, persistent opt-in history, collections and CI collection runs need separate scope and verification. Hosted collaboration, repository-provider sign-in and additional service deployment models remain future work. They are not requirements for shipping 0.0.6.
+Multipart/file uploads, richer schema inputs, named auth profiles, saved collections, environments and CI collection runs need separate scope and verification. Hosted collaboration, repository-provider sign-in and additional service deployment models remain future work.
 
 <details>
 <summary>Completed release milestones</summary>

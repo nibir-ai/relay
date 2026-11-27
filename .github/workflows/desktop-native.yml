@@ -1,0 +1,25 @@
+name: Verify native Windows desktop
+
+on:
+  push:
+    branches: [main, unstable, stable]
+    paths: ['apps/desktop-native/**', '.github/workflows/desktop-native.yml']
+  pull_request:
+    paths: ['apps/desktop-native/**', '.github/workflows/desktop-native.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  native-desktop:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: apps/desktop-native
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup toolchain install 1.99.1-x86_64-pc-windows-msvc --profile minimal --component rustfmt
+      - run: cargo +1.99.1-x86_64-pc-windows-msvc fmt --check
+      - run: cargo +1.99.1-x86_64-pc-windows-msvc test --locked
+      - run: cargo +1.99.1-x86_64-pc-windows-msvc build --locked --release
