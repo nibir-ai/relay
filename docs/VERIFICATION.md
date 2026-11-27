@@ -1,5 +1,11 @@
 # Release verification
 
+## Native Windows beta workspace
+
+The locked Rust build and release build passed on Windows x64. Six tests exercised real loopback HTTP, Bearer/Basic/API-key headers, repeated query parameters, exact response text, non-followed redirects, cancellation, bounded Postman import and Rune controls at the minimum window size. The focused URL field has a regression check for Ctrl+Enter. The native development window completed a real HTTPS request and displayed its HTML as text, with status and timing in the response pane.
+
+The Windows distribution and backend packages still require the [0.1.0 release checks](RELEASE-0.1.0.md).
+
 ## Desktop archive dependency audit: 27 November 2026
 
 The lockfile now resolves `@electron/asar` 4.3.4 within the existing packager's supported range. Its upstream dependency ranges select patched `glob` 14.0.6 and `minimatch` 11.0.9, addressing GHSA-3g3m-2fjr-6pw4 and GHSA-g3hv-75wg-m249 without overrides. These dependencies belong to desktop packaging and are excluded from the distributed app.

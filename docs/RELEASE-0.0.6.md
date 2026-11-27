@@ -1,6 +1,6 @@
-# Relay 0.0.6 roadmap
+# Backend acceptance checklist for Relay 0.1.0 beta
 
-Status: in progress; realtime diagnostics, session request history and response checks are implemented and verified in source. Baseline: Python and npm 0.0.5, published 27 October 2026. This document defines the next release scope; it does not claim that its features or checks are complete. There is no fixed release date.
+The [0.1.0 beta plan](RELEASE-0.1.0.md) incorporates this work from the former 0.0.6 roadmap. Realtime diagnostics, session request history and response checks are implemented and verified in source. The public Python and npm baseline is 0.0.5.
 
 ## Outcome
 

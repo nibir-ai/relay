@@ -10,6 +10,20 @@ The first supported target is Windows x64. ARM64 and other operating systems req
 
 ## Architecture
 
+The native beta lives in `apps/desktop-native`. It uses Rust with Rune for rendering, input and native accessibility, and places the HTTP client in a background task. There is no browser renderer or IPC bridge in this beta workspace. Responses display as selectable text. The transport validates certificates with the platform TLS stack, caps capture at 2 MiB and returns redirect responses directly. The native beta keeps credentials and drafts in memory. Use Copy only when you intend to share the selected response view.
+
+In the native beta, paste a Postman Collection v2 export through **Import Postman** to open its supported method and literal URL pairs in tabs. The import drops URL queries, fragments and request credentials, and skips unresolved URLs. Review the draft before sending. Collections on disk, credential storage, reviewed exports and installer checks are still on the roadmap below.
+
+Build on Windows x64 with the Visual Studio C++ tools and the pinned Rust toolchain:
+
+```powershell
+cd apps/desktop-native
+cargo +1.99.1-x86_64-pc-windows-msvc test --locked
+cargo +1.99.1-x86_64-pc-windows-msvc run --locked
+```
+
+### Electron alpha preview
+
 Electron with a React/TypeScript renderer reuses Relay's response renderer, exact JSON formatter, font and theme tokens. The main process owns network transport; a context-isolated, sandboxed renderer has only narrow execute/cancel/copy methods. Only bundled UI assets load through a custom protocol. Block navigation, popups, webviews and permissions. API HTML is displayed as text, never executed. Validate IPC sender/frame and every request payload. Preserve certificate verification and do not follow redirects implicitly. No cloud connection or telemetry is required.
 
 Electron bundles the runtime in the distributed app. Developers build it here; end users should install and launch without Node, Python or a backend server. A portable development build is not a verified installer or signed release.
@@ -80,7 +94,7 @@ Boundary regression coverage on 3 November 2026: four instrumented tests check t
 
 Request execution, local collections/environments, essential auth, response inspection, checks and reviewed import/export belong to the free core. No account gate or artificial request quota. Hosted collaboration, OAuth browser flows, scripting/collection runners, GraphQL and WebSocket tooling need separate scope and verification; they do not block the first useful REST client.
 
-Coordinate changes to shared web modules with backend releases. A desktop milestone must not silently delay backend 0.0.6 or publish its packages. Update checks only with observed evidence and keep an explicit list of unverified release gates.
+Coordinate changes to shared web modules with backend releases. Desktop and backend 0.1.0 candidates have independent verification and publication gates. Update checks with observed evidence and keep an explicit list of remaining gates.
 
 ## Developer preview
 

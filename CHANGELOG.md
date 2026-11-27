@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0 beta — in development
+
+- Add a native Windows request workspace in Rust and Rune with per-tab credentials, a separate request editor and response inspector, and five color schemes.
+- Open supported Postman Collection v2 methods and URLs as editable session drafts.
+- Carry forward session history, response checks, realtime diagnostics and reviewed exports for the native backend tester.
+
 ## 0.0.5 — 27 October 2026
 
 Published on [PyPI](https://pypi.org/project/relay-backend/0.0.5/), [npm](https://www.npmjs.com/package/relay-backend/v/0.0.5) and [GitHub](https://github.com/nibir-ai/relay/releases/tag/v0.0.5). Fresh unpinned registry installations and the public cross-runtime realtime workflow passed verification.
