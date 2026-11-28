@@ -150,6 +150,7 @@ fn button(key: &str, label: &str, glyph: Option<&'static Icon>, primary: bool, p
         .role("button")
         .label(label)
         .focusable(true)
+        .press_on_return()
         .h(34.0)
         .px(11.0)
         .center()
@@ -165,6 +166,7 @@ fn close_button(key: String, label: &str, p: &Palette) -> El {
         .role("button")
         .label(label)
         .focusable(true)
+        .press_on_return()
         .size(28.0, 28.0)
         .center()
         .radius(5.0)
@@ -179,6 +181,7 @@ fn tab(key: String, label: &str, selected: bool, p: &Palette) -> El {
         .label(label)
         .focus_selected(selected)
         .focusable(true)
+        .press_on_return()
         .h(37.0)
         .px(10.0)
         .center()
@@ -365,7 +368,8 @@ fn auth(state: &State, p: &Palette, kit: &Kit, layers: &mut Vec<El>) -> El {
                 draft.secret = TextEdit::new("").secure();
             }
         })
-        .build(kit, layers);
+        .build(kit, layers)
+        .press_on_return();
     let mut controls = row().items_center().gap(7.0).child(select);
     if matches!(d.auth.as_str(), "Basic" | "API key") {
         let label = if d.auth == "Basic" {
@@ -409,7 +413,8 @@ fn composer(state: &State, p: &Palette, kit: &Kit, layers: &mut Vec<El>) -> El {
             s.draft_mut().method = value.into();
             s.menu = None;
         })
-        .build(kit, layers);
+        .build(kit, layers)
+        .press_on_return();
     let target = field(
         "url",
         &d.url,
@@ -419,9 +424,9 @@ fn composer(state: &State, p: &Palette, kit: &Kit, layers: &mut Vec<El>) -> El {
     )
     .on_edit(|s: &mut State| &mut s.draft_mut().url);
     let send = if state.active.is_some() {
-        button("cancel", "Cancel", None, false, p).on_press(State::cancel)
+        button("request-action", "Cancel", None, false, p).on_press(State::cancel)
     } else {
-        button("send", "Send", Some(&SEND), true, p).on_press(State::send)
+        button("request-action", "Send", Some(&SEND), true, p).on_press(State::send)
     };
     let editor = match state.editor {
         "Parameters" => pair_table(state, false, p),
@@ -595,6 +600,10 @@ fn response(state: &State, p: &Palette, kit: &Kit) -> El {
                 kit.scroll_bar(
                     col()
                         .key("response-body")
+                        .role("region")
+                        .label("Response content")
+                        .focusable(true)
+                        .focus_ring(2.0, -2.0, p.accent)
                         .w_full()
                         .grow(1.0)
                         .shrink()
@@ -689,7 +698,7 @@ fn sidebar(state: &State, p: &Palette) -> El {
         let current = index == state.selected && !state.import_open;
         row()
             .key(format!("request-{}", draft.id))
-            .role("button")
+            .role("option")
             .label(format!("{} {title}", draft.method))
             .focus_selected(current)
             .focusable(true)
@@ -779,6 +788,10 @@ fn sidebar(state: &State, p: &Palette) -> El {
         .child(
             col()
                 .key("request-list")
+                .role("listbox")
+                .label("Requests")
+                .focus_group()
+                .focus_follows()
                 .gap(3.0)
                 .max_h(181.0)
                 .shrink()
@@ -838,11 +851,11 @@ fn import_view(state: &State, p: &Palette) -> El {
                         true,
                         p,
                     )
-                    .on_press(State::import),
+                    .on_press_tx(State::import),
                 )
                 .child(
                     button("import-cancel", "Cancel", None, false, p)
-                        .on_press(State::cancel_import),
+                        .on_press_tx(State::dismiss_import),
                 ),
         )
         .child(
@@ -869,7 +882,8 @@ pub fn view(state: &State, _: &mut Cx<State>) -> El {
             s.theme = value.into();
             s.menu = None;
         })
-        .build(&kit, &mut layers);
+        .build(&kit, &mut layers)
+        .press_on_return();
     let top = row()
         .h(46.0)
         .px(13.0)
@@ -929,7 +943,7 @@ pub fn view(state: &State, _: &mut Cx<State>) -> El {
             .child(caption("Ctrl+Enter", &p));
         if state.drafts.len() > 1 && !state.active.as_ref().is_some_and(|(id, _)| *id == d.id) {
             heading = heading.child(
-                close_button("close".into(), "Close request", &p).on_press(State::close_draft),
+                close_button("close".into(), "Close request", &p).on_press_tx(State::close_draft),
             );
         }
         let mut work = workspace
