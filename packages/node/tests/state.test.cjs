@@ -35,11 +35,30 @@ test('A contract refresh during an awaited shared update cannot approve the new 
   release(); await assert.rejects(pending,/changed during saving/);
   assert.equal(store.read().endpoints['GET /test'].progress,'needs_fixing');
 });
+test('A pending shared update uses the current row after another edit rolls back',async t=> {
+  let release;
+  const shared={read:()=>({}),update:()=>new Promise(resolve=>{release=resolve;})};
+  const file=path.join(temp(t),'workspace.json');
+  const store=new Workspace(file,shared);
+  const snapshot=normalize(spec());
+  const {id: endpoint_id,fingerprint}=snapshot.endpoints[0];
+  store.sync(snapshot);
+  const pending=store.update({endpoint_id,fingerprint,progress:'in_progress',note:'Keep this edit'});
+  const originalSave=store.save.bind(store);
+  store.save=()=>{throw new Error('disk failure');};
+  await assert.rejects(store.update({endpoint_id,fingerprint,note:'Discard this edit'}),/disk failure/);
+  store.save=originalSave;
+  release();
+  await pending;
+  const restored=new Workspace(file).read().endpoints[endpoint_id];
+  assert.equal(restored.note,'Keep this edit');
+  assert.equal(restored.progress,'in_progress');
+});
 test('Notes above the response-preview size remain readable, and disk failures do not report saved edits',async t=> {
   const file=path.join(temp(t),'workspace.json'),store=new Workspace(file);
   const endpoint=normalize(spec()).endpoints[0];
   store.sync({endpoints:Array.from({length:600},(_,index)=>({...endpoint,id:'GET /'+index}))});
-  for (const row of Object.values(store.rows)) row.note='x'.repeat(4000);
+  for (const row of store.rows.values()) row.note='x'.repeat(4000);
   store.save();
   assert.equal(new Workspace(file).read().endpoints['GET /0'].note.length,4000);
   const before=store.read(); store.save=()=> { throw new Error('disk failure'); };
@@ -70,7 +89,9 @@ test('Shared statuses only decorate endpoint rows already stored in the workspac
   assert.equal(endpoints[endpoint.id].progress,'in_progress');
   assert.deepEqual(endpoints[endpoint.id].updated_by,saved.updated_by);
   assert.equal(endpoints[endpoint.id].note,'Local note');
-  Object.setPrototypeOf(store.rows,{'GET /future':{active:1,fingerprint:endpoint.fingerprint}});
+  Object.setPrototypeOf(store.rows,Object.assign(Object.create(Map.prototype),{
+    'GET /future':{active:1,fingerprint:endpoint.fingerprint},
+  }));
   await assert.rejects(store.update({endpoint_id:'GET /future',fingerprint:endpoint.fingerprint,note:'Unavailable'}),{status:404});
 });
 test('OpenAPI references, parameter overrides and deterministic contract fingerprints',()=> {
