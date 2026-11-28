@@ -423,11 +423,16 @@ fn composer(state: &State, p: &Palette, kit: &Kit, layers: &mut Vec<El>) -> El {
         p,
     )
     .on_edit(|s: &mut State| &mut s.draft_mut().url);
-    let send = if state.active.is_some() {
-        button("request-action", "Cancel", None, false, p).on_press(State::cancel)
-    } else {
-        button("request-action", "Send", Some(&SEND), true, p).on_press(State::send)
-    };
+    let send = match state.active_draft_index() {
+        Some(index) if index == state.selected => {
+            button("request-action", "Cancel", None, false, p).on_press(State::cancel)
+        }
+        Some(_) => button("request-action", "View active", None, false, p)
+            .label("View active request")
+            .on_press(State::show_active_draft),
+        None => button("request-action", "Send", Some(&SEND), true, p).on_press(State::send),
+    }
+    .w(108.0);
     let editor = match state.editor {
         "Parameters" => pair_table(state, false, p),
         "Headers" => pair_table(state, true, p),
@@ -470,7 +475,12 @@ fn composer(state: &State, p: &Palette, kit: &Kit, layers: &mut Vec<El>) -> El {
                         .px(5.0)
                         .border_sides([0.0, 0.0, 1.0, 0.0], p.edge)
                         .children(EDITORS.iter().map(|&name| {
-                            tab(format!("edit-{name}"), name, state.editor == name, p)
+                            let label = if name == "Auth" && d.auth != "None" {
+                                format!("Auth · {}", d.auth)
+                            } else {
+                                name.to_owned()
+                            };
+                            tab(format!("edit-{name}"), &label, state.editor == name, p)
                                 .on_press(move |s: &mut State| s.editor = name)
                         })),
                 )

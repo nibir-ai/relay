@@ -173,6 +173,17 @@ impl State {
         &mut self.drafts[self.selected]
     }
 
+    fn active_draft_index(&self) -> Option<usize> {
+        let (id, _) = self.active.as_ref()?;
+        self.drafts.iter().position(|draft| draft.id == *id)
+    }
+
+    fn show_active_draft(&mut self) {
+        if let Some(index) = self.active_draft_index() {
+            self.select(index);
+        }
+    }
+
     fn new_draft(&mut self, tx: &mut Tx) {
         if self.drafts.len() >= 12 {
             return;
@@ -592,16 +603,70 @@ mod tests {
     }
 
     #[test]
+    fn auth_indicator_follows_the_draft_and_keeps_credentials_out_of_ui_metadata() {
+        let mut state = State::default();
+        state.draft_mut().auth = "Bearer".into();
+        state.draft_mut().secret = TextEdit::new("fixture-user").secure();
+        let mut admin = Draft::new(2);
+        admin.auth = "Bearer".into();
+        admin.secret = TextEdit::new("fixture-admin").secure();
+        state.drafts.extend([admin, Draft::new(3)]);
+        let mut runtime = Runtime::new(state, workspace::view, (640.0, 490.0), Env::new(true, 1.0));
+        runtime.frame(0.0);
+        for (id, credential) in [(1, "fixture-user"), (2, "fixture-admin")] {
+            click(&mut runtime, &format!("request-{id}"));
+            assert!(runtime.elements().iter().any(|element| {
+                element.key.as_deref() == Some("edit-Auth")
+                    && element.label.as_deref() == Some("Auth · Bearer")
+            }));
+            click(&mut runtime, "edit-Auth");
+            let secret = runtime
+                .elements()
+                .into_iter()
+                .find(|element| element.key.as_deref() == Some("secret"))
+                .unwrap();
+            assert!(secret.text.is_none());
+            assert!(matches!(
+                runtime.state.draft().request().unwrap().auth,
+                Auth::Bearer(value) if value == credential
+            ));
+        }
+        click(&mut runtime, "request-3");
+        assert!(matches!(
+            runtime.state.draft().request().unwrap().auth,
+            Auth::None
+        ));
+        assert!(runtime.elements().iter().any(|element| {
+            element.key.as_deref() == Some("edit-Auth") && element.label.as_deref() == Some("Auth")
+        }));
+    }
+
+    #[test]
     fn keyboard_focus_stays_on_the_request_action_during_cancellation() {
         let server = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
         let mut state = State::default();
         state.draft_mut().url = TextEdit::new(format!("http://{}", server.local_addr().unwrap()));
+        state.drafts.push(Draft::new(2));
         let mut runtime = Runtime::new(state, workspace::view, (640.0, 490.0), Env::new(true, 1.0));
         runtime.frame(0.0);
         click(&mut runtime, "url");
         press(&mut runtime, Key::Tab);
         assert_focus(&runtime, "request-action");
         press(&mut runtime, Key::Enter);
+        assert!(runtime.state.active.is_some());
+        assert_focus(&runtime, "request-action");
+        click(&mut runtime, "request-2");
+        assert_eq!(runtime.state.draft().id, 2);
+        let action = runtime
+            .elements()
+            .into_iter()
+            .find(|element| element.key.as_deref() == Some("request-action"))
+            .unwrap();
+        assert_eq!(action.label.as_deref(), Some("View active request"));
+        click(&mut runtime, "url");
+        press(&mut runtime, Key::Tab);
+        press(&mut runtime, Key::Enter);
+        assert_eq!(runtime.state.draft().id, 1);
         assert!(runtime.state.active.is_some());
         assert_focus(&runtime, "request-action");
         press(&mut runtime, Key::Enter);
