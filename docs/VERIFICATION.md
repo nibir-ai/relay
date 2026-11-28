@@ -1,5 +1,11 @@
 # Release verification
 
+## Native Windows keyboard workflow
+
+The request list has one Tab stop and supports arrow, Home and End navigation. Enter activates the focused action, and Send and Cancel share a focus target as a request changes state. Escape dismisses Postman import and returns focus to its trigger. The response body has a visible focus ring and accepts scrolling keys.
+
+All 13 Rust tests passed on Windows x64. Rune tests exercised keyboard focus in all five themes at 100, 125, 150 and 200 percent simulated scale. A development window replayed the keyboard flow against a local HTTP server. The unpacked optimized executable returned HTTP 200 via Ctrl+Enter, switched between response views with Home and End, and showed the response body's focus ring. Windows display scaling, assistive technology and installer checks remain open.
+
 ## Node shared status records
 
 Shared Git status metadata is applied only to endpoint records stored in the Node workspace. The metadata format and merge ordering remain compatible. All 35 Node tests passed, including independent Git peers merging through a local bare remote and the workspace rejecting updates to unknown endpoints. A fresh npm consumer installed the packed candidate and verified request execution, bundled assets, TypeScript declarations and the CLI. The full pnpm audit reported zero known advisories.

@@ -180,7 +180,7 @@ impl State {
         self.drafts.push(Draft::new(self.next_id));
         self.next_id += 1;
         self.select(self.drafts.len() - 1);
-        tx.focus("url", true);
+        tx.focus_when_shown("url", true);
     }
 
     fn select(&mut self, index: usize) {
@@ -193,7 +193,7 @@ impl State {
         self.notice.clear();
     }
 
-    fn close_draft(&mut self) {
+    fn close_draft(&mut self, tx: &mut Tx) {
         if self.drafts.len() == 1
             || self
                 .active
@@ -204,6 +204,7 @@ impl State {
         }
         self.drafts.remove(self.selected);
         self.select(self.selected.min(self.drafts.len() - 1));
+        tx.focus_when_shown(format!("request-{}", self.draft().id), true);
     }
 
     fn send(&mut self) {
@@ -288,7 +289,7 @@ impl State {
     fn open_import(&mut self, tx: &mut Tx) {
         self.import_open = true;
         self.import_status.clear();
-        tx.focus("Postman collection", true);
+        tx.focus_when_shown("Postman collection", true);
     }
 
     fn cancel_import(&mut self) {
@@ -296,7 +297,12 @@ impl State {
         self.import_text = TextEdit::new("").secure();
     }
 
-    fn import(&mut self) {
+    fn dismiss_import(&mut self, tx: &mut Tx) {
+        self.cancel_import();
+        tx.focus("import", true);
+    }
+
+    fn import(&mut self, tx: &mut Tx) {
         let report = match postman::read(&self.import_text.text, 12 - self.drafts.len()) {
             Ok(report) => report,
             Err(error) => {
@@ -315,6 +321,7 @@ impl State {
         }
         self.cancel_import();
         self.select(first);
+        tx.focus_when_shown("url", true);
         self.notice = format!(
             "Imported {imported} request(s). Skipped {}.",
             report.skipped
@@ -323,7 +330,14 @@ impl State {
 }
 
 fn shortcut(state: &mut State, event: &KeyEvent, tx: &mut Tx) -> bool {
-    if tx.key_repeat() || state.menu.is_some() || state.import_open {
+    if tx.key_repeat() || state.menu.is_some() {
+        return false;
+    }
+    if state.import_open {
+        if event.key == Key::Escape {
+            state.dismiss_import(tx);
+            return true;
+        }
         return false;
     }
     if event.is_command('n') {
@@ -357,6 +371,26 @@ mod tests {
     use super::*;
     use rune::{Env, Runtime};
 
+    fn click(runtime: &mut Runtime<State>, key: &str) {
+        let (x, y) = runtime.find(key).expect("control is visible");
+        runtime.pointer_down(x, y);
+        runtime.pointer_up(x, y);
+        runtime.frame(0.0);
+    }
+
+    fn press(runtime: &mut Runtime<State>, key: Key) {
+        runtime.key(KeyEvent {
+            key,
+            mods: Default::default(),
+        });
+        runtime.frame(0.0);
+    }
+
+    fn assert_focus(runtime: &Runtime<State>, key: &str) {
+        let focused = runtime.elements().into_iter().find(|node| node.focused);
+        assert_eq!(focused.and_then(|node| node.key).as_deref(), Some(key));
+    }
+
     #[test]
     fn request_tabs_and_import_render_at_minimum_window_size() {
         let env = Env {
@@ -365,7 +399,7 @@ mod tests {
         };
         let mut runtime = Runtime::new(State::default(), workspace::view, (640.0, 490.0), env);
         runtime.frame(0.0);
-        for key in ["url", "send", "response", "import", "edit-Auth"] {
+        for key in ["url", "request-action", "response", "import", "edit-Auth"] {
             assert!(runtime.find(key).is_some(), "missing {key}");
         }
         for (key, expected_count) in [("new", 2), ("import", 2)] {
@@ -377,7 +411,7 @@ mod tests {
         }
         assert!(runtime.state.import_open);
         assert!(runtime.find("import-submit").is_some());
-        assert!(runtime.find("send").is_none());
+        assert!(runtime.find("request-action").is_none());
     }
 
     #[test]
@@ -403,5 +437,192 @@ mod tests {
             runtime.state.draft().outcome,
             "Fill in the authentication fields before sending."
         );
+    }
+
+    #[test]
+    fn requests_use_a_single_tab_stop_and_arrow_keys_open_the_selected_draft() {
+        let mut state = State::default();
+        state.drafts.extend((2..=12).map(Draft::new));
+        let mut runtime = Runtime::new(state, workspace::view, (640.0, 490.0), Env::new(true, 1.0));
+        runtime.frame(0.0);
+        click(&mut runtime, "request-1");
+        press(&mut runtime, Key::Down);
+        assert_focus(&runtime, "request-2");
+        assert_eq!(runtime.state.draft().id, 2);
+        press(&mut runtime, Key::End);
+        assert_focus(&runtime, "request-12");
+        assert_eq!(runtime.state.draft().id, 12);
+        press(&mut runtime, Key::Home);
+        assert_focus(&runtime, "request-1");
+        press(&mut runtime, Key::Tab);
+        assert_focus(&runtime, "request-name");
+    }
+
+    #[test]
+    fn import_escape_and_close_restore_focus_to_visible_controls() {
+        let mut runtime = Runtime::new(
+            State::default(),
+            workspace::view,
+            (640.0, 490.0),
+            Env::new(true, 1.0),
+        );
+        runtime.frame(0.0);
+        click(&mut runtime, "import");
+        assert_focus(&runtime, "Postman collection");
+        runtime.state.import_text.text = "temporary input".into();
+        press(&mut runtime, Key::Escape);
+        assert!(!runtime.state.import_open);
+        assert!(runtime.state.import_text.text.is_empty());
+        assert_focus(&runtime, "import");
+        press(&mut runtime, Key::Tab);
+        assert_focus(&runtime, "request-1");
+        click(&mut runtime, "new");
+        assert_focus(&runtime, "url");
+        for _ in 0..2 {
+            runtime.key(KeyEvent {
+                key: Key::Tab,
+                mods: rune::Mods {
+                    shift: true,
+                    ..Default::default()
+                },
+            });
+            runtime.frame(0.0);
+        }
+        assert_focus(&runtime, "close");
+        press(&mut runtime, Key::Enter);
+        assert_eq!(runtime.state.drafts.len(), 1);
+        assert_focus(&runtime, "request-1");
+    }
+
+    #[test]
+    fn keyboard_opens_selects_and_dismisses_method_and_theme_menus() {
+        let mut runtime = Runtime::new(
+            State::default(),
+            workspace::view,
+            (640.0, 490.0),
+            Env::new(true, 1.0),
+        );
+        runtime.frame(0.0);
+        press(&mut runtime, Key::Tab);
+        assert_focus(&runtime, "theme-trigger");
+        press(&mut runtime, Key::Enter);
+        assert_eq!(runtime.state.menu, Some("theme"));
+        press(&mut runtime, Key::Escape);
+        assert_eq!(runtime.state.menu, None);
+        assert_focus(&runtime, "theme-trigger");
+        for _ in 0..5 {
+            press(&mut runtime, Key::Tab);
+        }
+        assert_focus(&runtime, "method-trigger");
+        press(&mut runtime, Key::Enter);
+        assert_eq!(runtime.state.menu, Some("method"));
+        press(&mut runtime, Key::Down);
+        press(&mut runtime, Key::Enter);
+        assert_eq!(runtime.state.draft().method, "POST");
+        assert_eq!(runtime.state.menu, None);
+        assert_focus(&runtime, "method-trigger");
+    }
+
+    #[test]
+    fn close_request_button_is_clickable_after_a_new_request() {
+        let mut runtime = Runtime::new(
+            State::default(),
+            workspace::view,
+            (640.0, 490.0),
+            Env::new(true, 1.0),
+        );
+        runtime.frame(0.0);
+        click(&mut runtime, "new");
+        runtime.frame(0.25);
+        click(&mut runtime, "close");
+        assert_eq!(runtime.state.drafts.len(), 1);
+        assert_focus(&runtime, "request-1");
+    }
+
+    #[test]
+    fn keyboard_response_views_and_scrolling_work_in_every_theme_at_minimum_size() {
+        for &theme in THEMES {
+            for scale in [1.0, 1.25, 1.5, 2.0] {
+                let mut state = State {
+                    theme: theme.to_owned(),
+                    ..State::default()
+                };
+                state.draft_mut().response = Some(Response {
+                    status: 200,
+                    reason: "OK",
+                    elapsed_ms: 5,
+                    bytes: 800,
+                    truncated: false,
+                    headers: "content-type: text/plain".into(),
+                    content_type: "text/plain".into(),
+                    body: "Sample response\n".repeat(50),
+                    pretty_body: None,
+                });
+                let mut runtime = Runtime::new(
+                    state,
+                    workspace::view,
+                    (640.0, 490.0),
+                    Env::new(theme != "Paper", scale),
+                );
+                runtime.frame(0.0);
+                click(&mut runtime, "edit-Parameters");
+                press(&mut runtime, Key::End);
+                assert_focus(&runtime, "edit-Auth");
+                assert_eq!(runtime.state.editor, "Auth");
+                click(&mut runtime, "view-body");
+                press(&mut runtime, Key::Right);
+                assert_focus(&runtime, "view-raw");
+                assert!(runtime.state.response_view == ResponseView::Raw);
+                press(&mut runtime, Key::End);
+                assert_focus(&runtime, "view-headers");
+                assert!(runtime.state.response_view == ResponseView::Headers);
+                press(&mut runtime, Key::Home);
+                assert_focus(&runtime, "view-body");
+                press(&mut runtime, Key::Tab);
+                assert_focus(&runtime, "copy");
+                press(&mut runtime, Key::Tab);
+                assert_focus(&runtime, "response-body");
+                assert_eq!(runtime.scroll_at_bottom("response-body"), Some(false));
+                press(&mut runtime, Key::End);
+                assert_eq!(runtime.scroll_at_bottom("response-body"), Some(true));
+                press(&mut runtime, Key::Home);
+                assert_eq!(runtime.scroll_at_bottom("response-body"), Some(false));
+            }
+        }
+    }
+
+    #[test]
+    fn keyboard_focus_stays_on_the_request_action_during_cancellation() {
+        let server = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        let mut state = State::default();
+        state.draft_mut().url = TextEdit::new(format!("http://{}", server.local_addr().unwrap()));
+        let mut runtime = Runtime::new(state, workspace::view, (640.0, 490.0), Env::new(true, 1.0));
+        runtime.frame(0.0);
+        click(&mut runtime, "url");
+        press(&mut runtime, Key::Tab);
+        assert_focus(&runtime, "request-action");
+        press(&mut runtime, Key::Enter);
+        assert!(runtime.state.active.is_some());
+        assert_focus(&runtime, "request-action");
+        press(&mut runtime, Key::Enter);
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
+        while !runtime.state.poll() {
+            assert!(
+                std::time::Instant::now() < deadline,
+                "request stopped responding"
+            );
+            std::thread::sleep(std::time::Duration::from_millis(5));
+        }
+        runtime.frame(0.0);
+        assert!(runtime.state.active.is_none());
+        assert!(
+            runtime
+                .state
+                .draft()
+                .outcome
+                .to_lowercase()
+                .contains("cancel")
+        );
+        assert_focus(&runtime, "request-action");
     }
 }
