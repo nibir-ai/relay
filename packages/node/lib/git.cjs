@@ -69,9 +69,9 @@ class GitStatuses {
     catch { throw new RelayError(409,'Configure Git user.name and user.email before changing a shared status.'); }
     if (!name || !email) throw new RelayError(409,'Configure Git user.name and user.email before changing a shared status.');
     this.locked(() => {
-      const row = {fingerprint,progress,updated_by:{name,email},updated_at:new Date().toISOString()};
-      const rows = {...this.read(),[id]:row};
-      atomic(this.file,{version:1,endpoints:rows});
+      const records = new Map(Object.entries(this.read()));
+      records.set(id,{fingerprint,progress,updated_by:{name,email},updated_at:new Date().toISOString()});
+      atomic(this.file,{version:1,endpoints:Object.fromEntries(records)});
     });
   }
 }
