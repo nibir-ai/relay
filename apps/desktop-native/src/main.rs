@@ -2,6 +2,7 @@
 #![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
 
 mod postman;
+mod response_body;
 mod transport;
 mod workspace;
 
@@ -13,12 +14,50 @@ const THEMES: &[&str] = &["Everblush", "One Dark", "Gruvbox", "Nord", "Paper"];
 const AUTH: &[&str] = &["None", "Bearer", "Basic", "API key"];
 const EDITORS: &[&str] = &["Parameters", "Headers", "Body", "Auth"];
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ResponseView {
+    Body,
+    Raw,
+    Headers,
+}
+
+impl ResponseView {
+    fn label(self) -> &'static str {
+        match self {
+            Self::Body => "Body",
+            Self::Raw => "Raw",
+            Self::Headers => "Headers",
+        }
+    }
+}
+
+struct Pair {
+    name: TextEdit,
+    value: TextEdit,
+}
+
+impl Pair {
+    fn new(name: &str, value: &str) -> Self {
+        Self {
+            name: TextEdit::new(name),
+            value: TextEdit::new(value),
+        }
+    }
+}
+
+struct RecentResult {
+    method: String,
+    status: u16,
+    elapsed_ms: u128,
+}
+
 struct Draft {
     id: u64,
+    name: TextEdit,
     method: String,
     url: TextEdit,
-    query: TextEdit,
-    headers: TextEdit,
+    query: Vec<Pair>,
+    headers: Vec<Pair>,
     body: TextEdit,
     auth: String,
     identity: TextEdit,
@@ -31,16 +70,26 @@ impl Draft {
     fn new(id: u64) -> Self {
         Self {
             id,
+            name: TextEdit::new(""),
             method: "GET".into(),
             url: TextEdit::new(""),
-            query: TextEdit::new(""),
-            headers: TextEdit::new("Accept: application/json"),
+            query: vec![Pair::new("", "")],
+            headers: vec![Pair::new("Accept", "application/json")],
             body: TextEdit::new(""),
             auth: "None".into(),
             identity: TextEdit::new(""),
             secret: TextEdit::new("").secure(),
             response: None,
             outcome: String::new(),
+        }
+    }
+
+    fn title(&self) -> String {
+        let title = self.name.text.trim();
+        if title.is_empty() {
+            format!("Request {}", self.id)
+        } else {
+            title.to_owned()
         }
     }
 
@@ -59,8 +108,8 @@ impl Draft {
         Ok(Request {
             method: self.method.clone(),
             url: self.url.text.to_string(),
-            query: self.query.text.to_string(),
-            headers: self.headers.text.to_string(),
+            query: request_pairs(&self.query),
+            headers: request_pairs(&self.headers),
             body: if matches!(self.method.as_str(), "GET" | "HEAD") {
                 String::new()
             } else {
@@ -71,6 +120,13 @@ impl Draft {
     }
 }
 
+fn request_pairs(rows: &[Pair]) -> Vec<(String, String)> {
+    rows.iter()
+        .filter(|row| !row.name.text.trim().is_empty() || !row.value.text.is_empty())
+        .map(|row| (row.name.text.clone(), row.value.text.clone()))
+        .collect()
+}
+
 struct State {
     drafts: Vec<Draft>,
     selected: usize,
@@ -78,10 +134,10 @@ struct State {
     theme: String,
     menu: Option<&'static str>,
     editor: &'static str,
-    show_headers: bool,
-    job: Latest<(u64, Result<Response, String>)>,
+    response_view: ResponseView,
+    job: Latest<(u64, String, Result<Response, String>)>,
     active: Option<(u64, Option<oneshot::Sender<()>>)>,
-    history: Vec<String>,
+    history: Vec<RecentResult>,
     notice: String,
     import_open: bool,
     import_text: TextEdit,
@@ -97,7 +153,7 @@ impl Default for State {
             theme: THEMES[0].into(),
             menu: None,
             editor: EDITORS[0],
-            show_headers: false,
+            response_view: ResponseView::Body,
             job: Latest::default(),
             active: None,
             history: Vec::new(),
@@ -133,7 +189,7 @@ impl State {
         }
         self.selected = index;
         self.editor = EDITORS[0];
-        self.show_headers = false;
+        self.response_view = ResponseView::Body;
         self.notice.clear();
     }
 
@@ -155,7 +211,7 @@ impl State {
             return;
         }
         self.notice.clear();
-        self.show_headers = false;
+        self.response_view = ResponseView::Body;
         let draft = self.draft_mut();
         draft.response = None;
         draft.outcome.clear();
@@ -167,11 +223,12 @@ impl State {
             }
         };
         let id = draft.id;
+        let method = request.method.clone();
         let (send, receive) = oneshot::channel();
         self.active = Some((id, Some(send)));
         self.job
             .request((request, receive), move |(request, receive)| {
-                (id, transport::execute(request, receive))
+                (id, method, transport::execute(request, receive))
             });
     }
 
@@ -184,7 +241,7 @@ impl State {
     }
 
     fn poll(&mut self) -> bool {
-        let Some((id, result)) = self.job.take() else {
+        let Some((id, method, result)) = self.job.take() else {
             return false;
         };
         self.active = None;
@@ -193,10 +250,11 @@ impl State {
                 Ok(response) => {
                     self.history.insert(
                         0,
-                        format!(
-                            "{}   {}   {} ms",
-                            draft.method, response.status, response.elapsed_ms
-                        ),
+                        RecentResult {
+                            method,
+                            status: response.status,
+                            elapsed_ms: response.elapsed_ms,
+                        },
                     );
                     self.history.truncate(12);
                     draft.outcome.clear();
@@ -212,7 +270,7 @@ impl State {
         let Some(response) = &self.draft().response else {
             return;
         };
-        let content = if self.show_headers {
+        let content = if self.response_view == ResponseView::Headers {
             &response.headers
         } else {
             &response.body
