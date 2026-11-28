@@ -229,7 +229,7 @@ mod tests {
         thread,
     };
 
-    fn serve(reply: &'static str) -> (String, thread::JoinHandle<String>) {
+    fn serve(reply: impl AsRef<[u8]> + Send + 'static) -> (String, thread::JoinHandle<String>) {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         let url = format!("http://{}/fixture", listener.local_addr().unwrap());
         let server = thread::spawn(move || {
@@ -244,7 +244,7 @@ mod tests {
                 assert_ne!(count, 0);
                 captured.extend_from_slice(&buffer[..count]);
             }
-            stream.write_all(reply.as_bytes()).unwrap();
+            stream.write_all(reply.as_ref()).unwrap();
             String::from_utf8(captured).unwrap()
         });
         (url, server)
@@ -300,6 +300,48 @@ mod tests {
         let (_sender, receiver) = oneshot::channel();
         let response = execute(request(url, Auth::Bearer("fixture".into())), receiver).unwrap();
         assert_eq!(response.status, 302);
+        server.join().unwrap();
+    }
+
+    #[test]
+    fn accepts_head_without_a_body_and_reports_an_interrupted_get() {
+        const REPLY: &str = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 25\r\nConnection: close\r\n\r\n";
+        let (url, server) = serve(REPLY);
+        let (_sender, receiver) = oneshot::channel();
+        let mut head = request(url, Auth::None);
+        head.method = "HEAD".into();
+        let response = execute(head, receiver).unwrap();
+        assert_eq!((response.status, response.bytes), (200, 0));
+        assert!(response.body.is_empty());
+        assert!(!response.truncated);
+        assert!(server.join().unwrap().starts_with("HEAD /fixture?"));
+
+        let (url, server) = serve(concat!(
+            "HTTP/1.1 200 OK\r\nContent-Length: 25\r\nConnection: close\r\n\r\n",
+            "partial"
+        ));
+        let (_sender, receiver) = oneshot::channel();
+        assert_eq!(
+            execute(request(url, Auth::None), receiver).err().as_deref(),
+            Some("The response ended before it could be read.")
+        );
+        server.join().unwrap();
+    }
+
+    #[test]
+    fn large_text_response_is_captured_up_to_the_preview_limit() {
+        let length = BODY_LIMIT + 1;
+        let mut reply = format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {length}\r\nConnection: close\r\n\r\n"
+        )
+        .into_bytes();
+        reply.resize(reply.len() + length, b'a');
+        let (url, server) = serve(reply);
+        let (_sender, receiver) = oneshot::channel();
+        let response = execute(request(url, Auth::None), receiver).unwrap();
+        assert_eq!(response.bytes, BODY_LIMIT);
+        assert_eq!(response.body.len(), BODY_LIMIT);
+        assert!(response.truncated);
         server.join().unwrap();
     }
 

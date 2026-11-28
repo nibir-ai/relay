@@ -1,5 +1,11 @@
 # Release verification
 
+## Native Windows request state
+
+The Auth tab shows the selected mode without exposing the credential value. While a request is running, other drafts offer a way back to the active draft. Its Send and Cancel action stays in the same position.
+
+All 16 Rust tests passed on Windows x64, including empty HEAD responses, interrupted messages and the 2 MiB preview limit. In the development window, separate user and admin bearer credentials each received HTTP 200 from their matching local routes. A fresh draft sent no credential and received HTTP 403 from the admin route. In the unpacked optimized build, switching drafts and returning to the active request let it be cancelled. A subsequent request returned HTTP 200. Interrupting the next response cleared the previous body and copy action and displayed the read failure.
+
 ## Native Windows keyboard workflow
 
 The request list has one Tab stop and supports arrow, Home and End navigation. Enter activates the focused action, and Send and Cancel share a focus target as a request changes state. Escape dismisses Postman import and returns focus to its trigger. The response body has a visible focus ring and accepts scrolling keys.
