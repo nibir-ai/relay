@@ -69,9 +69,9 @@ class GitStatuses {
     catch { throw new RelayError(409,'Configure Git user.name and user.email before changing a shared status.'); }
     if (!name || !email) throw new RelayError(409,'Configure Git user.name and user.email before changing a shared status.');
     this.locked(() => {
-      const rows = this.read();
-      rows[id] = {fingerprint,progress,updated_by:{name,email},updated_at:new Date().toISOString()};
-      atomic(this.file,{version:1,endpoints:rows});
+      const records = new Map(Object.entries(this.read()));
+      records.set(id,{fingerprint,progress,updated_by:{name,email},updated_at:new Date().toISOString()});
+      atomic(this.file,{version:1,endpoints:Object.fromEntries(records)});
     });
   }
 }
@@ -102,12 +102,13 @@ class StatusSync {
         }
         if (this.closed) return;
         const merged = this.shared.locked(() => {
-          const local=this.shared.read(), rows={...remote};
+          const local=this.shared.read(), records=new Map(Object.entries(remote));
           for (const [id,row] of Object.entries(local)) {
-            const previous=rows[id];
+            const previous=records.get(id);
             if (!previous || Date.parse(row.updated_at)>Date.parse(previous.updated_at) ||
-                (Date.parse(row.updated_at)===Date.parse(previous.updated_at) && canonical(row)>canonical(previous))) rows[id]=row;
+                (Date.parse(row.updated_at)===Date.parse(previous.updated_at) && canonical(row)>canonical(previous))) records.set(id,row);
           }
+          const rows=Object.fromEntries(records);
           if (canonical(rows)!==canonical(local)) atomic(this.shared.file,{version:1,endpoints:rows});
           return rows;
         });

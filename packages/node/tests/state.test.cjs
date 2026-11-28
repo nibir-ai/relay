@@ -58,6 +58,21 @@ test('Restart persistence, contract changes and invalid metadata',async t=> {
   restarted.sync({...snapshot,endpoints:[]}); assert.equal(restarted.read().endpoints['GET /test'].active,0);
   fs.writeFileSync(file,'broken'); assert.throws(()=>new Workspace(file),/invalid/);
 });
+test('Shared statuses only decorate endpoint rows already stored in the workspace',async()=> {
+  const snapshot=normalize(spec());
+  const endpoint=snapshot.endpoints[0];
+  const saved={fingerprint:endpoint.fingerprint,progress:'in_progress',updated_by:{name:'Reviewer',email:'reviewer@example.com'},updated_at:'2026-01-01T00:00:00Z'};
+  const store=new Workspace(null,{read:()=>({'GET /test':saved,'GET /future':saved})});
+  store.sync(snapshot);
+  await store.update({endpoint_id:endpoint.id,fingerprint:endpoint.fingerprint,note:'Local note'});
+  const {endpoints}=store.read();
+  assert.deepEqual(Object.keys(endpoints),['GET /test']);
+  assert.equal(endpoints[endpoint.id].progress,'in_progress');
+  assert.deepEqual(endpoints[endpoint.id].updated_by,saved.updated_by);
+  assert.equal(endpoints[endpoint.id].note,'Local note');
+  Object.setPrototypeOf(store.rows,{'GET /future':{active:1,fingerprint:endpoint.fingerprint}});
+  await assert.rejects(store.update({endpoint_id:'GET /future',fingerprint:endpoint.fingerprint,note:'Unavailable'}),{status:404});
+});
 test('OpenAPI references, parameter overrides and deterministic contract fingerprints',()=> {
   const raw=spec(); raw.components={schemas:{Tree:{type:'object',properties:{children:{type:'array',items:{$ref:'#/components/schemas/Tree'}}}}}};
   raw.paths['/test'].parameters=[{in:'query',name:'limit',schema:{type:'integer'}}];
