@@ -1,5 +1,9 @@
 # Release verification
 
+## Node shared status records
+
+Shared Git status metadata is applied only to endpoint records stored in the Node workspace. The metadata format and merge ordering remain compatible. All 35 Node tests passed, including independent Git peers merging through a local bare remote and the workspace rejecting updates to unknown endpoints. A fresh npm consumer installed the packed candidate and verified request execution, bundled assets, TypeScript declarations and the CLI. The full pnpm audit reported zero known advisories.
+
 ## Windows beta request workspace redesign
 
 The redesigned Rune workspace has named requests, editable parameter and header rows, status and timing in the response toolbar, and separate formatted, raw and header views. The optimized Windows executable built and its native window opened. A scripted Rune interaction against a real loopback server sent a named request with its parameter, received HTTP 200 and rendered the JSON response at both 1120 × 720 and 640 × 490 points. Seven Rust tests passed, including exact JSON formatting and transport regression tests. The installer and full Windows accessibility and scaling checks remain open.

@@ -50,7 +50,7 @@ class Workspace {
   validate(payload) {
     if (!object(payload) || typeof payload.endpoint_id!=='string' || typeof payload.fingerprint!=='string' || !/^[a-f0-9]{64}$/.test(payload.fingerprint) ||
         (payload.progress!==undefined && !PROGRESS.has(payload.progress)) || (payload.note!==undefined && (typeof payload.note!=='string' || payload.note.length>4000))) throw new RelayError(422,'Invalid endpoint status update.');
-    const row=this.rows[payload.endpoint_id];
+    const row=Object.hasOwn(this.rows,payload.endpoint_id) ? this.rows[payload.endpoint_id] : undefined;
     if (!row?.active) throw new RelayError(404,'Endpoint is no longer active. Sync and try again.');
     if (row.fingerprint!==payload.fingerprint) throw new RelayError(409,'The contract changed. Sync before updating progress.');
   }
@@ -73,7 +73,7 @@ class Workspace {
     const endpoints=structuredClone(this.rows);
     for (const row of Object.values(endpoints)) { delete row.contract_sections; row.contract_changed=Boolean(row.contract_changed); row.changed_sections ??=[]; }
     if (this.shared) for (const [id,saved] of Object.entries(this.shared.read())) {
-      if (!endpoints[id]) continue;
+      if (!Object.hasOwn(endpoints,id)) continue;
       const row=endpoints[id]; row.contract_changed=row.fingerprint!==saved.fingerprint;
       row.progress=row.contract_changed && saved.progress==='done'?'needs_fixing':saved.progress;
       row.updated_by=saved.updated_by; row.updated_at=saved.updated_at;
