@@ -1,5 +1,9 @@
 # Release verification
 
+## Windows beta request workspace redesign
+
+The redesigned Rune workspace has named requests, editable parameter and header rows, status and timing in the response toolbar, and separate formatted, raw and header views. The optimized Windows executable built and its native window opened. A scripted Rune interaction against a real loopback server sent a named request with its parameter, received HTTP 200 and rendered the JSON response at both 1120 × 720 and 640 × 490 points. Seven Rust tests passed, including exact JSON formatting and transport regression tests. The installer and full Windows accessibility and scaling checks remain open.
+
 ## Native Windows beta workspace
 
 The locked Rust build and release build passed on Windows x64. Six tests exercised real loopback HTTP, Bearer/Basic/API-key headers, repeated query parameters, exact response text, non-followed redirects, cancellation, bounded Postman import and Rune controls at the minimum window size. The focused URL field has a regression check for Ctrl+Enter. The native development window completed a real HTTPS request and displayed its HTML as text, with status and timing in the response pane.

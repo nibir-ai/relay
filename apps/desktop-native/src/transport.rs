@@ -16,8 +16,8 @@ pub enum Auth {
 pub struct Request {
     pub method: String,
     pub url: String,
-    pub query: String,
-    pub headers: String,
+    pub query: Vec<(String, String)>,
+    pub headers: Vec<(String, String)>,
     pub body: String,
     pub auth: Auth,
 }
@@ -29,18 +29,17 @@ pub struct Response {
     pub bytes: usize,
     pub truncated: bool,
     pub headers: String,
+    pub content_type: String,
     pub body: String,
+    pub pretty_body: Option<crate::response_body::JsonPreview>,
 }
 
-fn request_headers(raw: &str) -> Result<header::HeaderMap, String> {
-    if raw.len() > 32768 || raw.lines().count() > 100 {
+fn request_headers(rows: &[(String, String)]) -> Result<header::HeaderMap, String> {
+    if rows.len() > 100 || pair_bytes(rows) > 32768 {
         return Err("Use at most 100 headers and 32 KiB of header text.".into());
     }
     let mut result = header::HeaderMap::new();
-    for line in raw.lines().filter(|line| !line.trim().is_empty()) {
-        let (name, value) = line
-            .split_once(':')
-            .ok_or("Use Name: value for each header.")?;
+    for (name, value) in rows {
         insert_header(&mut result, name, value)?;
     }
     Ok(result)
@@ -66,7 +65,13 @@ fn insert_header(headers: &mut header::HeaderMap, name: &str, value: &str) -> Re
     Ok(())
 }
 
-fn request_url(raw: &str, query: &str) -> Result<Url, String> {
+fn pair_bytes(rows: &[(String, String)]) -> usize {
+    rows.iter()
+        .map(|(key, value)| key.len() + value.len())
+        .sum()
+}
+
+fn request_url(raw: &str, query: &[(String, String)]) -> Result<Url, String> {
     let mut url = Url::parse(raw.trim()).map_err(|_| "Enter a complete HTTP or HTTPS URL.")?;
     if !matches!(url.scheme(), "http" | "https") || url.host().is_none() {
         return Err("Only HTTP and HTTPS URLs are supported.".into());
@@ -74,10 +79,7 @@ fn request_url(raw: &str, query: &str) -> Result<Url, String> {
     if !url.username().is_empty() || url.password().is_some() {
         return Err("Put credentials in the Auth panel.".into());
     }
-    for line in query.lines().filter(|line| !line.trim().is_empty()) {
-        let (key, value) = line
-            .split_once('=')
-            .ok_or("Use name=value for each parameter.")?;
+    for (key, value) in query {
         if key.trim().is_empty() {
             return Err("Each query parameter needs a name.".into());
         }
@@ -111,7 +113,7 @@ async fn send(request: Request) -> Result<Response, String> {
         return Err("Choose a supported HTTP method.".into());
     }
     if request.body.len() > BODY_LIMIT
-        || request.url.len().saturating_add(request.query.len()) > 8192
+        || request.url.len().saturating_add(pair_bytes(&request.query)) > 8192
     {
         return Err("Use a URL under 8 KiB and a body under 2 MiB.".into());
     }
@@ -169,6 +171,14 @@ async fn send(request: Request) -> Result<Response, String> {
         }
     })?;
     let status = incoming.status();
+    let content_type = incoming
+        .headers()
+        .get(header::CONTENT_TYPE)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| value.split(';').next())
+        .unwrap_or_default()
+        .trim()
+        .to_owned();
     let headers = incoming
         .headers()
         .iter()
@@ -189,6 +199,14 @@ async fn send(request: Request) -> Result<Response, String> {
             break;
         }
     }
+    let body = String::from_utf8_lossy(&bytes).into_owned();
+    let media_type = content_type.to_ascii_lowercase();
+    let pretty_body =
+        if !truncated && (media_type == "application/json" || media_type.ends_with("+json")) {
+            crate::response_body::pretty_json(&body)
+        } else {
+            None
+        };
     Ok(Response {
         status: status.as_u16(),
         reason: status.canonical_reason().unwrap_or(""),
@@ -196,7 +214,9 @@ async fn send(request: Request) -> Result<Response, String> {
         bytes: bytes.len(),
         truncated,
         headers,
-        body: String::from_utf8_lossy(&bytes).into_owned(),
+        content_type,
+        body,
+        pretty_body,
     })
 }
 
@@ -234,8 +254,8 @@ mod tests {
         Request {
             method: "GET".into(),
             url,
-            query: "tag=one\ntag=two".into(),
-            headers: "Accept: application/json".into(),
+            query: vec![("tag".into(), "one".into()), ("tag".into(), "two".into())],
+            headers: vec![("Accept".into(), "application/json".into())],
             body: String::new(),
             auth,
         }
